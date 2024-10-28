@@ -1,5 +1,25 @@
 {
-    "content" : {
-         "text": "This is text"
-    }
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "hospital": "Hospital",
+    "cooperate": "Contact cooperate",
+    "docter": "Docter",
+    "user": "User"
+  },
+  "menu": {
+    "text": "This is text",
+    "news": "News",
+    "title": "Title"
+  },
+  "actions": {
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "dashboard": {
+    "title": "Welcome to your dashboard"
+  },
+  "cooperate": {
+    "title": "s"
+  }
 }

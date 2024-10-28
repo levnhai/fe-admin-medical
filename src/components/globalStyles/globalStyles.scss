@@ -1,0 +1,107 @@
+// @import 'normalize.css';
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+:root {
+  --primary-color: #fe2c55;
+  --white-color: #fff;
+  --black-color: #333;
+  --blue-color: #00b5f1;
+  --yellow-color: #ffb54a;
+  --text-color: #333;
+  --font-family: Roboto, serif !important;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: 1.6rem;
+  font-weight: 300;
+  line-height: 1.5;
+  text-rendering: optimizeSpeed; // tối ưu hóa tốc độ khi tải font-family
+  overflow-y: overlay;
+  overflow-x: hidden;
+  min-height: 100%;
+  user-select: none;
+}
+
+// Scrollbar css
+html *::-webkit-scrollbar {
+  border-radius: 0;
+  width: 8px;
+}
+
+html *::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(22, 24, 35, 0.06);
+}
+
+html *::-webkit-scrollbar-track {
+  border-radius: 0;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+button,
+input,
+[tabindex] {
+  border: none;
+  outline: none;
+}
+
+a {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+li {
+  list-style-type: none;
+}
+
+ul {
+  list-style: none;
+}
+
+//Fonts emmbeded
+@font-face {
+  font-family: Roboto;
+  src: url('/assets/fonts/Roboto-Regular.ttf');
+  font-weight: 400;
+}
+@font-face {
+  font-family: Roboto;
+  src: url('/assets/fonts/Roboto-Bold.ttf');
+  font-weight: 700;
+}
+
+body {
+  // custom tippy
+  .tippy-box {
+    border-radius: 8px;
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 2.2rem;
+    background-color: rgba(84, 84, 84, 0.92);
+  }
+
+  .tippy-content {
+    padding: 8px 9px;
+  }
+
+  .tippy-arrow {
+    color: rgba(84, 84, 84, 0.92);
+  }
+}

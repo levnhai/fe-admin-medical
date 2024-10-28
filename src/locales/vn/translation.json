@@ -1,5 +1,25 @@
 {
-  "content": {
-    "text": "đây là test"
+  "sidebar": {
+    "dashboard": "Trang chủ",
+    "hospital": "Bệnh viện",
+    "cooperate": "Liên hệ hợp tác",
+    "docter": "Bác sĩ",
+    "user": "Người dùng"
+  },
+  "menu": {
+    "text": "đây là test",
+    "news": "Tin tức",
+    "title": "Tiêu đề"
+  },
+  "actions": {
+    "add": "Thêm",
+    "edit": "Sửa",
+    "delete": "Xóa"
+  },
+  "dashboard": {
+    "title": "Chào mừng bạn đến trang chủ"
+  },
+  "cooperate": {
+    "title": "Hợp tác tối ưu, giải pháp cho tương lai "
   }
 }

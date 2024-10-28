@@ -1,0 +1,38 @@
+.tab__nav {
+  flex-direction: column;
+  width: 280px;
+  flex: 1;
+}
+
+.tab__nav--title {
+  padding: 13px 20px;
+  margin-bottom: 8px;
+  background: linear-gradient(84.69deg, var(--blue-color) 33.56%, #00e0ff 111.25%);
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 400;
+}
+
+.tab__nav--item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 13px 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+}
+
+.tab__nav--item + .tab__nav--item {
+  margin-top: 4px;
+}
+
+.react-tabs__tab--selected {
+  border-left: 3px solid var(--blue-color);
+  color: var(--blue-color);
+}
+
+.react-tabs__tab-panel {
+  flex: 3;
+}
