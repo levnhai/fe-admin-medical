@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 // import authReducer from '../redux/user/authSlice';
 import { persistStore, persistReducer } from 'redux-persist';
-import userSlice from './user/userSlice';
-import newSlice from './news/newsSlice';
 import storage from 'redux-persist/lib/storage';
 import { FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import { encryptTransform } from 'redux-persist-transform-encrypt';
+
+import userSlice from './user/userSlice';
+import newSlice from './news/newsSlice';
+import locationSlice from './location/locationSlice';
 
 // const persistConfig = {
 //   key: 'auth',
@@ -20,6 +22,7 @@ const Store = configureStore({
   reducer: {
     user: userSlice,
     news: newSlice,
+    location: locationSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
