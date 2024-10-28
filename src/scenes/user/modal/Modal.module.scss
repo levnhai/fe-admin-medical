@@ -50,12 +50,19 @@
   color: #2c3e50;
   text-align: center;
 }
+.input--item--create {
+  margin-top: -20px;
+  margin-bottom: -20px;
+}
 
 .input--item {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   gap: 30px;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  
 
   div {
     width: 100%;
@@ -182,9 +189,9 @@
 .deleteBtn {
   cursor: pointer;
   font-weight: 600;
-  padding: 15px 52px;
+  padding: 10px 32px;
   border-radius: 12px;
-  font-size: 1.4rem;
+  font-size: 1rem;
   border: none;
   color: #fff;
   background: #ff3e4e;
@@ -200,9 +207,9 @@
 .cancelBtn {
   cursor: pointer;
   font-weight: 500;
-  padding: 15px 52px;
+  padding: 10px 32px;
   border-radius: 12px;
-  font-size: 1.4rem;
+  font-size: 1rem;
   border: none;
   color: #2c3e50;
   background: #fcfcfc;

@@ -1,83 +1,118 @@
 import React, { useState } from 'react';
 import { RiCloseLine } from 'react-icons/ri';
-// import userServices from '~/services/userServices';
 import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
+import { fetchEditUser, fetchCheckPhone } from '~/redux/user/userSlice';
 import { regexPhoneNumber } from '~/utils/common';
-
 import className from 'classnames/bind';
 import styles from './Modal.module.scss';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const cx = className.bind(styles);
 
-function EditUser({ setShowModalEdit, getAllUser, user }) {
+function EditUser({ setShowModalEdit, handleGetAllUser, user }) {
+  const dispatch = useDispatch();
+
   const [formData, setFormData] = useState({
-    id: `${user._id}`,
-    phoneNumber: `${user.phoneNumber}`,
-    fullName: `${user.fullName}`,
-    // password: `${user.password}`,
-    // reEnterPassword: `${user.phoneNumber}`,
-    referralCode: `${user.referralCode}`,
+    id: user._id || '',
+    phoneNumber: user.phoneNumber || '',
+    fullName: user.fullName || '',
+    email: user.email || '',
+    referralCode: user.referralCode || '',
   });
 
   const [messagesError, setMessageError] = useState({
-    id: '',
     phoneNumber: '',
     fullName: '',
-    password: '',
-    reEnterPassword: '',
+    email: ''
   });
 
   const handleOnchange = (e) => {
-    setMessageError({});
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error message when user starts typing
+    setMessageError(prev => ({
+      ...prev,
+      [name]: ''
+    }));
   };
 
-  // validate form input
   const validateForm = () => {
-    // validate input phone number
+    let isValid = true;
+    const newErrors = {};
+
+    // Validate phone number
     if (formData.phoneNumber.trim() === '') {
-      setMessageError({ ...messagesError, phoneNumber: 'Vui lòng số điện thoại' });
-      return false;
+      newErrors.phoneNumber = 'Vui lòng nhập số điện thoại';
+      isValid = false;
+    } else if (!regexPhoneNumber(formData.phoneNumber)) {
+      newErrors.phoneNumber = 'Vui lòng nhập đúng định dạng số điện thoại';
+      isValid = false;
     }
 
-    if (!regexPhoneNumber(formData.phoneNumber)) {
-      setMessageError({ ...messagesError, phoneNumber: 'Vui lòng nhập đúng định dạng' });
-      return false;
-    }
-
-    // validate input fullName
+    // Validate full name
     if (formData.fullName.trim() === '') {
-      setMessageError({ ...messagesError, fullName: 'Vui lòng nhập họ tên' });
-      return false;
+      newErrors.fullName = 'Vui lòng nhập họ tên';
+      isValid = false;
     }
 
-    return true;
+    // Validate email
+    if (formData.email.trim() !== '' && !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      newErrors.email = 'Vui lòng nhập đúng định dạng email';
+      isValid = false;
+    }
+
+    setMessageError(newErrors);
+    return isValid;
   };
 
-  // handle onClick submit btn edit User
   const handleSubmitEditUser = async (e) => {
-    // e.preventDefault();
-    try {
-      let isValidateForm = validateForm();
+    e.preventDefault();
 
-      if (isValidateForm) {
-        // let data = await userServices.editUser(formData);
-        // if (data.data.errCode === 0) {
-        //   getAllUser();
-        //   setShowModalEdit(false);
-        //   toast.success(data.data.errMessage);
-        // } else {
-        //   toast.error(data.data.errMessage);
-        // }
-      }
-    } catch (error) {
-      toast.error(error);
+    if (!validateForm()) {
+      return;
     }
-  };
+
+    try {
+      const response = await dispatch(fetchEditUser({
+        userId: formData.id,
+        userData: formData
+      })).unwrap();
+    
+      toast.success('Cập nhật thông tin thành công');
+      handleGetAllUser();
+      setShowModalEdit(false);
+    } catch (error) {
+      // Log ra để debug
+      console.log('Error object:', error);
+      
+      // Lấy message từ error.result hoặc error
+      const errorMessage = error?.result?.message || error?.message || 'Có lỗi xảy ra, vui lòng thử lại sau';
+      
+      if (errorMessage === 'Email đã tồn tại') {
+        setMessageError(prev => ({
+          ...prev,
+          email: 'Email đã tồn tại trong hệ thống'
+        }));
+      } else if (errorMessage === 'Số điện thoại đã tồn tại') {
+        setMessageError(prev => ({
+          ...prev,
+          phoneNumber: 'Số điện thoại đã tồn tại trong hệ thống' 
+        }));
+      } else {
+        toast.error(errorMessage);
+      }
+    }
+};
 
   return (
     <>
       <div className={cx('darkBG')} onClick={() => setShowModalEdit(false)} />
+      <ToastContainer />
       <div className={cx('centered')}>
         <div className={cx('modal')}>
           <div className={cx('modalHeader')}>
@@ -121,7 +156,17 @@ function EditUser({ setShowModalEdit, getAllUser, user }) {
                 />
                 <small className={cx('text--danger')}>{messagesError.fullName}</small>
               </div>
-
+              <div className={cx('input--item')}>
+                <input
+                  type="text"
+                  placeholder="Nhập email"
+                  name="email"
+                  className={cx('customInput')}
+                  value={formData.email}
+                  onChange={handleOnchange}
+                />
+                <small className={cx('text--danger')}>{messagesError.email}</small>
+              </div>
               <div className={cx('input--item')}>
                 <input
                   type="text"

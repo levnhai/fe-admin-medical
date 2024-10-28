@@ -22,25 +22,87 @@ const User = () => {
 
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
-  const [showModalEdit, setShowModalEdit] = useState();
+  const [showModalEdit, setShowModalEdit] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState();
-  const [editUser, setEditUser] = useState({});
+  const [editUser, setEditUser] = useState(null);
+  const [createUser, setCreateUser] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState([]);
 
   const userData = useSelector((state) => state.user.userData);
   const isLoading = useSelector((state) => state.user.loading);
+
+  // Hàm chuyển đổi chuỗi thành không dấu
+  const removeAccents = (str) => {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  };
+  // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
+  const filteredUsers = userData?.user?.filter(user => {
+    if (!searchTerm) return true;
+    
+    const searchValue = removeAccents(searchTerm.toLowerCase().trim());
+    
+    // Xử lý trường hợp giá trị null/undefined
+    const fullName = removeAccents(user.fullName?.toLowerCase() || '');
+    const phoneNumber = removeAccents(user.phoneNumber?.toLowerCase() || '');
+    
+    return fullName.includes(searchValue) || 
+          phoneNumber.includes(searchValue);
+  }) || [];
+
+  // Handle select all checkbox
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const allUserIds = filteredUsers.map(user => user._id);
+      setSelectedUsers(allUserIds);
+    } else {
+      setSelectedUsers([]);
+    }
+  };
+
+   // Handle individual checkbox
+   const handleSelectUser = (userId) => {
+    setSelectedUsers(prev => {
+      if (prev.includes(userId)) {
+        return prev.filter(id => id !== userId);
+      } else {
+        return [...prev, userId];
+      }
+    });
+  };
+
+  // Check if all filtered users are selected
+  const isAllSelected = filteredUsers.length > 0 && 
+                       filteredUsers.every(user => selectedUsers.includes(user._id));
 
   const handleDeleteUser = (userId) => {
     setShowModalDelete(true);
     setDeleteUserId(userId);
   };
   const handleEditUser = (userId) => {
-    console.log('check user id', userId);
+    const userToEdit = userData?.user?.find((user) => user._id === userId);
+    if (userToEdit) {
+      setEditUser(userToEdit);
+      setShowModalEdit(true);
+    }
   };
-
-  const handleCreateUser = (userId) => {
-    console.log('check user id', userId);
+  // const handleCreateUser = () => {
+  //   setShowModalCreate(true);
+  // };
+  // const saveEditUser = () => {
+  //   dispatch(editUser(editUser));
+  //   setShowModalEdit(false);
+  // };
+  // const saveCreateUser = () => {
+  //   dispatch(createUser(createUser));
+  //   setShowModalCreate(false);
+  // };  
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    // Reset selected users when search term changes
+    setSelectedUsers([]);
   };
-
   useEffect(() => {
     console.log('check hải kê');
     dispatch(fetchAllUsers());
@@ -142,6 +204,8 @@ const User = () => {
               id="table-search-users"
               class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="Search for users"
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
           </div>
         </div>
@@ -154,6 +218,8 @@ const User = () => {
                     id="checkbox-all-search"
                     type="checkbox"
                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    checked={isAllSelected}
+                    onChange={handleSelectAll}
                   />
                   <label for="checkbox-all-search" class="sr-only">
                     checkbox
@@ -179,7 +245,7 @@ const User = () => {
           </thead>
           {userData && userData?.user.length > 0 ? (
             <tbody>
-              {userData?.user?.map((item, index) => {
+              {filteredUsers.map((item, index) => {
                 return (
                   <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                     <td class="w-4 p-4">
@@ -188,6 +254,8 @@ const User = () => {
                           id="checkbox-table-search-1"
                           type="checkbox"
                           class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                          checked={selectedUsers.includes(item._id)}
+                          onChange={() => handleSelectUser(item._id)}
                         />
                         <label for="checkbox-table-search-1" class="sr-only">
                           checkbox
@@ -212,22 +280,26 @@ const User = () => {
                         {item.createdAt}
                       </a>
                     </td>
-                    <td class="flex gap-y-1 px-6 py-4">
-                      <button
-                        onClick={() => {
-                          handleEditUser(item?._id);
-                        }}
-                      >
-                        <CiEdit />
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleDeleteUser(item?._id);
-                        }}
-                      >
-                        <AiOutlineDelete />
-                      </button>
-                    </td>
+                    <td className="flex gap-y-1 px-6 py-4">
+                    <button
+                      className="button-edit"
+                      onClick={() => {
+                        handleEditUser(item?._id);
+                      }}
+                    >
+                      <CiEdit />
+                    </button>
+                    <span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <button
+                      className="button-delete"
+                      onClick={() => {
+                        handleDeleteUser(item?._id);
+                      }}
+                    >
+                      <AiOutlineDelete />
+                    </button>
+                  </td>
+
                   </tr>
                 );
               })}

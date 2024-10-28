@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { RiCloseLine } from 'react-icons/ri';
 import { toast } from 'react-toastify';
 import { FormProvider, useForm } from 'react-hook-form';
+import { useDispatch } from 'react-redux';
+import { fetchCreateUser } from '~/redux/user/userSlice';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // import userServise from '~/services/userServices';
 import className from 'classnames/bind';
@@ -12,9 +16,9 @@ import { password_validation, name_validation, phone_validation } from '~/utils/
 
 const cx = className.bind(styles);
 
-function CreateUser({ setShowModalCreate, getAllUser }) {
+function CreateUser({ setShowModalCreate, handleGetAllUser }) {
   const methods = useForm();
-
+  const dispatch = useDispatch();
   const [showHidePassword, setShowHidePassword] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState(true);
 
@@ -27,23 +31,30 @@ function CreateUser({ setShowModalCreate, getAllUser }) {
   };
 
   const handleSubmitCreateUser = methods.handleSubmit(async (formData) => {
+    // Validate passwords match
+    if (formData.password !== formData.reEnterPassword) {
+      toast.error("Passwords don't match!");
+      return;
+    }
+
     try {
-      // let data = await userServise.handleCreateUser(formData);
-      // if (data.errCode === 0 && data.userData) {
-      //   getAllUser();
-      //   setShowModalCreate(false);
-      //   toast.success(`${data.messageError}`);
-      // } else {
-      //   toast.error(data.messageError);
-      // }
+      const response = await dispatch(fetchCreateUser(formData)).unwrap();
+      if (response) {
+        toast.success('User created successfully!');
+        handleGetAllUser();
+        setShowModalCreate(false);
+      }
     } catch (error) {
-      toast.error(error);
+      const errorMessage = error.response?.data?.message || 'Số điện thoại đã tồn tại' || 'Không thể tạo người dùng';
+        toast.error(errorMessage);
     }
   });
+
 
   return (
     <>
       <div className={cx('darkBG')} onClick={() => setShowModalCreate(false)} />
+      <ToastContainer />
       <div className={cx('centered')}>
         <div className={cx('modal')}>
           <div className={cx('modalHeader')}>
@@ -55,22 +66,22 @@ function CreateUser({ setShowModalCreate, getAllUser }) {
           <div className={cx('modalContent')}>
             <div className={cx('wrapper--input')}>
               <FormProvider {...methods}>
-                <div className={cx('input--item')}>
+                <div className={cx('input--item-create')}>
                   <Input {...phone_validation} />
                 </div>
-                <div className={cx('input--item')}>
+                <div className={cx('input--item-create')}>
                   <Input {...name_validation} />
                 </div>
-                <div className={cx('input--item')}>
-                  <Input type={showHidePassword ? 'password' : ' text'} {...password_validation} />
+                <div className={cx('input--item-create')}>
+                  <Input type={showHidePassword ? 'password' : 'text'} {...password_validation} />
                   <span
-                    onClick={handleShowHidePassword}
-                    style={{ position: 'absolute', right: '14px', top: '53%', fontSize: '20px', cursor: 'pointer' }}
+                      onClick={handleShowHidePassword}
+                      style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-300%)', fontSize: '20px', cursor: 'pointer' }}
                   >
-                    {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                      {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                   </span>
-                </div>
-                <div className={cx('input--item')}>
+              </div>
+                <div className={cx('input--item-create')}>
                   <Input
                     validation={{
                       required: {
@@ -86,12 +97,12 @@ function CreateUser({ setShowModalCreate, getAllUser }) {
                   />
                   <span
                     onClick={handleShowHideReEnterPassword}
-                    style={{ position: 'absolute', right: '14px', top: '53%', fontSize: '20px', cursor: 'pointer' }}
+                    style={{ position: 'absolute', right: '14px', top: '53%', transform: 'translateY(-10%)', fontSize: '20px', cursor: 'pointer' }}
                   >
                     {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                   </span>
                 </div>
-                <div className={cx('input--item')}>
+                <div className={cx('input--item-create')}>
                   <Input
                     label=""
                     type="text"
