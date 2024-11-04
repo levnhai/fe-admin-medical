@@ -22,7 +22,7 @@ export const name_validation = {
 
 export const desc_validation = {
   name: 'description',
-  label: 'description',
+  label: '',
   multiline: true,
   id: 'description',
   placeholder: 'Please enter your description...',
@@ -31,6 +31,20 @@ export const desc_validation = {
       value: true,
       message: 'required',
     },
+    maxLength: {
+      value: 500,
+      message: '200 characters max',
+    },
+  },
+};
+
+export const street_validation = {
+  name: 'street',
+  label: '',
+  id: 'street',
+  placeholder: 'Please enter your street...',
+  validation: {
+    required: {},
     maxLength: {
       value: 200,
       message: '200 characters max',
@@ -72,10 +86,10 @@ export const num_validation = {
 
 export const email_validation = {
   name: 'email',
-  label: 'email address',
+  label: '',
   type: 'email',
   id: 'email',
-  placeholder: 'write a random email address',
+  placeholder: 'Please enter your email...',
   validation: {
     required: {
       value: true,

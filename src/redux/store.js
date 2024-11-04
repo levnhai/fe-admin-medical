@@ -8,6 +8,8 @@ import { encryptTransform } from 'redux-persist-transform-encrypt';
 import userSlice from './user/userSlice';
 import newSlice from './news/newsSlice';
 import locationSlice from './location/locationSlice';
+import docterSlice from './docter/docterSlice';
+import hospitalSlice from './hospital/hospitalSlice';
 
 // const persistConfig = {
 //   key: 'auth',
@@ -23,6 +25,8 @@ const Store = configureStore({
     user: userSlice,
     news: newSlice,
     location: locationSlice,
+    docter: docterSlice,
+    hospital: hospitalSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

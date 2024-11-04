@@ -1,20 +1,21 @@
 import { useTheme } from '@mui/material';
 import { useState, useEffect } from 'react';
-
+import { Buffer } from 'buffer';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
 
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
 
-import { fetchAllUsers } from '~/redux/user/userSlice';
-import DeleteUser from './modal/deleteUser';
-import CreateUser from './modal/createUser';
-import EditUser from './modal/editUser';
+import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
+import DeleteHospital from './modal/deleteHospital';
+import CreateHospital from './modal/createHospital';
+import EditDocter from './modal/editHospital';
 
-const User = () => {
+const Hospital = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const { t } = useTranslation();
@@ -24,21 +25,23 @@ const User = () => {
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState();
-  const [editUser, setEditUser] = useState(null);
-  const [createUser, setCreateUser] = useState({});
+  const [editDocter, setEditDocter] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
 
-  const userData = useSelector((state) => state.user.userData);
-  const isLoading = useSelector((state) => state.user.loading);
+  const hospitalData = useSelector((state) => state.hospital.hospitalData);
+
+  console.log('check hospitalData', hospitalData);
+  const isLoading = useSelector((state) => state.hospital.loading);
 
   // Hàm chuyển đổi chuỗi thành không dấu
   const removeAccents = (str) => {
     return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   };
+
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
-    userData?.user?.filter((user) => {
+    hospitalData?.data?.filter((user) => {
       if (!searchTerm) return true;
 
       const searchValue = removeAccents(searchTerm.toLowerCase().trim());
@@ -50,7 +53,7 @@ const User = () => {
       return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
     }) || [];
 
-  // chọn tất cả
+  // Handle select all checkbox
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       const allUserIds = filteredUsers.map((user) => user._id);
@@ -74,14 +77,15 @@ const User = () => {
   // Check if all filtered users are selected
   const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
-  const handleDeleteUser = (userId) => {
+  const handleDeleteHospital = (docterId) => {
     setShowModalDelete(true);
-    setDeleteUserId(userId);
+    setDeleteUserId(docterId);
   };
-  const handleEditUser = (userId) => {
-    const userToEdit = userData?.user?.find((user) => user._id === userId);
-    if (userToEdit) {
-      setEditUser(userToEdit);
+  const handleEditDocter = (docterId) => {
+    const docterEdit = hospitalData?.data?.find((docter) => docter._id === docterId);
+    console.log('check docter edit', docterEdit);
+    if (docterEdit) {
+      setEditDocter(docterEdit);
       setShowModalEdit(true);
     }
   };
@@ -93,12 +97,12 @@ const User = () => {
     setSelectedUsers([]);
   };
   useEffect(() => {
-    dispatch(fetchAllUsers());
+    dispatch(fetchAllHospital());
   }, []);
 
   return (
     <div class="m-5">
-      <Header title="Quản lý người dùng" subtitle="Khách hàng tin tưởng, tôi cho bạn sức khỏe" />
+      <Header title="Quản lý Bệnh viện" subtitle="subtitle bệnh viện" />
       <div class="flex justify-end">
         <button
           type="button"
@@ -136,29 +140,29 @@ const User = () => {
               </svg>
             </button>
             <div
-              id="dropdownActionButton"
+              id="dropdownAction"
               class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
             >
               <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownActionButton">
                 <li>
-                  <a href="/#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                     Reward
                   </a>
                 </li>
                 <li>
-                  <a href="/#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                     Promote
                   </a>
                 </li>
                 <li>
-                  <a href="/#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                     Activate account
                   </a>
                 </li>
               </ul>
               <div class="py-1">
                 <a
-                  href="/#"
+                  href="#"
                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                 >
                   Delete User
@@ -191,12 +195,13 @@ const User = () => {
               type="text"
               id="table-search-users"
               class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Search for users"
+              placeholder="Search for hospital..."
               value={searchTerm}
               onChange={handleSearchChange}
             />
           </div>
         </div>
+
         <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
@@ -221,6 +226,18 @@ const User = () => {
                 Phone number
               </th>
               <th scope="col" class="px-6 py-3">
+                Gender
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Position
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Price
+              </th>
+              <th scope="col" class="px-6 py-3">
+                rating
+              </th>
+              <th scope="col" class="px-6 py-3">
                 Status
               </th>
               <th scope="col" class="px-6 py-3">
@@ -231,11 +248,22 @@ const User = () => {
               </th>
             </tr>
           </thead>
-          {userData && userData?.user.length > 0 ? (
+          {isLoading === true ? (
+            <>
+              <h1>loading ...</h1>
+            </>
+          ) : hospitalData && hospitalData?.data.length > 0 ? (
             <tbody>
               {filteredUsers.map((item, index) => {
+                let image = '';
+                if (item.image) {
+                  image = Buffer.from(item?.image, 'base64').toString('binary');
+                }
                 return (
-                  <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <tr
+                    key={index}
+                    class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
                     <td class="w-4 p-4">
                       <div class="flex items-center">
                         <input
@@ -251,13 +279,22 @@ const User = () => {
                       </div>
                     </td>
                     <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
-                      <img class="w-10 h-10 rounded-full" src={require('~/assets/images/empty.png')} alt="Jese anh" />
+                      <div
+                        class="w-10 h-10 rounded-full bg-contain bg-no-repeat"
+                        style={{
+                          backgroundImage: image ? `url(${image})` : `url(${require('../../assets/images/empty.png')})`,
+                        }}
+                      ></div>
                       <div class="ps-3">
                         <div class="text-base font-semibold">{item.fullName}</div>
                         <div class="font-normal text-gray-500">{item?.email}</div>
                       </div>
                     </th>
                     <td class="px-6 py-4">{item?.phoneNumber}</td>
+                    <td class="px-6 py-4">{item?.gender}</td>
+                    <td class="px-6 py-4">{item?.positionId}</td>
+                    <td class="px-6 py-4">{item?.price}</td>
+                    <td class="px-6 py-4">{item?.rating}</td>
                     <td class="px-6 py-4">
                       <div class="flex items-center">
                         <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
@@ -272,7 +309,7 @@ const User = () => {
                       <button
                         className="button-edit"
                         onClick={() => {
-                          handleEditUser(item?._id);
+                          handleEditDocter(item?._id);
                         }}
                       >
                         <CiEdit />
@@ -281,7 +318,7 @@ const User = () => {
                       <button
                         className="button-delete"
                         onClick={() => {
-                          handleDeleteUser(item?._id);
+                          handleDeleteHospital(item?._id);
                         }}
                       >
                         <AiOutlineDelete />
@@ -302,20 +339,23 @@ const User = () => {
       </div>
       <div>
         {showModalDelete && (
-          <DeleteUser
+          <DeleteHospital
             setShowModalDelete={setShowModalDelete}
-            handleGetAllUser={() => dispatch(fetchAllUsers())}
+            handleGetAllUser={() => dispatch(fetchAllHospital())}
             deleteUserId={deleteUserId}
           />
         )}
         {showModalCreate && (
-          <CreateUser setShowModalCreate={setShowModalCreate} handleGetAllUser={() => dispatch(fetchAllUsers())} />
+          <CreateHospital
+            setShowModalCreate={setShowModalCreate}
+            handleGetAllDocter={() => dispatch(fetchAllHospital())}
+          />
         )}
         {showModalEdit && (
-          <EditUser
+          <EditDocter
             setShowModalEdit={setShowModalEdit}
-            handleGetAllUser={() => dispatch(fetchAllUsers())}
-            user={editUser}
+            handleGetAllDocter={() => dispatch(fetchAllHospital())}
+            docter={editDocter}
           />
         )}
       </div>
@@ -323,4 +363,4 @@ const User = () => {
   );
 };
 
-export default User;
+export default Hospital;

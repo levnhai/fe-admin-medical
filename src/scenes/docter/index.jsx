@@ -1,229 +1,361 @@
-import { Box, Typography, useTheme, Button } from '@mui/material';
-import { useState } from 'react';
+import { useTheme } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Buffer } from 'buffer';
 import { useTranslation } from 'react-i18next';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
-import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
-import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
-import AddIcon from '@mui/icons-material/Add';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { tokens } from '~/theme';
-import { mockDataTeam } from '../../data/mockData';
-import Header from '~/components/Header';
-import MyModal from '~/components/Modal/Modal';
+import { CiEdit } from 'react-icons/ci';
+import { AiOutlineDelete } from 'react-icons/ai';
 
-const Docter = () => {
+import { tokens } from '../../theme';
+import Header from '../../components/Header';
+
+import { fetchAllDocter } from '~/redux/docter/docterSlice';
+import DeleteDocter from './modal/deleteDocter';
+import CreateDocter from './modal/createDocter';
+import EditDocter from './modal/editDocter';
+
+const User = () => {
   const theme = useTheme();
-  const [openModal, setOpenModal] = useState(false);
-  const [title, setTitle] = useState('');
-
-  const [formData, setFormData] = useState({});
-  const [modalMode, setModalMode] = useState('create');
-  const [selectedData, setSelectedData] = useState('');
-  const colors = tokens(theme.palette.mode);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const dispatch = useDispatch();
   const { t } = useTranslation();
+  const colors = tokens(theme.palette.mode);
 
-  const columns = [
-    { field: 'id', headerName: 'ID' },
-    {
-      field: 'name',
-      headerName: 'Name',
-      flex: 1,
-      cellClassName: 'name-column--cell',
-    },
-    {
-      field: 'age',
-      headerName: 'Age',
-      type: 'number',
-      headerAlign: 'left',
-      align: 'left',
-    },
-    {
-      field: 'phone',
-      headerName: 'Phone Number',
-      flex: 1,
-    },
-    {
-      field: 'email',
-      headerName: 'Email',
-      flex: 1,
-    },
-    {
-      field: 'accessLevel',
-      headerName: 'Access Level',
-      flex: 1,
-      renderCell: ({ row: { access } }) => {
-        return (
-          <Box
-            width="60%"
-            m="0 auto"
-            p="5px"
-            display="flex"
-            justifyContent="center"
-            backgroundColor={
-              access === 'admin'
-                ? colors.greenAccent[600]
-                : access === 'manager'
-                ? colors.greenAccent[700]
-                : colors.greenAccent[700]
-            }
-            borderRadius="4px"
-          >
-            {access === 'admin' && <AdminPanelSettingsOutlinedIcon />}
-            {access === 'manager' && <SecurityOutlinedIcon />}
-            {access === 'user' && <LockOpenOutlinedIcon />}
-            <Typography color={colors.grey[100]} sx={{ ml: '5px' }}>
-              {access}
-            </Typography>
-          </Box>
-        );
-      },
-    },
-  ];
-  const newsFields = [
-    { name: 'title', label: 'title', type: 'text', grid: 4, required: true },
-    { name: 'author', label: 'author', type: 'text', grid: 4, required: true },
-    { name: 'status', label: 'status', type: 'text', grid: 4 },
-    { name: 'tags', label: 'tags', type: 'text', grid: 4 },
-    {
-      name: 'category',
-      label: 'category',
-      type: 'option',
-      options: [
-        { value: 'admin', label: 'Thưởng thức y tế' },
-        { value: 'user', label: 'Tin y tế' },
-        { value: 'guest', label: 'Dịch vụ' },
-      ],
-      grid: 4,
-    },
-    { name: 'views', label: 'views', type: 'number', grid: 4 },
-    { name: 'isFeatured', label: 'isFeatured', type: 'text', grid: 4 },
-    { name: 'imageUrl', label: 'imageUrl', type: 'file', grid: 4 },
-    { name: 'content', label: 'content', type: 'textarea', grid: 12 },
-  ];
-  const handleOpenCreate = () => {
-    setSelectedData(null);
-    setModalMode('create');
-    setOpenModal(true);
-    setTitle('Thêm bác sĩ');
-    setHasSubmitted(false);
+  const [showModalCreate, setShowModalCreate] = useState(false);
+  const [showModalDelete, setShowModalDelete] = useState(false);
+  const [showModalEdit, setShowModalEdit] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState();
+  const [editDocter, setEditDocter] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState([]);
+
+  const docterData = useSelector((state) => state.docter.docterData);
+  const isLoading = useSelector((state) => state.docter.loading);
+
+  // Hàm chuyển đổi chuỗi thành không dấu
+  const removeAccents = (str) => {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   };
 
-  const handleSubmit = (formData) => {
-    setHasSubmitted(true);
-    // if (modalMode === 'create') {
-    //   console.log('Creating:', formData);
-    // } else if (modalMode === 'edit') {
-    //   console.log('Updating:', formData);
-    // }
-    let hasError = false;
-    newsFields.forEach((field) => {
-      if (field.required && !formData[field.name]) {
-        hasError = true;
-      }
-    });
+  // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
+  const filteredUsers =
+    docterData?.data?.filter((user) => {
+      if (!searchTerm) return true;
 
-    if (hasError) {
-      setOpenModal(true);
+      const searchValue = removeAccents(searchTerm.toLowerCase().trim());
 
-      alert('Please fill in all required fields!');
+      // Xử lý trường hợp giá trị null/undefined
+      const fullName = removeAccents(user.fullName?.toLowerCase() || '');
+      const phoneNumber = removeAccents(user.phoneNumber?.toLowerCase() || '');
+
+      return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
+    }) || [];
+
+  // Handle select all checkbox
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const allUserIds = filteredUsers.map((user) => user._id);
+      setSelectedUsers(allUserIds);
     } else {
-      console.log(formData); // Xử lý khi form hợp lệ
-      handleClose();
+      setSelectedUsers([]);
     }
   };
-  const handleClose = () => setOpenModal(false);
-  const selectorNewData = useSelector((state) => state.news.newsData);
 
-  // add columns id
-  const newsData = selectorNewData?.map((item) => ({
-    ...item,
-    id: item._id,
-  }));
-
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value, // xử lý file upload
-    }));
+  // Handle individual checkbox
+  const handleSelectUser = (userId) => {
+    setSelectedUsers((prev) => {
+      if (prev.includes(userId)) {
+        return prev.filter((id) => id !== userId);
+      } else {
+        return [...prev, userId];
+      }
+    });
   };
 
-  const handleDelete = () => {
-    // Logic xóa
-    console.log('Deleting:', selectedData);
+  // Check if all filtered users are selected
+  const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
+
+  const handleDeleteDocter = (docterId) => {
+    setShowModalDelete(true);
+    setDeleteUserId(docterId);
   };
+  const handleEditDocter = (docterId) => {
+    const docterEdit = docterData?.data?.find((docter) => docter._id === docterId);
+    console.log('check docter edit', docterEdit);
+    if (docterEdit) {
+      setEditDocter(docterEdit);
+      setShowModalEdit(true);
+    }
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    // Reset selected users when search term changes
+    setSelectedUsers([]);
+  };
+  useEffect(() => {
+    dispatch(fetchAllDocter());
+  }, []);
+
   return (
-    <Box m="20px">
-      <Header title="DOCTER" subtitle="Các bác sỹ" />
-      <Box
-        sx={{
-          display: 'flex',
-          width: '100%',
-          justifyContent: 'flex-end',
-        }}
-      >
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOpenCreate}
-          sx={{
-            width: '120px',
-            backgroundColor: '#6EC207',
-          }}
+    <div class="m-5">
+      <Header title="Quản lý bác sĩ" subtitle="Bác sĩ người tận tâm vì nghề nghiệp" />
+      <div class="flex justify-end">
+        <button
+          type="button"
+          class=" text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
+          onClick={() => setShowModalCreate(true)}
         >
-          {t('actions.add')}
-          <AddIcon />
-        </Button>
-        {newsData && <DataGrid rows={newsData} columns={columns} components={{ Toolbar: GridToolbar }} />}
+          Thêm
+        </button>
+      </div>
+      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <div class="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
+          <div>
+            <button
+              id="dropdownActionButton"
+              data-dropdown-toggle="dropdownAction"
+              class="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+              type="button"
+            >
+              <span class="sr-only">Action button</span>
+              Action
+              <svg
+                class="w-2.5 h-2.5 ms-2.5"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 10 6"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 4 4 4-4"
+                />
+              </svg>
+            </button>
+            <div
+              id="dropdownAction"
+              class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
+            >
+              <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownActionButton">
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    Reward
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    Promote
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    Activate account
+                  </a>
+                </li>
+              </ul>
+              <div class="py-1">
+                <a
+                  href="#"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                >
+                  Delete User
+                </a>
+              </div>
+            </div>
+          </div>
+          <label for="table-search" class="sr-only">
+            Search
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+              <svg
+                class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              id="table-search-users"
+              class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Search for docter"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+          </div>
+        </div>
 
-        <MyModal
-          open={openModal}
-          handleClose={handleClose}
-          mode={modalMode}
-          onSubmit={handleSubmit}
-          onDelete={handleDelete}
-          data={selectedData}
-          title={title}
-          fields={newsFields}
-          hasSubmitted={hasSubmitted}
-        />
-      </Box>
-      <Box
-        m="20px 0 0 0"
-        height="75vh"
-        sx={{
-          '& .MuiDataGrid-root': {
-            border: 'none',
-          },
-          '& .MuiDataGrid-cell': {
-            borderBottom: 'none',
-          },
-          '& .name-column--cell': {
-            color: colors.greenAccent[300],
-          },
-          '& .MuiDataGrid-columnHeaders': {
-            backgroundColor: colors.blueAccent[700],
-            borderBottom: 'none',
-          },
-          '& .MuiDataGrid-virtualScroller': {
-            backgroundColor: colors.primary[400],
-          },
-          '& .MuiDataGrid-footerContainer': {
-            borderTop: 'none',
-            backgroundColor: colors.blueAccent[700],
-          },
-          '& .MuiCheckbox-root': {
-            color: `${colors.greenAccent[200]} !important`,
-          },
-        }}
-      >
-        <DataGrid checkboxSelection rows={mockDataTeam} columns={columns} />
-      </Box>
-    </Box>
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" class="p-4">
+                <div class="flex items-center">
+                  <input
+                    id="checkbox-all-search"
+                    type="checkbox"
+                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    checked={isAllSelected}
+                    onChange={handleSelectAll}
+                  />
+                  <label for="checkbox-all-search" class="sr-only">
+                    checkbox
+                  </label>
+                </div>
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Name
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Phone number
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Gender
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Position
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Price
+              </th>
+              <th scope="col" class="px-6 py-3">
+                rating
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-3">
+                CreatedAt
+              </th>
+              <th scope="col" class="px-6 py-3">
+                Action
+              </th>
+            </tr>
+          </thead>
+          {isLoading === true ? (
+            <>
+              <h1>loading ...</h1>
+            </>
+          ) : docterData && docterData?.data.length > 0 ? (
+            <tbody>
+              {filteredUsers.map((item, index) => {
+                let image = '';
+                if (item.image) {
+                  image = Buffer.from(item?.image, 'base64').toString('binary');
+                }
+                return (
+                  <tr
+                    key={index}
+                    class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
+                    <td class="w-4 p-4">
+                      <div class="flex items-center">
+                        <input
+                          id="checkbox-table-search-1"
+                          type="checkbox"
+                          class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                          checked={selectedUsers.includes(item._id)}
+                          onChange={() => handleSelectUser(item._id)}
+                        />
+                        <label for="checkbox-table-search-1" class="sr-only">
+                          checkbox
+                        </label>
+                      </div>
+                    </td>
+                    <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                      <div
+                        class="w-10 h-10 rounded-full bg-contain bg-no-repeat"
+                        style={{
+                          backgroundImage: image ? `url(${image})` : `url(${require('../../assets/images/empty.png')})`,
+                        }}
+                      ></div>
+                      <div class="ps-3">
+                        <div class="text-base font-semibold">{item.fullName}</div>
+                        <div class="font-normal text-gray-500">{item?.email}</div>
+                      </div>
+                    </th>
+                    <td class="px-6 py-4">{item?.phoneNumber}</td>
+                    <td class="px-6 py-4">{item?.gender}</td>
+                    <td class="px-6 py-4">{item?.positionId}</td>
+                    <td class="px-6 py-4">{item?.price}</td>
+                    <td class="px-6 py-4">{item?.rating}</td>
+                    <td class="px-6 py-4">
+                      <div class="flex items-center">
+                        <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <a href="/#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">
+                        {item.createdAt}
+                      </a>
+                    </td>
+                    <td className="flex gap-y-1 px-6 py-4">
+                      <button
+                        className="button-edit"
+                        onClick={() => {
+                          handleEditDocter(item?._id);
+                        }}
+                      >
+                        <CiEdit />
+                      </button>
+                      <span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                      <button
+                        className="button-delete"
+                        onClick={() => {
+                          handleDeleteDocter(item?._id);
+                        }}
+                      >
+                        <AiOutlineDelete />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          ) : (
+            <div>
+              <span class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                Hiện tại không có dữ liệu nào
+              </span>
+            </div>
+          )}
+        </table>
+      </div>
+      <div>
+        {showModalDelete && (
+          <DeleteDocter
+            setShowModalDelete={setShowModalDelete}
+            handleGetAllUser={() => dispatch(fetchAllDocter())}
+            deleteUserId={deleteUserId}
+          />
+        )}
+        {showModalCreate && (
+          <CreateDocter setShowModalCreate={setShowModalCreate} handleGetAllDocter={() => dispatch(fetchAllDocter())} />
+        )}
+        {showModalEdit && (
+          <EditDocter
+            setShowModalEdit={setShowModalEdit}
+            handleGetAllDocter={() => dispatch(fetchAllDocter())}
+            docter={editDocter}
+          />
+        )}
+      </div>
+    </div>
   );
 };
 
-export default Docter;
+export default User;

@@ -2,8 +2,9 @@ import { Fragment } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { publicRoutes } from './routes';
 import DefaultLayout from './layouts/defaultLayout';
-// import { Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 
+// import { Routes, Route } from 'react-router-dom';
 
 function App() {
   // const [theme, colorMode] = useMode();
@@ -52,6 +53,7 @@ function App() {
                 element={
                   <Layout>
                     <Page />
+                    <ToastContainer />
                   </Layout>
                 }
               />

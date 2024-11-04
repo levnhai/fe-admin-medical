@@ -2,7 +2,7 @@ import config from '~/config';
 
 // user
 import Dashboard from '~/scenes/dashboard';
-import Team from '~/scenes/team';
+import Hospital from '~/scenes/hospital';
 import ContactCooperate from '~/scenes/cooperate';
 import User from '~/scenes/user';
 import News from '~/scenes/news';
@@ -16,7 +16,7 @@ import Geography from '~/scenes/geography';
 
 const publicRoutes = [
   { path: config.routers.dashboard, component: Dashboard },
-  { path: config.routers.hospital, component: Team },
+  { path: config.routers.hospital, component: Hospital },
   { path: config.routers.contactCooperate, component: ContactCooperate },
   { path: config.routers.user, component: User },
   { path: config.routers.news, component: News },

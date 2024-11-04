@@ -3,7 +3,7 @@ import axios from '~/axios';
 
 // get all provinces
 export const fetchAllProvinces = createAsyncThunk('provinces/fetchAllProvinces', async () => {
-  const response = await fetch('https://open.oapi.vn/location/provinces');
+  const response = await fetch('https://open.oapi.vn/location/provinces?page=0&size=63');
   if (!response.ok) {
     throw new Error('Failed to fetch provinces');
   }

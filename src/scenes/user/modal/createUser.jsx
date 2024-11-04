@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
-import { RiCloseLine } from 'react-icons/ri';
+import className from 'classnames/bind';
 import { toast } from 'react-toastify';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
-import { fetchCreateUser } from '~/redux/user/userSlice';
-import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-// import userServise from '~/services/userServices';
-import className from 'classnames/bind';
-import styles from './Modal.module.scss';
+//icon
+import { RiCloseLine } from 'react-icons/ri';
+import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
+
 import { Input } from '~/components/input/input';
+import { fetchCreateUser } from '~/redux/user/userSlice';
 import { password_validation, name_validation, phone_validation } from '~/utils/inputValidations';
 
+import styles from './Modal.module.scss';
 const cx = className.bind(styles);
 
 function CreateUser({ setShowModalCreate, handleGetAllUser }) {
@@ -40,21 +39,20 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
     try {
       const response = await dispatch(fetchCreateUser(formData)).unwrap();
       if (response) {
+        console.log('tao là hải kê');
         toast.success('User created successfully!');
         handleGetAllUser();
         setShowModalCreate(false);
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Số điện thoại đã tồn tại' || 'Không thể tạo người dùng';
-        toast.error(errorMessage);
+      toast.error(errorMessage);
     }
   });
-
 
   return (
     <>
       <div className={cx('darkBG')} onClick={() => setShowModalCreate(false)} />
-      <ToastContainer />
       <div className={cx('centered')}>
         <div className={cx('modal')}>
           <div className={cx('modalHeader')}>
@@ -75,12 +73,19 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
                 <div className={cx('input--item-create')}>
                   <Input type={showHidePassword ? 'password' : 'text'} {...password_validation} />
                   <span
-                      onClick={handleShowHidePassword}
-                      style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-300%)', fontSize: '20px', cursor: 'pointer' }}
+                    onClick={handleShowHidePassword}
+                    style={{
+                      position: 'absolute',
+                      right: '14px',
+                      top: '50%',
+                      transform: 'translateY(-300%)',
+                      fontSize: '20px',
+                      cursor: 'pointer',
+                    }}
                   >
-                      {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                    {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                   </span>
-              </div>
+                </div>
                 <div className={cx('input--item-create')}>
                   <Input
                     validation={{
@@ -97,7 +102,14 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
                   />
                   <span
                     onClick={handleShowHideReEnterPassword}
-                    style={{ position: 'absolute', right: '14px', top: '53%', transform: 'translateY(-10%)', fontSize: '20px', cursor: 'pointer' }}
+                    style={{
+                      position: 'absolute',
+                      right: '14px',
+                      top: '53%',
+                      transform: 'translateY(-10%)',
+                      fontSize: '20px',
+                      cursor: 'pointer',
+                    }}
                   >
                     {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                   </span>
