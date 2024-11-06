@@ -1,7 +1,7 @@
-import React from 'react';
+import React ,{ useState } from 'react';
 import { RiCloseLine } from 'react-icons/ri';
 import { toast } from 'react-toastify';
-import { fetchDeleteUser } from '~/redux/user/userSlice';
+import { fetchDeleteHospital } from '~/redux/hospital/hospitalSlice';
 import { useDispatch } from 'react-redux';
 import { unwrapResult } from '@reduxjs/toolkit';
 
@@ -10,21 +10,37 @@ import styles from './Modal.module.scss';
 
 const cx = className.bind(styles);
 
-function DeleteDocter({ setShowModalDelete, deleteUserId, handleGetAllUser }) {
+function DeleteHospital({ setShowModalDelete, hospital, handleGetAllHospital  }) {
   const dispatch = useDispatch();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleBtnDeleteDocter = async (deleteUserId) => {
-    const res = await dispatch(fetchDeleteUser(deleteUserId));
-    const userDelete = unwrapResult(res);
-    console.log('check docter', userDelete);
-    if (userDelete?.status) {
-      setShowModalDelete(false);
-      handleGetAllUser();
-      toast.success(userDelete?.message);
-    } else {
-      toast.warning(userDelete?.message);
+  const handleBtnDeleteHospital = async (hospital) => {
+    if (!hospital || !hospital._id) {
+      toast.error('Dữ liệu bệnh viện không hợp lệ');
+      return;
+    }
+  
+    if (isDeleting) return;
+    setIsDeleting(true);
+  
+    try {
+      const resultAction = await dispatch(fetchDeleteHospital(hospital._id));
+  
+      if (resultAction.meta.requestStatus === 'fulfilled') {
+        setShowModalDelete(false);
+        toast.success('Xóa bệnh viện thành công');
+        await handleGetAllHospital(); // Refresh danh sách
+      } else {
+        throw new Error(resultAction.payload?.message || 'Không thể xóa bệnh viện');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Xóa bệnh viện thất bại');
+    } finally {
+      setIsDeleting(false);
     }
   };
+
+    
   return (
     <>
       <div className={cx('darkBG')} onClick={() => setShowModalDelete(false)} />
@@ -44,7 +60,7 @@ function DeleteDocter({ setShowModalDelete, deleteUserId, handleGetAllUser }) {
               <button
                 className={cx('deleteBtn')}
                 onClick={() => {
-                  handleBtnDeleteDocter(deleteUserId);
+                  handleBtnDeleteHospital(hospital);
                 }}
               >
                 Delete User
@@ -60,4 +76,4 @@ function DeleteDocter({ setShowModalDelete, deleteUserId, handleGetAllUser }) {
   );
 }
 
-export default DeleteDocter;
+export default DeleteHospital;

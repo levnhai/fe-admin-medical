@@ -24,7 +24,7 @@ const User = () => {
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
-  const [deleteUserId, setDeleteUserId] = useState();
+  const [deleteDoctor, setDeleteDoctor] = useState();
   const [editDocter, setEditDocter] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -76,8 +76,9 @@ const User = () => {
   const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
   const handleDeleteDocter = (docterId) => {
+    console.log("check id", docterId)
     setShowModalDelete(true);
-    setDeleteUserId(docterId);
+    setDeleteDoctor(docterId);
   };
   const handleEditDocter = (docterId) => {
     const docterEdit = docterData?.data?.find((docter) => docter._id === docterId);
@@ -339,8 +340,8 @@ const User = () => {
         {showModalDelete && (
           <DeleteDocter
             setShowModalDelete={setShowModalDelete}
-            handleGetAllUser={() => dispatch(fetchAllDocter())}
-            deleteUserId={deleteUserId}
+            handleGetAllDocter={() => dispatch(fetchAllDocter())}
+            docter={{ _id: deleteDoctor }}
           />
         )}
         {showModalCreate && (

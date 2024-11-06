@@ -13,7 +13,7 @@ import Header from '../../components/Header';
 import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
 import DeleteHospital from './modal/deleteHospital';
 import CreateHospital from './modal/createHospital';
-import EditDocter from './modal/editHospital';
+import EditHospital from './modal/editHospital';
 
 const Hospital = () => {
   const theme = useTheme();
@@ -24,8 +24,8 @@ const Hospital = () => {
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
-  const [deleteUserId, setDeleteUserId] = useState();
-  const [editDocter, setEditDocter] = useState(null);
+  const [deleteHospital, setDeleteHospital] = useState();
+  const [editHospital, setEditHospital] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
 
@@ -77,15 +77,16 @@ const Hospital = () => {
   // Check if all filtered users are selected
   const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
-  const handleDeleteHospital = (docterId) => {
+  const handleDeleteHospital = (hospitalId) => {
+    console.log("check id", hospitalId)
     setShowModalDelete(true);
-    setDeleteUserId(docterId);
+    setDeleteHospital(hospitalId);
   };
-  const handleEditDocter = (docterId) => {
-    const docterEdit = hospitalData?.data?.find((docter) => docter._id === docterId);
-    console.log('check docter edit', docterEdit);
-    if (docterEdit) {
-      setEditDocter(docterEdit);
+  const handleEditHospital = (hospitalId) => {
+    const hospitalEdit = hospitalData?.data?.find((hospital) => hospital._id === hospitalId);
+    console.log('check hospital edit', hospitalEdit);
+    if (hospitalEdit) {
+      setEditHospital(hospitalEdit);
       setShowModalEdit(true);
     }
   };
@@ -309,7 +310,7 @@ const Hospital = () => {
                       <button
                         className="button-edit"
                         onClick={() => {
-                          handleEditDocter(item?._id);
+                          handleEditHospital(item?._id);
                         }}
                       >
                         <CiEdit />
@@ -341,8 +342,8 @@ const Hospital = () => {
         {showModalDelete && (
           <DeleteHospital
             setShowModalDelete={setShowModalDelete}
-            handleGetAllUser={() => dispatch(fetchAllHospital())}
-            deleteUserId={deleteUserId}
+            handleGetAllHospital={() => dispatch(fetchAllHospital())}
+            hospital={{ _id: deleteHospital }}
           />
         )}
         {showModalCreate && (
@@ -352,10 +353,10 @@ const Hospital = () => {
           />
         )}
         {showModalEdit && (
-          <EditDocter
+          <EditHospital 
             setShowModalEdit={setShowModalEdit}
-            handleGetAllDocter={() => dispatch(fetchAllHospital())}
-            docter={editDocter}
+            handleGetAllHospital={() => dispatch(fetchAllHospital())}
+            hospital={editHospital}
           />
         )}
       </div>

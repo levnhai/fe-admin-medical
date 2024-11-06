@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { RiCloseLine } from 'react-icons/ri';
 import { toast } from 'react-toastify';
-import { fetchDeleteUser } from '~/redux/user/userSlice';
+import { fetchDeleteDoctor } from '~/redux/docter/docterSlice';
 import { useDispatch } from 'react-redux';
 import { unwrapResult } from '@reduxjs/toolkit';
 
@@ -10,19 +10,33 @@ import styles from './Modal.module.scss';
 
 const cx = className.bind(styles);
 
-function DeleteDocter({ setShowModalDelete, deleteUserId, handleGetAllUser }) {
+function DeleteDocter({ setShowModalDelete, docter, handleGetAllDocter }) {
   const dispatch = useDispatch();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleBtnDeleteDocter = async (deleteUserId) => {
-    const res = await dispatch(fetchDeleteUser(deleteUserId));
-    const userDelete = unwrapResult(res);
-    console.log('check docter', userDelete);
-    if (userDelete?.status) {
-      setShowModalDelete(false);
-      handleGetAllUser();
-      toast.success(userDelete?.message);
-    } else {
-      toast.warning(userDelete?.message);
+  const handleBtnDeleteDocter = async (docter) => {
+    if (!docter || !docter._id) {
+      toast.error('Dữ liệu bác sĩ không hợp lệ');
+      return;
+    }
+  
+    if (isDeleting) return;
+    setIsDeleting(true);
+  
+    try {
+      const resultAction = await dispatch(fetchDeleteDoctor(docter._id));
+  
+      if (resultAction.meta.requestStatus === 'fulfilled') {
+        setShowModalDelete(false);
+        toast.success('Xóa bác sĩ thành công');
+        await handleGetAllDocter();
+      } else {
+        throw new Error(resultAction.payload?.message || 'Không thể xóa bác sĩ');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Xóa bác sĩ thất bại');
+    } finally {
+      setIsDeleting(false);
     }
   };
   return (
@@ -31,7 +45,7 @@ function DeleteDocter({ setShowModalDelete, deleteUserId, handleGetAllUser }) {
       <div className={cx('centered')}>
         <div className={cx('modal')}>
           <div className={cx('modalHeader')}>
-            <h5 className={cx('heading')}>Delete User</h5>
+            <h5 className={cx('heading')}>Delete Doctor</h5>
           </div>
           <button className={cx('closeBtn')} onClick={() => setShowModalDelete(false)}>
             <RiCloseLine style={{ marginBottom: '-3px' }} />
@@ -44,10 +58,10 @@ function DeleteDocter({ setShowModalDelete, deleteUserId, handleGetAllUser }) {
               <button
                 className={cx('deleteBtn')}
                 onClick={() => {
-                  handleBtnDeleteDocter(deleteUserId);
+                  handleBtnDeleteDocter(docter);
                 }}
               >
-                Delete User
+                Delete Doctor
               </button>
               <button className={cx('cancelBtn')} onClick={() => setShowModalDelete(false)}>
                 Cancel

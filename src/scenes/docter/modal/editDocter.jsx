@@ -12,21 +12,28 @@ import { RiCloseLine } from 'react-icons/ri';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 import { Input } from '~/components/input/input';
-import { password_validation, name_validation, phone_validation, email_validation } from '~/utils/inputValidations';
+import { name_validation, phone_validation, email_validation } from '~/utils/inputValidations';
 
 import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
-import { fetchCreateDocter } from '~/redux/docter/docterSlice';
+import { fetchUpdateDoctor } from '~/redux/docter/docterSlice';
+import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
 import { ConvertBase64 } from '~/utils/common';
 
 import styles from './Modal.module.scss';
 const cx = className.bind(styles);
 
 function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
-  const methods = useForm();
+  const methods = useForm({
+    defaultValues: {
+      fullName: '',
+      phoneNumber: '',
+      email: ''
+    }
+  });
   const dispatch = useDispatch();
 
-  const [showHidePassword, setShowHidePassword] = useState(true);
-  const [confirmPassword, setConfirmPassword] = useState(true);
+  // const [showHidePassword, setShowHidePassword] = useState(true);
+  // const [confirmPassword, setConfirmPassword] = useState(true);
   const [previewImageURL, setpreViewImageURL] = useState();
   const [isOpenImage, setIsOpenImage] = useState();
   const [form, setForm] = useState({
@@ -35,50 +42,82 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
     positionId: '',
     provinceId: '',
     districtId: '',
+    hospitalId: '',
+    wardId: '',
     provinceName: '',
     districtName: '',
-    wardId: '',
+    wardName: '',
     image: '',
   });
 
-  const [formData, setFormData] = useState({
-    id: docter._id || '',
-    phoneNumber: docter.phoneNumber || '',
-    fullName: docter.fullName || '',
-    email: docter.email || '',
-  });
+  // const [formData, setFormData] = useState({
+  //   id: docter._id || '',
+  //   phoneNumber: docter.phoneNumber || '',
+  //   fullName: docter.fullName || '',
+  //   email: docter.email || '',
+  // });
 
   const provinceData = useSelector((state) => state.location.provinceData);
+  const hospitalData = useSelector((state) => state.hospital.hospitalData);
   const districtData = useSelector((state) => state.location.districtData);
   const wardData = useSelector((state) => state.location.wardData);
 
-  const handleShowHidePassword = () => {
-    setShowHidePassword(!showHidePassword);
-  };
+  // const handleShowHidePassword = () => {
+  //   setShowHidePassword(!showHidePassword);
+  // };
 
-  const handleShowHideReEnterPassword = () => {
-    setConfirmPassword(!confirmPassword);
-  };
+  // const handleShowHideReEnterPassword = () => {
+  //   setConfirmPassword(!confirmPassword);
+  // };
 
   const handleChangeProvince = (e) => {
-    handleOnchange(e);
-    const provinceName = e.target.options[e.target.selectedIndex].text;
-    setForm((prevForm) => ({
-      ...prevForm,
-      provinceName: provinceName,
-    }));
-    console.log('check provinceName', form);
-    dispatch(fetchDistrictsByProvince(e.target.value));
+    const select = e.target;
+    const provinceId = select.value;
+    const provinceName = select.options[select.selectedIndex].text;
+  
+    if (provinceId && provinceId !== 'Tỉnh/thành') {
+      setForm(prev => ({
+        ...prev,
+        provinceId: String(provinceId), 
+        provinceName,
+        districtId: '',
+        wardId: '',
+        districtName: '',
+        wardName: ''
+      }));
+      dispatch(fetchDistrictsByProvince(provinceId));
+    }
   };
 
   const handleChangeDistrict = (e) => {
-    handleOnchange(e);
-    const districtName = e.target.options[e.target.selectedIndex].text;
-    setForm((prevForm) => ({
-      ...prevForm,
-      districtName: districtName,
-    }));
-    dispatch(fetchWardsByDistricts(e.target.value));
+    const select = e.target;
+    const districtId = select.value;
+    const districtName = select.options[select.selectedIndex].text;
+  
+    if (districtId && districtId !== 'Huyện/ Thị xã') {
+      setForm(prev => ({
+        ...prev,
+        districtId: String(districtId),
+        districtName,
+        wardId: '',
+        wardName: ''
+      }));
+      dispatch(fetchWardsByDistricts(districtId));
+    }
+  };
+  
+  const handleChangeWard = (e) => {
+    const select = e.target;
+    const wardId = select.value;
+    const wardName = select.options[select.selectedIndex].text;
+  
+    if (wardId && wardId !== 'Phường/ xã') {
+      setForm(prev => ({
+        ...prev,
+        wardId: String(wardId), 
+        wardName
+      }));
+    }
   };
 
   const handleOnchange = (e) => {
@@ -104,30 +143,94 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
     setIsOpenImage(true);
   };
 
-  const handleSubmitCreateUser = methods.handleSubmit(async (formData) => {
+  const handleSubmitEditDoctor = methods.handleSubmit(async (formData) => {
     const data = { ...formData, ...form };
     console.log('check form data', data);
 
-    try {
-      const response = await dispatch(fetchCreateDocter(data));
-      const result = await unwrapResult(response);
-      console.log('check response', result);
-      if (result?.status) {
-        toast.success(result?.message);
-        handleGetAllDocter();
-        setShowModalEdit(false);
-      } else {
-        toast.success(result?.message);
-        setShowModalEdit(true);
-      }
-    } catch (error) {
-      return error;
+    // Validate address data
+    if (!form.provinceId || form.provinceId === 'Tỉnh/thành') {
+      toast.error('Vui lòng chọn Tỉnh/Thành phố');
+      return;
     }
-  });
+    if (!form.districtId || form.districtId === 'Huyện/ Thị xã') {
+      toast.error('Vui lòng chọn Quận/Huyện');
+      return;
+    }
+    if (!form.wardId || form.wardId === 'Phường/ xã') {
+      toast.error('Vui lòng chọn Phường/Xã');
+      return;
+    }
+    const payload = {
+      fullName: formData.fullName,
+      phoneNumber: formData.phoneNumber,
+      email: formData.email,
+      image: form.image || docter.image,
+      gender: form.gender,
+      price: form.price,
+      hospitalId: form.hospitalId,
+      // Address fields at the top level as expected by backend
+      provinceId: form.provinceId,
+      provinceName: form.provinceName,
+      districtId: form.districtId,
+      districtName: form.districtName,
+      wardId: form.wardId,
+      wardName: form.wardName,
+    };
+    try {
+      const response = await dispatch(fetchUpdateDoctor({ 
+        doctorId: docter._id, 
+        formData: payload 
+      }));
+      
+      console.log('API Response:', response);
+      
+      // Nếu không có lỗi được throw, coi như thành công
+      toast.success('Cập nhật thành công');
+      handleGetAllDocter();
+      setShowModalEdit(false);
+    } catch (error) {
+      console.error('Submit error:', error);
+      toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
+    }
+    });
+    
+    useEffect(() => {
+      if (docter) {
+        methods.reset({
+          fullName: docter.fullName || '',
+          phoneNumber: docter.phoneNumber || '',
+          email: docter.email || '',
+        });
+  
+        setForm({
+          provinceId: docter.address?.[0]?.provinceId || '',
+          districtId: docter.address?.[0]?.districtId || '',
+          wardId: docter.address?.[0]?.wardId || '',
+          provinceName: docter.address?.[0]?.provinceName || '',
+          districtName: docter.address?.[0]?.districtName || '',
+          wardName: docter.address?.[0]?.wardName || '',
+          image: docter.image || '',
+          gender: docter.gender || '',
+          price: docter.price || '',
+          hospitalId: docter.hospitalId || ''
+        });
+  
+        if (docter.image) {
+          setpreViewImageURL(docter.image);
+        }
+        if (docter.address?.[0]?.provinceId) {
+          dispatch(fetchDistrictsByProvince(docter.address[0].provinceId));
+        }
+        if (docter.address?.[0]?.districtId) {
+          dispatch(fetchWardsByDistricts(docter.address[0].districtId));
+        }
+      }
+    }, [docter, methods]);
 
   useEffect(() => {
     dispatch(fetchAllProvinces());
-  }, []);
+    dispatch(fetchAllHospital());
+  }, [dispatch]);
 
   return (
     <>
@@ -135,7 +238,7 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
       <div className={cx('centered')}>
         <div className={cx('modal')}>
           <div className={cx('modalHeader')}>
-            <h5 className={cx('heading')}>Thêm bác sĩ</h5>
+            <h5 className={cx('heading')}>Chỉnh sửa bác sĩ</h5>
           </div>
           <button className={cx('closeBtn')} onClick={() => setShowModalEdit(false)}>
             <RiCloseLine style={{ marginBottom: '-3px' }} />
@@ -154,40 +257,26 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
                     <Input {...email_validation} />
                   </div>
                 </div>
-                <div class="flex gap-4">
-                  <div class="relative w-full md:w-1/2 mb-6 md:mb-0">
-                    <Input type={showHidePassword ? 'password' : ' text'} {...password_validation} />
-                    <span
-                      onMouseDown={handleShowHidePassword}
-                      onMouseUp={() => setShowHidePassword(true)}
-                      onMouseLeave={() => setShowHidePassword(true)}
-                      class="absolute cursor-pointer text-xl top-2/4 right-3.5"
+                <div class="flex gap-4 mt-4">
+                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                    <select
+                      id="hospital"
+                      name="hospitalId"
+                      value={form.hospitalId}
+                      onChange={handleOnchange}
+                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
-                      {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
-                    </span>
-                  </div>
-                  <div class="relative w-full md:w-1/2 mb-6 md:mb-0">
-                    <Input
-                      validation={{
-                        required: {
-                          value: true,
-                          message: 'required',
-                        },
-                      }}
-                      label=""
-                      type={confirmPassword ? 'password' : ' text'}
-                      id="reEnterPassword"
-                      placeholder="Please enter your reEnterPassword..."
-                      name="reEnterPassword"
-                    />
-                    <span
-                      onMouseDown={handleShowHideReEnterPassword}
-                      onMouseUp={() => setConfirmPassword(true)}
-                      onMouseLeave={() => setConfirmPassword(true)}
-                      class="absolute cursor-pointer text-xl top-2/4 right-3.5"
-                    >
-                      {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
-                    </span>
+                      <option selected disabled value="">
+                        ---Bệnh viện---
+                      </option>
+                      {hospitalData?.data.map((item, index) => {
+                        return (
+                          <option key={index} name="hospitalId" value={item._id}>
+                            {item.fullName}
+                          </option>
+                        );
+                      })}
+                    </select>
                   </div>
                 </div>
                 <div class="flex gap-4 mt-4">
@@ -353,8 +442,8 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
           </div>
           <div className={cx('modalActions')}>
             <div className={cx('actionsContainer')}>
-              <button className={cx('deleteBtn')} onClick={handleSubmitCreateUser}>
-                Create docter
+              <button className={cx('deleteBtn')} onClick={handleSubmitEditDoctor}>
+                Update Doctor
               </button>
               <button className={cx('cancelBtn')} onClick={() => setShowModalEdit(false)}>
                 Cancel

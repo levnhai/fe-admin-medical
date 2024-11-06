@@ -35,6 +35,7 @@ export const fetchWardsByDistricts = createAsyncThunk('provinces/fetchWardsByDis
   return data;
 });
 
+
 const locationSlice = createSlice({
   name: 'location',
   initialState: {
