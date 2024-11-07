@@ -83,7 +83,7 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
         districtId: '',
         wardId: '',
         districtName: '',
-        wardName: ''
+        wardName: '',
       }));
       dispatch(fetchDistrictsByProvince(provinceId));
     }
@@ -93,14 +93,14 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
     const select = e.target;
     const districtId = select.value;
     const districtName = select.options[select.selectedIndex].text;
-  
+    console.log('check huyen: ', districtName)
     if (districtId && districtId !== 'Huyện/ Thị xã') {
       setForm(prev => ({
         ...prev,
         districtId: String(districtId),
         districtName,
         wardId: '',
-        wardName: ''
+        wardName: '',
       }));
       dispatch(fetchWardsByDistricts(districtId));
     }
@@ -212,7 +212,8 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
           image: docter.image || '',
           gender: docter.gender || '',
           price: docter.price || '',
-          hospitalId: docter.hospitalId || ''
+          hospitalId: docter.hospitalId || '',
+          positionId: docter.positionId || '',
         });
   
         if (docter.image) {
@@ -396,8 +397,9 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
                   <div class="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="province"
-                      onChange={handleOnchange}
+                      onChange={handleChangeWard}
                       name="wardId"
+                      value={form.wardId} 
                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Phường/ xã</option>
