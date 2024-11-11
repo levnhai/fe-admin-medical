@@ -100,15 +100,15 @@ const User = () => {
   }, []);
 
   return (
-    <div class="m-5">
+    <div className="p-2 sm:p-4 md:p-6">
       <Header title="Quản lý bác sĩ" subtitle="Bác sĩ người tận tâm vì nghề nghiệp" />
-      <div class="flex justify-end">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <button
           type="button"
           class=" text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
           onClick={() => setShowModalCreate(true)}
         >
-          Thêm
+          Thêm bác sĩ
         </button>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -173,36 +173,25 @@ const User = () => {
             Search
           </label>
           <div class="relative">
-            <div class="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
-              <svg
-                class="w-4 h-4 text-gray-500 dark:text-gray-400"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                />
-              </svg>
-            </div>
+          <div className="w-full sm:w-auto relative">
             <input
               type="text"
-              id="table-search-users"
-              class="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Search for docter"
+              className="w-full sm:w-80 p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+              placeholder="Tìm kiếm bác sĩ..."
               value={searchTerm}
               onChange={handleSearchChange}
             />
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+              </svg>
+            </div>
+          </div>
           </div>
         </div>
-
-        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
               <th scope="col" class="p-4">
                 <div class="flex items-center">
@@ -304,24 +293,25 @@ const User = () => {
                         {item.createdAt}
                       </a>
                     </td>
-                    <td className="flex gap-y-1 px-6 py-4">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-3">
                       <button
-                        className="button-edit"
+                        className="text-blue-600 hover:text-blue-800"
                         onClick={() => {
                           handleEditDocter(item?._id);
                         }}
                       >
-                        <CiEdit />
+                        <CiEdit size={20} />
                       </button>
-                      <span>&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;</span>
                       <button
-                        className="button-delete"
+                        className="text-red-600 hover:text-red-800"
                         onClick={() => {
                           handleDeleteDocter(item?._id);
                         }}
                       >
-                        <AiOutlineDelete />
+                        <AiOutlineDelete size={20} />
                       </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -355,6 +345,7 @@ const User = () => {
           />
         )}
       </div>
+    </div>
     </div>
   );
 };
