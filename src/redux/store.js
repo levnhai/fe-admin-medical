@@ -10,6 +10,7 @@ import newSlice from './news/newsSlice';
 import locationSlice from './location/locationSlice';
 import docterSlice from './docter/docterSlice';
 import hospitalSlice from './hospital/hospitalSlice';
+import contactSlice from './contact/contactSlice';
 
 // const persistConfig = {
 //   key: 'auth',
@@ -27,6 +28,7 @@ const Store = configureStore({
     location: locationSlice,
     docter: docterSlice,
     hospital: hospitalSlice,
+    contact: contactSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
