@@ -32,17 +32,14 @@ export const fetchDeleteUser = createAsyncThunk('user/fetchDeleteUser', async (i
 });
 
 // Create user
-export const fetchCreateUser = createAsyncThunk(
-  'user/fetchCreateUser',
-  async (userData) => {
-    try {
-      const response = await axios.post('/user/create', userData);
-      return response.result;
-    } catch (error) {
-      throw new Error(error.message);
-    }
+export const fetchCreateUser = createAsyncThunk('user/fetchCreateUser', async (userData) => {
+  try {
+    const response = await axios.post('/user/create-user', userData);
+    return response.result;
+  } catch (error) {
+    throw new Error(error.message);
   }
-);
+});
 
 // Edit user
 export const fetchEditUser = createAsyncThunk(
@@ -54,7 +51,7 @@ export const fetchEditUser = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
-  }
+  },
 );
 const userSlice = createSlice({
   name: 'user',

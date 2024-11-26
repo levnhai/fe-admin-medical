@@ -51,9 +51,9 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
   });
 
   const provinceData = useSelector((state) => state.location.provinceData);
-  const hospitalData = useSelector((state) => state.hospital.hospitalData);
   const districtData = useSelector((state) => state.location.districtData);
   const wardData = useSelector((state) => state.location.wardData);
+  const user = useSelector((state) => state.auth.user?.payload);
 
   const handleShowHidePassword = () => {
     setShowHidePassword(!showHidePassword);
@@ -122,19 +122,20 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
   };
 
   const handleSubmitCreateUser = methods.handleSubmit(async (formData) => {
-    const data = { ...formData, ...form };
+    const data = { ...formData, ...form, hospitalId: user?.userData?._id };
     console.log('check formData', data);
 
     try {
       const response = await dispatch(fetchCreateDocter(data));
       const result = await unwrapResult(response);
-      console.log('check response', result);
+      console.log('check result', result);
       if (result?.status) {
         toast.success(result?.message);
         handleGetAllDocter();
         setShowModalCreate(false);
       } else {
-        toast.success(result?.message);
+        console.log('hai ke');
+        toast.warning(result?.message);
         setShowModalCreate(true);
       }
     } catch (error) {
@@ -161,30 +162,30 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
           <div className={cx('modalContent')}>
             <div className={cx('wrapper--input')}>
               <FormProvider {...methods}>
-                <div class="w-full ">
+                <div className="w-full ">
                   <Input {...name_validation} />
                 </div>
-                <div class="flex gap-4">
-                  <div class="w-full md:w-1/2 mb-6 md:mb-0">
+                <div className="flex gap-4">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <Input {...phone_validation} />
                   </div>
-                  <div class="w-full md:w-1/2 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <Input {...email_validation} />
                   </div>
                 </div>
-                <div class="flex gap-4">
-                  <div class="relative w-full md:w-1/2 mb-6 md:mb-0">
+                <div className="flex gap-4">
+                  <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
                     <Input type={showHidePassword ? 'password' : ' text'} {...password_validation} />
                     <span
                       onMouseDown={handleShowHidePassword}
                       onMouseUp={() => setShowHidePassword(true)}
                       onMouseLeave={() => setShowHidePassword(true)}
-                      class="absolute cursor-pointer text-xl top-2/4 right-3.5"
+                      className="absolute cursor-pointer text-xl top-2/4 right-3.5"
                     >
                       {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                     </span>
                   </div>
-                  <div class="relative w-full md:w-1/2 mb-6 md:mb-0">
+                  <div cNamelass="relative w-full md:w-1/2 mb-6 md:mb-0">
                     <Input
                       validation={{
                         required: {
@@ -202,97 +203,73 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                       onMouseDown={handleShowHideReEnterPassword}
                       onMouseUp={() => setConfirmPassword(true)}
                       onMouseLeave={() => setConfirmPassword(true)}
-                      class="absolute cursor-pointer text-xl top-2/4 right-3.5"
+                      className="absolute cursor-pointer text-xl top-2/4 right-3.5"
                     >
                       {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                     </span>
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                <div className="flex gap-4 mt-4">
+                  <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="gender"
                       onChange={handleOnchange}
                       value={form.gender}
                       name="gender"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
-                      <option name="gender" disabled value="">
+                      <option disabled value="">
                         ---- Giới tính ---
                       </option>
-                      <option name="gender" value="females">
-                        Nữ
-                      </option>
-                      <option name="gender" value="other">
-                        Khác
-                      </option>
-                      <option name="gender" value="male">
-                        Nam
-                      </option>
+                      <option value="females">Nữ</option>
+                      <option value="other">Khác</option>
+                      <option value="male">Nam</option>
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="province"
                       onChange={handleOnchange}
                       value={form.positionId}
                       name="positionId"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
-                      <option name="positionId" value="" disabled>
+                      <option value="" disabled>
                         --- Trình độ ---
                       </option>
-                      <option name="positionId" value="docter">
-                        Bác sỹ
-                      </option>
-                      <option name="positionId" value="mater">
-                        Thạc sỹ
-                      </option>
-                      <option name="positionId" value="associate professor">
-                        Phó giáo sư
-                      </option>
-                      <option name="positionId" value="professor">
-                        Giáo sư
-                      </option>
+                      <option value="docter">Bác sỹ</option>
+                      <option value="mater">Thạc sỹ</option>
+                      <option value="associate professor">Phó giáo sư</option>
+                      <option value="professor">Giáo sư</option>
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="price"
                       onChange={handleOnchange}
                       value={form.price}
                       name="price"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
-                      <option name="positionId" value="" disabled selected>
+                      <option value="" disabled selected>
                         --- Giá khám ---
                       </option>
-                      <option name="price" value="100000">
-                        100 000
-                      </option>
-                      <option name="price" value="200000">
-                        200 000
-                      </option>
-                      <option name="price" value="300000">
-                        300 000
-                      </option>
-                      <option name="price" value="400000">
-                        400 000
-                      </option>
-                      <option name="price" value="500000">
-                        500 000
-                      </option>
+                      <option value="100000">100 000</option>
+                      <option value="200000">200 000</option>
+                      <option value="300000">300 000</option>
+                      <option value="400000">400 000</option>
+                      <option value="500000">500 000</option>
                     </select>
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                <div className="flex gap-4 mt-4">
+                  <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="province"
                       name="provinceId"
                       value={form.provinceId}
                       onChange={handleChangeProvince}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Tỉnh/thành</option>
                       {provinceData?.data.map((item, index) => {
@@ -304,13 +281,13 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                       })}
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="district"
                       name="districtId"
                       value={form.districtId}
                       onChange={handleChangeDistrict}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Huyện/ Thị xã</option>
                       {districtData?.data.map((item, index) => {
@@ -322,12 +299,12 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                       })}
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="ward"
                       onChange={handleChangeWard}
                       name="wardId"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Phường/ xã</option>
                       {wardData?.data.map((item, index) => {
@@ -340,32 +317,11 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                     </select>
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                    <select
-                      id="hospital"
-                      name="hospitalId"
-                      value={form.hospitalId}
-                      onChange={handleOnchange}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    >
-                      <option selected disabled value="">
-                        ---Bệnh viện---
-                      </option>
-                      {hospitalData?.data.map((item, index) => {
-                        return (
-                          <option key={index} name="hospitalId" value={item._id}>
-                            {item.fullName}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                </div>
-                <div class="w-full ">
+
+                <div className="w-full ">
                   <Input {...street_validation} />
                 </div>
-                <div class="mt-4">
+                <div className="mt-4">
                   <div>
                     <label className={cx('label-uploadImage')} htmlFor="upload-image">
                       Upload image

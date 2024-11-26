@@ -12,5 +12,7 @@ const routes = {
   faq: '/faq',
   calendar: '/calendar',
   geography: '/geography',
+  login: '/login',
+  unauthorized: '/unauthorized',
 };
 export default routes;

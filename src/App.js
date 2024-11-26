@@ -1,60 +1,40 @@
 import { Fragment } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { publicRoutes } from './routes';
+import { routes } from './routes';
 import DefaultLayout from './layouts/defaultLayout';
 import { ToastContainer } from 'react-toastify';
-
-// import { Routes, Route } from 'react-router-dom';
+import ProtectedRoute from './utils/protectedRoute';
 
 function App() {
-  // const [theme, colorMode] = useMode();
-  // const [isSidebar, setIsSidebar] = useState(true);
-
   return (
-    // <ColorModeContext.Provider value={colorMode}>
-    //   <ThemeProvider theme={theme}>
-    //     <CssBaseline />
-    //     <div className="app">
-    //       <Sidebar isSidebar={isSidebar} />
-    //       <main className="content">
-    //         <Topbar setIsSidebar={setIsSidebar} />
-    //         <Routes>
-    //           <Route path="/" element={<Dashboard />} />
-    //           <Route path="/team" element={<Team />} />
-    //           <Route path="/contacts" element={<Contacts />} />
-    //           <Route path="/invoices" element={<Invoices />} />
-    //           <Route path="/form" element={<Form />} />
-    //           <Route path="/bar" element={<Bar />} />
-    //           <Route path="/pie" element={<Pie />} />
-    //           <Route path="/line" element={<Line />} />
-    //           <Route path="/faq" element={<FAQ />} />
-    //           <Route path="/calendar" element={<Calendar />} />
-    //           <Route path="/geography" element={<Geography />} />
-    //         </Routes>
-    //       </main>
-    //     </div>
-    //   </ThemeProvider>
-    // </ColorModeContext.Provider>
     <>
       <Router>
         <Routes>
-          {publicRoutes.map((route, index) => {
+          {routes.map(({ path, layout, isPrivate, requiredRole, component: Component }, index) => {
             let Layout = DefaultLayout;
-            if (route.layout) {
-              Layout = route.layout;
-            } else if (route.layout === null) {
+            if (layout) {
+              Layout = layout;
+            } else if (layout === null) {
               Layout = Fragment;
             }
-            const Page = route.component;
             return (
               <Route
                 key={index}
-                path={route.path}
+                path={path}
                 element={
-                  <Layout>
-                    <Page />
-                    <ToastContainer />
-                  </Layout>
+                  isPrivate ? (
+                    <ProtectedRoute requiredRole={requiredRole}>
+                      <Layout>
+                        <Component />
+                        <ToastContainer />
+                      </Layout>
+                    </ProtectedRoute>
+                  ) : (
+                    <Layout>
+                      <Component />
+                      <ToastContainer />
+                    </Layout>
+                  )
                 }
               />
             );

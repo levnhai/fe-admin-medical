@@ -4,7 +4,20 @@ import axios from '~/axios';
 // get all docter
 export const fetchAllDocter = createAsyncThunk('docter/fetchAllDocter', async () => {
   try {
-    const response = await axios.get('/docter/get-all-docter');
+    const response = await axios.get('/docter/get-all-docter', { withCredentials: true });
+    console.log('check response docter', response);
+    return response.result;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+});
+
+// get all docter
+export const fetchDocterByHospital = createAsyncThunk('docter/fetchDocterByHospital', async (hospitalId) => {
+  try {
+    console.log('check hospitalid', hospitalId);
+    const response = await axios.post('/docter/get-docter-by-hospital', { hospitalId }, { withCredentials: true });
+    console.log('check response docter', response);
     return response.result;
   } catch (error) {
     throw new Error(error.message);
@@ -14,63 +27,56 @@ export const fetchAllDocter = createAsyncThunk('docter/fetchAllDocter', async ()
 // create docter
 export const fetchCreateDocter = createAsyncThunk('docter/fetchCreateDocter', async (formData) => {
   try {
-    console.log('chekc form data', formData);
     const response = await axios.post('/docter/create-docter', { formData });
+
+    console.log('check response docter', response);
     return response.result;
   } catch (error) {
     throw new Error(error.message);
   }
 });
 // update doctor
-export const fetchUpdateDoctor = createAsyncThunk(
-  'doctor/fetchUpdateDoctor',
-  async ({ doctorId, formData }) => {
-    try {
-      const response = await axios.put(
-        `/docter/update-docter/${doctorId}`,
-        formData
-      );
-      return response.data;
-    } catch (error) {
-      throw new Error(error.message);
-    }
+export const fetchUpdateDoctor = createAsyncThunk('doctor/fetchUpdateDoctor', async ({ doctorId, formData }) => {
+  try {
+    const response = await axios.put(`/docter/update-docter/${doctorId}`, formData);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.message);
   }
-);
+});
 
 // delete doctor
-export const fetchDeleteDoctor = createAsyncThunk(
-  'doctor/fetchDeleteDoctor',
-  async (doctorId) => {
-    try {
-      const response = await axios.delete(`/docter/delete-docter/${doctorId}`);
-      
-      if (response.result && response.result.status === true) {
-        return {
-          status: true,
-          doctorId,
-          message: response.result.message,
-          code: response.result.code
-        };
-      }
-      
-      throw new Error(response.result?.message || 'Không thể xóa bác sĩ');
-    } catch (error) {
-      throw new Error(error.message);
+export const fetchDeleteDoctor = createAsyncThunk('doctor/fetchDeleteDoctor', async (doctorId) => {
+  try {
+    const response = await axios.delete(`/docter/delete-docter/${doctorId}`);
+
+    if (response.result && response.result.status === true) {
+      return {
+        status: true,
+        doctorId,
+        message: response.result.message,
+        code: response.result.code,
+      };
     }
+
+    throw new Error(response.result?.message || 'Không thể xóa bác sĩ');
+  } catch (error) {
+    throw new Error(error.message);
   }
-);
+});
 
 const docterSlice = createSlice({
   name: 'docter',
   initialState: {
     docterData: null,
+    docterByHospitalData: null,
     loading: false,
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
-    // get all provinces
     builder
+      // get all docter
       .addCase(fetchAllDocter.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -83,6 +89,21 @@ const docterSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
+
+      // get docter by hospital
+      .addCase(fetchDocterByHospital.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDocterByHospital.fulfilled, (state, action) => {
+        state.loading = false;
+        state.docterByHospitalData = action.payload;
+      })
+      .addCase(fetchDocterByHospital.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
       // Update doctor
       .addCase(fetchUpdateDoctor.pending, (state) => {
         state.loading = true;
@@ -91,9 +112,7 @@ const docterSlice = createSlice({
       .addCase(fetchUpdateDoctor.fulfilled, (state, action) => {
         state.loading = false;
         if (state.doctorData?.data) {
-          const index = state.doctorData.data.findIndex(
-            doctor => doctor._id === action.payload.data._id
-          );
+          const index = state.doctorData.data.findIndex((doctor) => doctor._id === action.payload.data._id);
           if (index !== -1) {
             state.doctorData.data[index] = action.payload.data;
           }
@@ -104,7 +123,7 @@ const docterSlice = createSlice({
         state.error = action.error.message;
       })
 
-    // Delete doctor
+      // Delete doctor
       .addCase(fetchDeleteDoctor.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -112,9 +131,7 @@ const docterSlice = createSlice({
       .addCase(fetchDeleteDoctor.fulfilled, (state, action) => {
         state.loading = false;
         if (state.docterData?.data) {
-          state.docterData.data = state.docterData.data.filter(
-            doctor => doctor._id !== action.payload.doctorId
-          );
+          state.docterData.data = state.docterData.data.filter((doctor) => doctor._id !== action.payload.doctorId);
         }
       })
       .addCase(fetchDeleteDoctor.rejected, (state, action) => {

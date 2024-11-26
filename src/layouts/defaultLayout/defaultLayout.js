@@ -2,8 +2,6 @@ import style from './defaultLayout.module.scss';
 import classNames from 'classnames/bind';
 import React, { useState } from 'react';
 
-// import Header from '../components/header';
-// import Footer from '../components/footer';
 import Sidebar from '~/scenes/global/Sidebar';
 import Topbar from '~/scenes/global/Topbar';
 import { CssBaseline, ThemeProvider } from '@mui/material';

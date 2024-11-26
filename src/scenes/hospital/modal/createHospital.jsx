@@ -9,9 +9,11 @@ import 'react-image-lightbox/style.css';
 
 // icon
 import { RiCloseLine } from 'react-icons/ri';
+import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 import { Input } from '~/components/input/input';
 import {
+  password_validation,
   name_validation,
   phone_validation,
   email_validation,
@@ -47,6 +49,8 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
   const provinceData = useSelector((state) => state.location.provinceData);
   const districtData = useSelector((state) => state.location.districtData);
   const wardData = useSelector((state) => state.location.wardData);
+  const [showHidePassword, setShowHidePassword] = useState(true);
+  const [confirmPassword, setConfirmPassword] = useState(true);
 
   // handle onchange province
   const handleChangeProvince = (e) => {
@@ -106,6 +110,14 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
     setIsOpenImage(true);
   };
 
+  const handleShowHidePassword = () => {
+    setShowHidePassword(!showHidePassword);
+  };
+
+  const handleShowHideReEnterPassword = () => {
+    setConfirmPassword(!confirmPassword);
+  };
+
   const handleSubmitCreateUser = methods.handleSubmit(async (formData) => {
     const data = { ...formData, ...form };
     console.log('check formData', data);
@@ -145,25 +157,61 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
           <div className={cx('modalContent')}>
             <div className={cx('wrapper--input')}>
               <FormProvider {...methods}>
-                <div class="w-full ">
+                <div className="w-full ">
                   <Input {...name_validation} />
                 </div>
-                <div class="flex gap-4">
-                  <div class="w-full md:w-1/2 mb-6 md:mb-0">
+                <div className="flex gap-4">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <Input {...phone_validation} />
                   </div>
-                  <div class="w-full md:w-1/2 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <Input {...email_validation} />
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                <div className="flex gap-4">
+                  <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
+                    <Input type={showHidePassword ? 'password' : ' text'} {...password_validation} />
+                    <span
+                      onMouseDown={handleShowHidePassword}
+                      onMouseUp={() => setShowHidePassword(true)}
+                      onMouseLeave={() => setShowHidePassword(true)}
+                      className="absolute cursor-pointer text-xl top-2/4 right-3.5"
+                    >
+                      {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                    </span>
+                  </div>
+                  <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
+                    <Input
+                      validation={{
+                        required: {
+                          value: true,
+                          message: 'required',
+                        },
+                      }}
+                      label=""
+                      type={confirmPassword ? 'password' : ' text'}
+                      id="reEnterPassword"
+                      placeholder="Please enter your reEnterPassword..."
+                      name="reEnterPassword"
+                    />
+                    <span
+                      onMouseDown={handleShowHideReEnterPassword}
+                      onMouseUp={() => setConfirmPassword(true)}
+                      onMouseLeave={() => setConfirmPassword(true)}
+                      className="absolute cursor-pointer text-xl top-2/4 right-3.5"
+                    >
+                      {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-4 mt-4">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="hospitalType"
                       onChange={handleOnchange}
                       value={form.hospitalType}
                       name="hospitalType"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option name="hospitalType" disabled value="">
                         ---- Loại bệnh viện ---
@@ -186,14 +234,14 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                     </select>
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                <div className="flex gap-4 mt-4">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="province"
                       name="provinceId"
                       value={form.provinceId}
                       onChange={handleChangeProvince}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Tỉnh/thành</option>
                       {provinceData?.data.map((item, index) => {
@@ -205,13 +253,13 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                       })}
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="district"
                       name="districtId"
                       value={form.districtId}
                       onChange={handleChangeDistrict}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Huyện/ Thị xã</option>
                       {districtData?.data.map((item, index) => {
@@ -223,12 +271,12 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                       })}
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="ward"
                       onChange={handleChangeWard}
                       name="wardId"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Phường/ xã</option>
                       {wardData?.data.map((item, index) => {
@@ -241,13 +289,13 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                     </select>
                   </div>
                 </div>
-                <div class="w-full">
+                <div className="w-full">
                   <Input {...street_validation} />
                 </div>
-                <div class="w-full">
+                <div className="w-full">
                   <Input {...desc_validation} />
                 </div>
-                <div class="mt-4">
+                <div className="mt-4">
                   <div>
                     <label className={cx('label-uploadImage')} htmlFor="upload-image">
                       Upload image

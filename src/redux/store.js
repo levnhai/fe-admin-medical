@@ -10,15 +10,16 @@ import newSlice from './news/newsSlice';
 import locationSlice from './location/locationSlice';
 import docterSlice from './docter/docterSlice';
 import hospitalSlice from './hospital/hospitalSlice';
+import authSlide from './auth/authSlice';
 
-// const persistConfig = {
-//   key: 'auth',
-//   storage,
-//   whitelist: ['isLoggedIn', 'user', 'phoneNumber'],
-//   transforms: [encryptTransform({ secretKey: 'lvhai-16072002' })],
-// };
+const persistConfig = {
+  key: 'auth',
+  storage,
+  whitelist: ['isLoggedIn', 'user', 'phoneNumber'],
+  transforms: [encryptTransform({ secretKey: 'lvhai-16072002' })],
+};
 
-// const persistedReducer = persistReducer(persistConfig, authReducer);
+const persistedReducer = persistReducer(persistConfig, authSlide);
 
 const Store = configureStore({
   reducer: {
@@ -27,6 +28,7 @@ const Store = configureStore({
     location: locationSlice,
     docter: docterSlice,
     hospital: hospitalSlice,
+    auth: persistedReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
