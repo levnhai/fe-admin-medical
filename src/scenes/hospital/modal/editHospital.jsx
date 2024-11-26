@@ -12,10 +12,17 @@ import { RiCloseLine } from 'react-icons/ri';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 import { Input } from '~/components/input/input';
-import { password_validation, name_validation, phone_validation, email_validation, street_validation, desc_validation } from '~/utils/inputValidations';
+import {
+  password_validation,
+  name_validation,
+  phone_validation,
+  email_validation,
+  street_validation,
+  desc_validation,
+} from '~/utils/inputValidations';
 
 import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
-import { fetchEditHospital  } from '~/redux/hospital/hospitalSlice';
+import { fetchEditHospital } from '~/redux/hospital/hospitalSlice';
 import { ConvertBase64 } from '~/utils/common';
 
 import styles from './Modal.module.scss';
@@ -29,8 +36,8 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
       phoneNumber: '',
       email: '',
       street: '',
-      description: ''
-    }
+      description: '',
+    },
   });
   const dispatch = useDispatch();
 
@@ -46,7 +53,7 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
     provinceName: '',
     districtName: '',
     wardName: '',
-    image: ''
+    image: '',
   });
 
   const provinceData = useSelector((state) => state.location.provinceData);
@@ -65,16 +72,16 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
     const select = e.target;
     const provinceId = select.value;
     const provinceName = select.options[select.selectedIndex].text;
-  
+
     if (provinceId && provinceId !== 'Tỉnh/thành') {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
-        provinceId: String(provinceId), 
+        provinceId: String(provinceId),
         provinceName,
         districtId: '',
         wardId: '',
         districtName: '',
-        wardName: ''
+        wardName: '',
       }));
       dispatch(fetchDistrictsByProvince(provinceId));
     }
@@ -84,29 +91,29 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
     const select = e.target;
     const districtId = select.value;
     const districtName = select.options[select.selectedIndex].text;
-  
+
     if (districtId && districtId !== 'Huyện/ Thị xã') {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
-        districtId: String(districtId), 
+        districtId: String(districtId),
         districtName,
         wardId: '',
-        wardName: ''
+        wardName: '',
       }));
       dispatch(fetchWardsByDistricts(districtId));
     }
   };
-  
+
   const handleChangeWard = (e) => {
     const select = e.target;
     const wardId = select.value;
     const wardName = select.options[select.selectedIndex].text;
-  
+
     if (wardId && wardId !== 'Phường/ xã') {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
         wardId: String(wardId),
-        wardName
+        wardName,
       }));
     }
   };
@@ -122,9 +129,9 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
     setpreViewImageURL(objectURL);
 
     const base64 = await ConvertBase64(file);
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      image: base64
+      image: base64,
     }));
   };
 
@@ -138,7 +145,7 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
       toast.error('Hospital ID is missing');
       return;
     }
-  
+
     // Validate address data
     if (!form.provinceId || form.provinceId === 'Tỉnh/thành') {
       toast.error('Vui lòng chọn Tỉnh/Thành phố');
@@ -152,7 +159,7 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
       toast.error('Vui lòng chọn Phường/Xã');
       return;
     }
-  
+
     // Combine form data from react-hook-form and local state
     const payload = {
       fullName: formData.fullName,
@@ -168,30 +175,32 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
       districtName: form.districtName,
       wardId: form.wardId,
       wardName: form.wardName,
-      street: formData.street
+      street: formData.street,
     };
-  
+
     console.log('Sending payload:', payload);
-  console.log('Hospital ID:', hospital._id);
-  
-  try {
-    const response = await dispatch(fetchEditHospital({ 
-      hospitalId: hospital._id, 
-      formData: payload 
-    }));
-    
-    console.log('API Response:', response);
-    
-    // Nếu không có lỗi được throw, coi như thành công
-    toast.success('Cập nhật thành công');
-    handleGetAllHospital();
-    setShowModalEdit(false);
-  } catch (error) {
-    console.error('Submit error:', error);
-    toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
-  }
+    console.log('Hospital ID:', hospital._id);
+
+    try {
+      const response = await dispatch(
+        fetchEditHospital({
+          hospitalId: hospital._id,
+          formData: payload,
+        }),
+      );
+
+      console.log('API Response:', response);
+
+      // Nếu không có lỗi được throw, coi như thành công
+      toast.success('Cập nhật thành công');
+      handleGetAllHospital();
+      setShowModalEdit(false);
+    } catch (error) {
+      console.error('Submit error:', error);
+      toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
+    }
   });
-  
+
   useEffect(() => {
     if (hospital) {
       methods.reset({
@@ -199,7 +208,7 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
         phoneNumber: hospital.phoneNumber || '',
         email: hospital.email || '',
         street: hospital.address?.[0]?.street || '',
-        description: hospital.description || ''
+        description: hospital.description || '',
       });
 
       setForm({
@@ -210,7 +219,7 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
         provinceName: hospital.address?.[0]?.provinceName || '',
         districtName: hospital.address?.[0]?.districtName || '',
         wardName: hospital.address?.[0]?.wardName || '',
-        image: hospital.image || ''
+        image: hospital.image || '',
       });
 
       if (hospital.image) {
@@ -242,29 +251,31 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
           <div className={cx('modalContent')}>
             <div className={cx('wrapper--input')}>
               <FormProvider {...methods}>
-                <div class="w-full ">
+                <div className="w-full ">
                   <Input {...name_validation} />
                 </div>
-                
-                <div class="flex gap-4">
-                  <div class="w-full md:w-1/2 mb-6 md:mb-0">
+
+                <div className="flex gap-4">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <Input {...phone_validation} />
                   </div>
-                  <div class="w-full md:w-1/2 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <Input {...email_validation} />
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                <div className="flex gap-4 mt-4">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="hospitalType"
-                      onChange={(e) => setForm(prev => ({
-                        ...prev,
-                        hospitalType: e.target.value
-                      }))}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          hospitalType: e.target.value,
+                        }))
+                      }
                       value={form.hospitalType}
                       name="hospitalType"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option name="hospitalType" disabled value="">
                         ---- Loại bệnh viện ---
@@ -287,14 +298,14 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
                     </select>
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                <div className="flex gap-4 mt-4">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="province"
                       name="provinceId"
                       value={form.provinceId}
                       onChange={handleChangeProvince}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Tỉnh/thành</option>
                       {provinceData?.data.map((item, index) => {
@@ -306,13 +317,13 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
                       })}
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="district"
                       name="districtId"
                       value={form.districtId}
                       onChange={handleChangeDistrict}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Huyện/ Thị xã</option>
                       {districtData?.data.map((item, index) => {
@@ -324,12 +335,12 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
                       })}
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="ward"
                       onChange={handleChangeWard}
                       name="wardId"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Phường/ xã</option>
                       {wardData?.data.map((item, index) => {
@@ -342,13 +353,13 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
                     </select>
                   </div>
                 </div>
-                <div class="w-full">
+                <div className="w-full">
                   <Input {...street_validation} />
                 </div>
-                <div class="w-full">
+                <div className="w-full">
                   <Input {...desc_validation} />
                 </div>
-                <div class="mt-4">
+                <div className="mt-4">
                   <div>
                     <label className={cx('label-uploadImage')} htmlFor="upload-image">
                       Upload image

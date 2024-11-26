@@ -3,13 +3,11 @@ import className from 'classnames/bind';
 import { toast } from 'react-toastify';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { unwrapResult } from '@reduxjs/toolkit';
 import Lightbox from 'react-image-lightbox';
 import 'react-image-lightbox/style.css';
 
 // icon
 import { RiCloseLine } from 'react-icons/ri';
-import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 import { Input } from '~/components/input/input';
 import { name_validation, phone_validation, email_validation } from '~/utils/inputValidations';
@@ -27,8 +25,8 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
     defaultValues: {
       fullName: '',
       phoneNumber: '',
-      email: ''
-    }
+      email: '',
+    },
   });
   const dispatch = useDispatch();
 
@@ -50,40 +48,25 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
     image: '',
   });
 
-  // const [formData, setFormData] = useState({
-  //   id: docter._id || '',
-  //   phoneNumber: docter.phoneNumber || '',
-  //   fullName: docter.fullName || '',
-  //   email: docter.email || '',
-  // });
-
   const provinceData = useSelector((state) => state.location.provinceData);
   const hospitalData = useSelector((state) => state.hospital.hospitalData);
   const districtData = useSelector((state) => state.location.districtData);
   const wardData = useSelector((state) => state.location.wardData);
 
-  // const handleShowHidePassword = () => {
-  //   setShowHidePassword(!showHidePassword);
-  // };
-
-  // const handleShowHideReEnterPassword = () => {
-  //   setConfirmPassword(!confirmPassword);
-  // };
-
   const handleChangeProvince = (e) => {
     const select = e.target;
     const provinceId = select.value;
     const provinceName = select.options[select.selectedIndex].text;
-  
+
     if (provinceId && provinceId !== 'Tỉnh/thành') {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
-        provinceId: String(provinceId), 
+        provinceId: String(provinceId),
         provinceName,
         districtId: '',
         wardId: '',
         districtName: '',
-        wardName: ''
+        wardName: '',
       }));
       dispatch(fetchDistrictsByProvince(provinceId));
     }
@@ -93,29 +76,29 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
     const select = e.target;
     const districtId = select.value;
     const districtName = select.options[select.selectedIndex].text;
-  
+    console.log('check huyen: ', districtName);
     if (districtId && districtId !== 'Huyện/ Thị xã') {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
         districtId: String(districtId),
         districtName,
         wardId: '',
-        wardName: ''
+        wardName: '',
       }));
       dispatch(fetchWardsByDistricts(districtId));
     }
   };
-  
+
   const handleChangeWard = (e) => {
     const select = e.target;
     const wardId = select.value;
     const wardName = select.options[select.selectedIndex].text;
-  
+
     if (wardId && wardId !== 'Phường/ xã') {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
-        wardId: String(wardId), 
-        wardName
+        wardId: String(wardId),
+        wardName,
       }));
     }
   };
@@ -177,13 +160,15 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
       wardName: form.wardName,
     };
     try {
-      const response = await dispatch(fetchUpdateDoctor({ 
-        doctorId: docter._id, 
-        formData: payload 
-      }));
-      
+      const response = await dispatch(
+        fetchUpdateDoctor({
+          doctorId: docter._id,
+          formData: payload,
+        }),
+      );
+
       console.log('API Response:', response);
-      
+
       // Nếu không có lỗi được throw, coi như thành công
       toast.success('Cập nhật thành công');
       handleGetAllDocter();
@@ -192,40 +177,41 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
       console.error('Submit error:', error);
       toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
     }
-    });
-    
-    useEffect(() => {
-      if (docter) {
-        methods.reset({
-          fullName: docter.fullName || '',
-          phoneNumber: docter.phoneNumber || '',
-          email: docter.email || '',
-        });
-  
-        setForm({
-          provinceId: docter.address?.[0]?.provinceId || '',
-          districtId: docter.address?.[0]?.districtId || '',
-          wardId: docter.address?.[0]?.wardId || '',
-          provinceName: docter.address?.[0]?.provinceName || '',
-          districtName: docter.address?.[0]?.districtName || '',
-          wardName: docter.address?.[0]?.wardName || '',
-          image: docter.image || '',
-          gender: docter.gender || '',
-          price: docter.price || '',
-          hospitalId: docter.hospitalId || ''
-        });
-  
-        if (docter.image) {
-          setpreViewImageURL(docter.image);
-        }
-        if (docter.address?.[0]?.provinceId) {
-          dispatch(fetchDistrictsByProvince(docter.address[0].provinceId));
-        }
-        if (docter.address?.[0]?.districtId) {
-          dispatch(fetchWardsByDistricts(docter.address[0].districtId));
-        }
+  });
+
+  useEffect(() => {
+    if (docter) {
+      methods.reset({
+        fullName: docter.fullName || '',
+        phoneNumber: docter.phoneNumber || '',
+        email: docter.email || '',
+      });
+
+      setForm({
+        provinceId: docter.address?.[0]?.provinceId || '',
+        districtId: docter.address?.[0]?.districtId || '',
+        wardId: docter.address?.[0]?.wardId || '',
+        provinceName: docter.address?.[0]?.provinceName || '',
+        districtName: docter.address?.[0]?.districtName || '',
+        wardName: docter.address?.[0]?.wardName || '',
+        image: docter.image || '',
+        gender: docter.gender || '',
+        price: docter.price || '',
+        hospitalId: docter.hospitalId || '',
+        positionId: docter.positionId || '',
+      });
+
+      if (docter.image) {
+        setpreViewImageURL(docter.image);
       }
-    }, [docter, methods]);
+      if (docter.address?.[0]?.provinceId) {
+        dispatch(fetchDistrictsByProvince(docter.address[0].provinceId));
+      }
+      if (docter.address?.[0]?.districtId) {
+        dispatch(fetchWardsByDistricts(docter.address[0].districtId));
+      }
+    }
+  }, [docter, methods]);
 
   useEffect(() => {
     dispatch(fetchAllProvinces());
@@ -246,25 +232,25 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
           <div className={cx('modalContent')}>
             <div className={cx('wrapper--input')}>
               <FormProvider {...methods}>
-                <div class="w-full ">
+                <div className="w-full ">
                   <Input {...name_validation} />
                 </div>
-                <div class="flex gap-4">
-                  <div class="w-full md:w-1/2 mb-6 md:mb-0">
+                <div className="flex gap-4">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <Input {...phone_validation} />
                   </div>
-                  <div class="w-full md:w-1/2 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <Input {...email_validation} />
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                <div className="flex gap-4 mt-4">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="hospital"
                       name="hospitalId"
                       value={form.hospitalId}
                       onChange={handleOnchange}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected disabled value="">
                         ---Bệnh viện---
@@ -279,14 +265,14 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
                     </select>
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                <div className="flex gap-4 mt-4">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="gender"
                       onChange={handleOnchange}
                       value={form.gender}
                       name="gender"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option name="gender" disabled value="">
                         ---- Giới tính ---
@@ -302,13 +288,13 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
                       </option>
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="province"
                       onChange={handleOnchange}
                       value={form.positionId}
                       name="positionId"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option name="positionId" value="" disabled>
                         --- Trình độ ---
@@ -327,13 +313,13 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
                       </option>
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="price"
                       onChange={handleOnchange}
                       value={form.price}
                       name="price"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option name="positionId" value="" disabled selected>
                         --- Giá khám ---
@@ -356,14 +342,14 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
                     </select>
                   </div>
                 </div>
-                <div class="flex gap-4 mt-4">
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                <div className="flex gap-4 mt-4">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="province"
                       name="provinceId"
                       value={form.provinceId}
                       onChange={handleChangeProvince}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Tỉnh/thành</option>
                       {provinceData?.data.map((item, index) => {
@@ -375,13 +361,13 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
                       })}
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="district"
                       name="districtId"
                       value={form.districtId}
                       onChange={handleChangeDistrict}
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Huyện/ Thị xã</option>
                       {districtData?.data.map((item, index) => {
@@ -393,12 +379,13 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
                       })}
                     </select>
                   </div>
-                  <div class="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="province"
                       onChange={handleOnchange}
                       name="wardId"
-                      class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      value={form.wardId}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     >
                       <option selected>Phường/ xã</option>
                       {wardData?.data.map((item, index) => {
@@ -411,7 +398,7 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
                     </select>
                   </div>
                 </div>
-                <div class="mt-4">
+                <div className="mt-4">
                   <div>
                     <label className={cx('label-uploadImage')} htmlFor="upload-image">
                       Upload image
