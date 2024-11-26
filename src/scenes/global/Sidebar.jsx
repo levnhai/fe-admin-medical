@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProSidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Box, IconButton, Typography, useTheme } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -10,7 +10,7 @@ import { Buffer } from 'buffer';
 
 import { tokens } from '../../theme';
 
-// icon
+// Giữ nguyên các imports icons từ code cũ
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
@@ -78,6 +78,7 @@ const Sidebar = () => {
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState('Dashboard');
+  const [isMobile, setIsMobile] = useState(false);
   const { t } = useTranslation();
 
   const token = Cookies.get('login');
@@ -93,8 +94,14 @@ const Sidebar = () => {
   return (
     <Box
       sx={{
-        '& .pro-sidebar-inner': {
-          background: `${colors.primary[400]} !important`,
+        '& .pro-sidebar': {
+          height: '100vh !important',
+          position: isMobile ? 'fixed' : 'relative',
+          zIndex: isMobile ? 1000 : 1,
+          '& .pro-sidebar-inner': {
+            background: `${colors.primary[400]} !important`,
+            height: '100vh !important',
+          },
         },
         '& .pro-icon-wrapper': {
           backgroundColor: 'transparent !important',
@@ -108,9 +115,38 @@ const Sidebar = () => {
         '& .pro-menu-item.active': {
           color: '#6870fa !important',
         },
+        // Thêm styles cho mobile
+        ...(isMobile && !isCollapsed && {
+          '& .pro-sidebar': {
+            width: '100% !important',
+            minWidth: '100% !important',
+          },
+          '& .pro-sidebar-inner': {
+            width: '250px !important',
+          },
+          '& .pro-sidebar-wrapper': {
+            width: '250px !important',
+          },
+          // Thêm overlay khi sidebar mở trên mobile
+          '&::before': {
+            content: '""',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 999,
+          },
+        }),
       }}
     >
-      <ProSidebar collapsed={isCollapsed}>
+      <ProSidebar 
+        collapsed={isCollapsed}
+        style={{
+          display: isMobile && isCollapsed ? 'none' : 'block',
+        }}
+      >
         <Menu iconShape="square">
           {/* LOGO AND MENU ICON */}
           <MenuItem
@@ -122,7 +158,12 @@ const Sidebar = () => {
             }}
           >
             {!isCollapsed && (
-              <Box display="flex" justifyContent="space-between" alignItems="center" ml="15px">
+              <Box 
+                display="flex" 
+                justifyContent="space-between" 
+                alignItems="center" 
+                ml="15px"
+              >
                 <Typography variant="h3" color={colors.grey[100]}>
                   ADMINIS
                 </Typography>
@@ -169,6 +210,27 @@ const Sidebar = () => {
           </Box>
         </Menu>
       </ProSidebar>
+
+      {/* Menu Button cho mobile khi sidebar đóng */}
+      {isMobile && isCollapsed && (
+        <IconButton
+          onClick={() => setIsCollapsed(false)}
+          sx={{
+            mt: '43px',
+            position: 'fixed',
+            left: '10px',
+            top: '10px',
+            zIndex: 1000,
+            bgcolor: colors.primary[400],
+            color: colors.grey[100],
+            '&:hover': {
+              bgcolor: colors.primary[300],
+            },
+          }}
+        >
+          <MenuOutlinedIcon />
+        </IconButton>
+      )}
     </Box>
   );
 };

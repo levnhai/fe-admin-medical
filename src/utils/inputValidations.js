@@ -3,7 +3,7 @@ export const name_validation = {
   label: '',
   type: 'text',
   id: 'fullName',
-  placeholder: 'Please enter your name...',
+  placeholder: 'Your name...',
   validation: {
     required: {
       value: true,
@@ -57,7 +57,7 @@ export const password_validation = {
   label: '',
   // type: 'password',
   id: 'password',
-  placeholder: 'Please enter your password...',
+  placeholder: 'Password...',
   validation: {
     required: {
       value: true,
@@ -89,7 +89,7 @@ export const email_validation = {
   label: '',
   type: 'email',
   id: 'email',
-  placeholder: 'Please enter your email...',
+  placeholder: 'Email...',
   validation: {
     required: {
       value: true,
@@ -108,7 +108,7 @@ export const phone_validation = {
   label: '',
   type: 'phoneNumber',
   id: 'phoneNumber',
-  placeholder: 'Please enter your phoneNumber...',
+  placeholder: 'Phone Number...',
   validation: {
     required: {
       value: true,

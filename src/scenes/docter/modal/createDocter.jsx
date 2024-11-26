@@ -196,7 +196,7 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                       label=""
                       type={confirmPassword ? 'password' : ' text'}
                       id="reEnterPassword"
-                      placeholder="Please enter your reEnterPassword..."
+                      placeholder="reEnterPassword..."
                       name="reEnterPassword"
                     />
                     <span
