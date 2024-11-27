@@ -7,6 +7,7 @@ import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
 
 //import { tokens } from '../../theme';
+import LoadingSkeleton from '../loading/loading_skeleton';
 import Header from '../../components/Header';
 import DeleteCoop from './modal/deleteCoop';
 import EditCoop from './modal/editCoop';
@@ -28,6 +29,7 @@ const ContactCooperate = () => {
   // Safe access to contactData with default empty array
   const contacts = useSelector((state) => state.contact.contactData) || [];
   const isLoading = useSelector((state) => state.contact.loading);
+  
 
   console.log('Current contacts from Redux:', contacts);
 
@@ -95,14 +97,6 @@ const ContactCooperate = () => {
     
     fetchData();
   }, [dispatch]);
-  if (isLoading) {
-    return (
-      <div className="p-2 sm:p-4 md:p-6">
-        <Header title="Quản lý yêu cầu hợp tác" subtitle="Hợp tác với chúng tôi" />
-        <div className="text-center p-4">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-2 sm:p-4 md:p-6">
@@ -193,61 +187,75 @@ const ContactCooperate = () => {
             </thead>
 
             {/* Table Body */}
-            <tbody>
-              {filteredUsers.map((item, index) => {
-                let image = item.image 
-                  ? Buffer.from(item.image, 'base64').toString('binary')
-                  : require('../../assets/images/empty.png');
+            {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  contacts.length > 0 ? (
+                    <tbody>
+                      {filteredUsers.map((item, index) => {
+                        let image = item.image 
+                          ? Buffer.from(item.image, 'base64').toString('binary')
+                          : require('../../assets/images/empty.png');
 
-                return (
-                  <tr
-                    key={item._id}
-                    className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                  >
-                    <td className="w-4 p-4">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                        checked={selectedUsers.includes(item._id)}
-                        onChange={() => handleSelectUser(item._id)}
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div
-                          className="w-10 h-10 rounded-full bg-contain bg-no-repeat"
-                          style={{ backgroundImage: `url(${image})` }}
-                        />
-                        <div className="pl-3">
-                          <div className="text-base font-semibold">{item.fullName}</div>
-                          <div className="font-normal text-gray-500">{item.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">{item.phoneNumber}</td>
-                    <td className="px-6 py-4">{item.note}</td>
-                    <td className="px-6 py-4">{item.status}</td>
-                    <td className="px-6 py-4">{item.createdAt}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <button
-                          className="text-blue-600 hover:text-blue-800"
-                          onClick={() => handleEditContact(item._id)}
-                        >
-                          <CiEdit size={20} />
-                        </button>
-                        <button
-                          className="text-red-600 hover:text-red-800"
-                          onClick={() => handleDeleteContact(item._id)}
-                        >
-                          <AiOutlineDelete size={20} />
-                        </button>
-                      </div>
+                        return (
+                          <tr
+                            key={item._id}
+                            className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                          >
+                          <td className="w-4 p-4">
+                            <input
+                              type="checkbox"
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                              checked={selectedUsers.includes(item._id)}
+                              onChange={() => handleSelectUser(item._id)}
+                            />
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center">
+                              <div
+                                className="w-10 h-10 rounded-full bg-contain bg-no-repeat"
+                                style={{ backgroundImage: `url(${image})` }}
+                              />
+                              <div className="pl-3">
+                                <div className="text-base font-semibold">{item.fullName}</div>
+                                <div className="font-normal text-gray-500">{item.email}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">{item.phoneNumber}</td>
+                          <td className="px-6 py-4">{item.note}</td>
+                          <td className="px-6 py-4">{item.status}</td>
+                          <td className="px-6 py-4">{item.createdAt}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-3">
+                              <button
+                                className="text-blue-600 hover:text-blue-800"
+                                onClick={() => handleEditContact(item._id)}
+                              >
+                                <CiEdit size={20} />
+                              </button>
+                              <button
+                                className="text-red-600 hover:text-red-800"
+                                onClick={() => handleDeleteContact(item._id)}
+                              >
+                                <AiOutlineDelete size={20} />
+                              </button>
+                            </div>
+                          </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  ) : (
+                <tbody>
+                  <tr>
+                    <td colSpan="7" className="p-4 text-center text-gray-500 dark:text-gray-400">
+                      Hiện tại không có dữ liệu nào
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
+                </tbody>
+              )
+            )}
           </table>
         )}
       </div>

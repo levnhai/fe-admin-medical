@@ -9,6 +9,7 @@ import { AiOutlineDelete } from 'react-icons/ai';
 
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
+import LoadingSkeleton from '../loading/loading_skeleton';
 
 import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
 import DeleteHospital from './modal/deleteHospital';
@@ -197,7 +198,7 @@ const Hospital = () => {
           </div>
           </div>
         </div>
-        <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+        <div className="overflow-x-auto relative shadow-md sm:rounded-lg" style={{ borderTopLeftRadius: '0', borderTopRightRadius: '0' }}>
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
@@ -245,9 +246,7 @@ const Hospital = () => {
             </tr>
           </thead>
           {isLoading === true ? (
-            <>
-              <h1>loading ...</h1>
-            </>
+            <LoadingSkeleton/>
           ) : hospitalData && hospitalData?.data.length > 0 ? (
             <tbody>
               {filteredUsers.map((item, index) => {

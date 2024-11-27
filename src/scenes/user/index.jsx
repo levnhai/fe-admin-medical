@@ -8,6 +8,7 @@ import { AiOutlineDelete } from 'react-icons/ai';
 
 //import { tokens } from '../../theme';
 import Header from '../../components/Header';
+import LoadingSkeleton from '../loading/loading_skeleton';
 
 import { fetchAllUsers } from '~/redux/user/userSlice';
 import DeleteUser from './modal/deleteUser';
@@ -30,7 +31,7 @@ const User = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
 
   const userData = useSelector((state) => state.user.userData);
-  //const isLoading = useSelector((state) => state.user.loading);
+  const isLoading = useSelector((state) => state.user.loading);
 
   // Hàm chuyển đổi chuỗi thành không dấu
   const removeAccents = (str) => {
@@ -195,7 +196,7 @@ const User = () => {
           </div>
           </div>
         </div>
-        <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+        <div className="overflow-x-auto relative shadow-md sm:rounded-lg" style={{ borderTopLeftRadius: '0', borderTopRightRadius: '0' }}>
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
@@ -230,7 +231,9 @@ const User = () => {
               </th>
             </tr>
           </thead>
-          {userData && userData?.user.length > 0 ? (
+          {isLoading ? (
+  <LoadingSkeleton />
+) : userData && userData?.user.length > 0 ? (
             <tbody>
               {filteredUsers.map((item, index) => {
                 return (
