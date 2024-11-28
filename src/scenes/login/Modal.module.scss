@@ -1,0 +1,125 @@
+// Modal.module.scss
+$breakpoints: (
+  'xs': 320px,
+  'sm': 640px,
+  'md': 768px,
+  'lg': 1024px,
+  'xl': 1280px
+);
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9fafb;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  @media screen and (max-width: map-get($breakpoints, 'sm')) {
+    max-width: 100%;
+    padding: 15px;
+    border-radius: 8px;
+  }
+}
+
+.login-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 20px;
+
+  @media screen and (max-width: map-get($breakpoints, 'sm')) {
+    font-size: 1.25rem;
+    margin-bottom: 15px;
+  }
+}
+
+.input-group {
+  margin-bottom: 15px;
+
+  @media screen and (max-width: map-get($breakpoints, 'sm')) {
+    margin-bottom: 10px;
+  }
+}
+
+.input-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+
+  @media screen and (max-width: map-get($breakpoints, 'sm')) {
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+  }
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  @media screen and (max-width: map-get($breakpoints, 'sm')) {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+}
+
+.remember-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 0.75rem; 
+  color: #6b7280;
+
+  @media screen and (max-width: map-get($breakpoints, 'sm')) {
+    margin-bottom: 10px;
+    font-size: 0.7rem;
+  }
+}
+
+.remember-checkbox {
+  width: 14px; 
+  height: 14px;
+  margin-right: 8px;
+  accent-color: #3b82f6; 
+}
+
+.submit-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500; 
+  font-size: 0.875rem; 
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #2563eb;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+  }
+
+  @media screen and (max-width: map-get($breakpoints, 'sm')) {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+}
