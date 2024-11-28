@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { useNavigate } from 'react-router-dom';
 import styles from './Modal.module.scss';
+import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 function Login() {
   const dispatch = useDispatch();
@@ -12,19 +13,23 @@ function Login() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleShowHidePassword = () => {
+    setShowPassword(!showPassword);
+  };
 
   const handleOnSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
-    
+    e.preventDefault();
+
     try {
       const response = await dispatch(fetchLogin({ phoneNumber, password }));
       const result = unwrapResult(response);
-      
-      // Set cookie with conditional expiration based on rememberMe
-      Cookies.set('login', result.token, { 
+
+      Cookies.set('login', result.token, {
         expires: rememberMe ? 7 : 1,
-        path: '/', 
-        sameSite: 'Lax' 
+        path: '/',
+        sameSite: 'Lax'
       });
 
       if (result.status) {
@@ -38,63 +43,77 @@ function Login() {
   };
 
   return (
-    <div className={styles['login-container']}>
-      <h2 className={styles['login-title']}>Admin Login</h2>
-      <form onSubmit={handleOnSubmit}>
-        <div className={styles['input-group']}>
-          <label 
+    <div className={styles['login-wrapper']}>
+      <div className={styles['login-container']}>
+        <div className={styles['login-logo']}>
+          <img
+            src={require('../../assets/images/logo.png')}
+            alt="Company Logo"
+            className={styles['logo-image']}
+          />
+        </div>
+        <form onSubmit={handleOnSubmit}>
+        <label 
             htmlFor="phoneNumber" 
             className={styles['input-label']}
           >
-            Phone Number
+            User name:
           </label>
-          <input
-            type="tel"
-            id="phoneNumber"
-            className={styles['input-field']}
-            placeholder="Enter your phone number"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            required
-          />
-        </div>
-        
-        <div className={styles['input-group']}>
+          <div className={styles['input-group']}>
+            <input
+              type="tel"
+              id="phoneNumber"
+              className={styles['input-field']}
+              placeholder="Enter your phone number"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              required
+            />
+          </div>
           <label 
             htmlFor="password" 
             className={styles['input-label']}
           >
-            Password
+            Password:
           </label>
-          <input
-            type="password"
-            id="password"
-            className={styles['input-field']}
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        
-        <div className={styles['remember-container']}>
-          <input
-            type="checkbox"
-            id="remember"
-            className={styles['remember-checkbox']}
-            checked={rememberMe}
-            onChange={() => setRememberMe(!rememberMe)}
-          />
-          <label htmlFor="remember">Remember me</label>
-        </div>
-        
-        <button 
-          type="submit" 
-          className={styles['submit-button']}
-        >
-          Sign In
-        </button>
-      </form>
+          <div className={`${styles['input-group']} ${styles['password-input-group']}`}>
+            
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              className={`${styles['input-field']} ${styles['password-input']}`}
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <div 
+              onClick={handleShowHidePassword}
+              className={styles['password-toggle']}
+            >
+              {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
+            </div>
+          </div>
+
+          <div className={styles['remember-container']}>
+            <input
+              type="checkbox"
+              id="remember"
+              className={styles['remember-checkbox']}
+              checked={rememberMe}
+              onChange={() => setRememberMe(!rememberMe)}
+            />
+            <label htmlFor="remember">Remember me</label>
+          </div>
+
+          <button
+            type="submit"
+            className={styles['submit-button']}
+          >
+            Sign In
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
