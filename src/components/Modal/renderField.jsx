@@ -21,7 +21,27 @@ const renderField = (field, formData, handleChange, hasSubmitted) => {
           label={field.label}
         />
       );
-    case 'option':
+      case 'option':
+        return (
+          <FormControl fullWidth margin="normal">
+            <Select 
+              name={field.name} 
+              value={formData[field.name] || ''}
+              onChange={handleChange}
+              displayEmpty
+            >
+              <MenuItem value="">
+                <em>{field.label}</em>
+              </MenuItem>
+              {field.options.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        );
+    case 'select':
       return (
         <FormControl fullWidth margin="normal">
           <Select name={field.name} value={formData[field.name]} onChange={handleChange}>
@@ -31,17 +51,6 @@ const renderField = (field, formData, handleChange, hasSubmitted) => {
               </MenuItem>
             ))}
           </Select>
-        </FormControl>
-      );
-    case 'radio':
-      return (
-        <FormControl component="fieldset">
-          <FormLabel component="legend">{field.label}</FormLabel>
-          <RadioGroup name={field.name} value={formData[field.name]} onChange={handleChange}>
-            {field.options.map((option) => (
-              <FormControlLabel key={option.value} value={option.value} control={<Radio />} label={option.label} />
-            ))}
-          </RadioGroup>
         </FormControl>
       );
     case 'textarea':

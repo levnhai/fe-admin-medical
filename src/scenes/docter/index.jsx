@@ -11,7 +11,7 @@ import { AiOutlineDelete } from 'react-icons/ai';
 
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
-
+import LoadingSkeleton from '../loading/loading_skeleton';
 import { fetchDocterByHospital } from '~/redux/docter/docterSlice';
 import DeleteDocter from './modal/deleteDocter';
 import CreateDocter from './modal/createDocter';
@@ -204,7 +204,7 @@ const User = () => {
           </div>
           </div>
         </div>
-        <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+        <div className="overflow-x-auto relative shadow-md sm:rounded-lg" style={{ borderTopLeftRadius: '0', borderTopRightRadius: '0' }}>
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
@@ -252,9 +252,7 @@ const User = () => {
             </tr>
           </thead>
           {isLoading === true ? (
-            <>
-              <h1>loading ...</h1>
-            </>
+            <LoadingSkeleton columns={9} />
           ) : docterData && docterData?.data.length > 0 ? (
             <tbody>
               {filteredUsers.map((item, index) => {

@@ -246,7 +246,7 @@ const Hospital = () => {
             </tr>
           </thead>
           {isLoading === true ? (
-            <LoadingSkeleton/>
+            <LoadingSkeleton columns={7}/>
           ) : hospitalData && hospitalData?.data.length > 0 ? (
             <tbody>
               {filteredUsers.map((item, index) => {

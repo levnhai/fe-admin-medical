@@ -9,6 +9,7 @@ import Hospital from '~/scenes/hospital';
 import ContactCooperate from '~/scenes/cooperate';
 import User from '~/scenes/user';
 import News from '~/scenes/news';
+import Category from '~/scenes/categorynews';
 import Docter from '~/scenes/docter';
 import Bar from '~/scenes/bar';
 import Form from '~/scenes/form';
@@ -36,6 +37,12 @@ const routes = [
   {
     path: config.routers.hospital,
     component: Hospital,
+    isPrivate: true,
+    requiredRole: ['system_admin'],
+  },
+  {
+    path: config.routers.category,
+    component: Category,
     isPrivate: true,
     requiredRole: ['system_admin'],
   },

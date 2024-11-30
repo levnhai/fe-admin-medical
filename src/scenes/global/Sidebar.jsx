@@ -32,6 +32,7 @@ const rolePermissions = {
     { title: 'Hospital', to: '/hospital', icon: <PeopleOutlinedIcon /> },
     { title: 'User', to: '/user', icon: <PeopleOutlinedIcon /> },
     { title: 'News', to: '/news', icon: <ReceiptOutlinedIcon /> },
+    { title: 'Category News', to: '/categorynews', icon: <ReceiptOutlinedIcon /> },
     { title: 'Cooperate', to: '/contact-cooperate', icon: <ConnectWithoutContactIcon /> },
     { title: 'Profile Form', to: '/form', icon: <PersonOutlinedIcon /> },
     { title: 'Calendar', to: '/calendar', icon: <CalendarTodayOutlinedIcon /> },

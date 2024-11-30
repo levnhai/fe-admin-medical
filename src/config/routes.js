@@ -2,6 +2,7 @@ const routes = {
   dashboard: '/',
   hospital: '/hospital',
   news: '/news',
+  category: '/categorynews',
   user: '/user',
   docter: '/docter',
   contactCooperate: '/contact-cooperate',

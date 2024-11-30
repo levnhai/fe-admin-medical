@@ -232,8 +232,8 @@ const User = () => {
             </tr>
           </thead>
           {isLoading ? (
-  <LoadingSkeleton />
-) : userData && userData?.user.length > 0 ? (
+              <LoadingSkeleton columns={5}/>
+            ) : userData && userData?.user.length > 0 ? (
             <tbody>
               {filteredUsers.map((item, index) => {
                 return (
