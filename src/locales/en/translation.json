@@ -9,7 +9,8 @@
   "menu": {
     "text": "This is text",
     "news": "News",
-    "title": "Title"
+    "title": "Title",
+    "subtitle": "Tiêu đề phụ"
   },
   "actions": {
     "add": "Add",

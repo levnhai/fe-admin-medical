@@ -53,7 +53,7 @@ const News = () => {
 
   const newsFields = [
     { name: 'title', label: 'title', type: 'text', grid: 4 },
-    //{ name: 'author', label: 'author', type: 'text', grid: 4 },
+    { name: 'subtitle', label: 'subtitle', type: 'text', grid: 4 },
     isDoctor?{ 
           name: 'status', 
           label: 'Status', 
@@ -93,7 +93,16 @@ const News = () => {
   const columns = [
     { field: 'id', headerName: 'ID', flex: 0.5 },
     { field: 'title', headerName: t('menu.title'), flex: 1 },
-    { field: 'content', headerName: 'content', flex: 1 },
+    { field: 'subtitle', headerName: t('menu.title'), flex: 1 },
+    // { 
+    //   field: 'content', 
+    //   headerName: 'Content', 
+    //   flex: 1, 
+    //   renderCell: (params) => {
+    //     const rawText = params.value.replace(/<\/?[^>]+(>|$)/g, "");
+    //     return rawText.length > 100 ? rawText.slice(0, 100) + "..." : rawText;
+    //   }
+    // },
     {
       field: 'author',
       headerName: 'author',
@@ -115,10 +124,10 @@ const News = () => {
           // Tìm danh mục trong categories
           const category = categories?.find((cat) => cat._id === params.value._id);
           if (category) {
-            return category.name; // Nếu tìm thấy, trả về tên danh mục
+            return category.name;
           }
         }
-        return 'Chưa xác định'; // Nếu không tìm thấy, trả về 'Chưa xác định'
+        return 'Chưa xác định';
       }
     },
     {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Button, Typography, Grid } from '@mui/material';
-
 import renderField from './renderField';
 
 const style = {
@@ -9,7 +8,7 @@ const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
   width: '90%',
-  maxWidth: 600,
+  maxWidth: 900,
   bgcolor: 'background.paper',
   border: '2px solid #000',
   boxShadow: 24,
@@ -17,46 +16,74 @@ const style = {
 };
 
 const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, title }) => {
-  const initialState = fields.reduce((acc, field) => {
-    acc[field.name] = data ? data[field.name] : field.type === 'checkbox' ? false : '';
-    return acc;
-  }, {});
+  const [formData, setFormData] = useState({});
 
-  const [formData, setFormData] = useState(initialState);
+  // Reset form data whenever the modal opens or data changes
+  useEffect(() => {
+    if (open) {
+      const initialState = fields.reduce((acc, field) => {
+        // Special handling for different types of fields
+        if (mode === 'edit' && data) {
+          // For edit mode, prioritize data from the selected item
+          acc[field.name] = data[field.name] !== undefined 
+            ? data[field.name] 
+            : (field.type === 'checkbox' ? false : '');
+        } else {
+          // For create mode, reset to default or empty values
+          acc[field.name] = field.type === 'checkbox' ? false : '';
+        }
+        return acc;
+      }, {});
+
+      setFormData(initialState);
+    }
+  }, [open, mode, data, fields]);
 
   const handleChange = (e) => {
     const { name, value, checked, type, files } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : files ? files[0] : value,
-    });
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' 
+        ? checked 
+        : type === 'file' 
+          ? files[0] 
+          : value
+    }));
   };
 
   const handleSubmit = () => {
     onSubmit(formData);
     handleClose();
   };
-
   const handleDelete = () => {
     onDelete();
     handleClose();
   };
-
-  useEffect(() => {
-    setFormData(initialState);
-  }, [data]);
+  const handleModalClose = () => {
+    // Reset form data when closing
+    setFormData({});
+    handleClose();
+  };
 
   return (
-    <Modal open={open} onClose={handleClose} aria-labelledby="modal-title" aria-describedby="modal-description">
+    <Modal 
+      open={open} 
+      onClose={handleModalClose} 
+      aria-labelledby="modal-title" 
+      aria-describedby="modal-description"
+    >
       <Box sx={style}>
         <Box
           sx={{
             width: '100%',
             height: '60px',
             borderRadius: 1,
-            bgcolor: 'primary.red',
+            bgcolor: 'primary.main',
+            display: 'flex',
+            alignItems: 'center',
+            mb: 2,
             '&:hover': {
-              bgcolor: 'primary.blue',
+              bgcolor: 'primary.dark',
             },
           }}
         >
@@ -66,8 +93,8 @@ const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, ti
             component="h1"
             sx={{
               fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
+              pl: 2,
+              color: 'white',
             }}
           >
             {title}
@@ -82,12 +109,21 @@ const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, ti
           ))}
         </Grid>
 
-        <Box mt={2}>
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
+        <Box mt={2} display="flex" justifyContent="flex-end">
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleSubmit} 
+            sx={{ mr: 1 }}
+          >
             {mode === 'create' ? 'Create' : 'Save'}
           </Button>
           {mode === 'edit' && (
-            <Button variant="contained" color="error" onClick={handleDelete} style={{ marginLeft: '10px' }}>
+            <Button 
+              variant="contained" 
+              color="error" 
+              onClick={handleDelete}
+            >
               Delete
             </Button>
           )}

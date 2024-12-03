@@ -9,7 +9,8 @@
   "menu": {
     "text": "đây là test",
     "news": "Tin tức",
-    "title": "Tiêu đề"
+    "title": "Tiêu đề",
+    "subtitle": "Tiêu đề phụ"
   },
   "actions": {
     "add": "Thêm",
