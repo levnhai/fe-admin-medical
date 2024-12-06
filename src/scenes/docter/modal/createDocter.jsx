@@ -175,17 +175,17 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                 </div>
                 <div className="flex gap-4">
                   <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
-                    <Input type={showHidePassword ? 'password' : ' text'} {...password_validation} />
+                    <Input type={showHidePassword ? 'password' : 'text'} {...password_validation} />
                     <span
                       onMouseDown={handleShowHidePassword}
                       onMouseUp={() => setShowHidePassword(true)}
                       onMouseLeave={() => setShowHidePassword(true)}
-                      className="absolute cursor-pointer text-xl top-2/4 right-3.5"
+                      className="absolute cursor-pointer text-xl top-1/2 right-3 transform -translate-y-1/2 mt-3"
                     >
                       {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                     </span>
                   </div>
-                  <div cNamelass="relative w-full md:w-1/2 mb-6 md:mb-0">
+                  <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
                     <Input
                       validation={{
                         required: {
@@ -194,21 +194,22 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                         },
                       }}
                       label=""
-                      type={confirmPassword ? 'password' : ' text'}
+                      type={confirmPassword ? 'password' : 'text'}
                       id="reEnterPassword"
-                      placeholder="reEnterPassword..."
+                      placeholder="Re-enter password..."
                       name="reEnterPassword"
                     />
                     <span
                       onMouseDown={handleShowHideReEnterPassword}
                       onMouseUp={() => setConfirmPassword(true)}
                       onMouseLeave={() => setConfirmPassword(true)}
-                      className="absolute cursor-pointer text-xl top-2/4 right-3.5"
+                      className="absolute cursor-pointer text-xl top-1/2 right-3 transform -translate-y-1/2 mt-3"
                     >
                       {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                     </span>
                   </div>
                 </div>
+
                 <div className="flex gap-4 mt-4">
                   <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
                     <select

@@ -10,7 +10,14 @@
     "text": "This is text",
     "news": "News",
     "title": "Title",
-    "subtitle": "Tiêu đề phụ"
+    "subtitle": "Sub title",
+    "author": "Author",
+    "category": "Category",
+    "status": "Status",
+    "views": "Views",
+    "createdAt": "Create Date",
+    "updatedAt": "Update Date",
+    "action": "Action"
   },
   "actions": {
     "add": "Add",

@@ -52,12 +52,12 @@ const News = () => {
   const { categories } = useSelector((state) => state.categoryNews);
 
   const newsFields = [
-    { name: 'title', label: 'title', type: 'text', grid: 4 },
-    { name: 'subtitle', label: 'subtitle', type: 'text', grid: 4 },
+    { name: 'title', label: 'title', type: 'text', grid: 6 },
+    { name: 'subtitle', label: 'subtitle', type: 'text', grid: 6 },
     isDoctor?{ 
           name: 'status', 
           label: 'Status', 
-          type: 'option', 
+          type: 'option', grid: 2,
           options: [
             { value: 2, label: 'Nháp' },
             { value: 3, label: 'Xóa' }
@@ -66,7 +66,7 @@ const News = () => {
         }: { 
           name: 'status', 
           label: 'Status', 
-          type: 'option', 
+          type: 'option', grid: 2,
           options: [
             { value: 1, label: 'Công khai' },
             { value: 2, label: 'Nháp' },
@@ -83,29 +83,20 @@ const News = () => {
         value: category._id, 
         label: category.name,  
       })) || [],
-      grid: 4,
+      grid: 3,
     },
-    { name: 'views', label: 'views', type: 'number', grid: 4 },
+    { name: 'views', label: 'views', type: 'number', grid: 3 },
     { name: 'imageUrl', label: 'imageUrl', type: 'file', grid: 4 },
-    { name: 'content', label: 'content', type: 'textarea', grid: 12 },
+    { name: 'content', label: 'content', type: 'textarea', grid: 12},
     ];
 
   const columns = [
     { field: 'id', headerName: 'ID', flex: 0.5 },
     { field: 'title', headerName: t('menu.title'), flex: 1 },
     { field: 'subtitle', headerName: t('menu.title'), flex: 1 },
-    // { 
-    //   field: 'content', 
-    //   headerName: 'Content', 
-    //   flex: 1, 
-    //   renderCell: (params) => {
-    //     const rawText = params.value.replace(/<\/?[^>]+(>|$)/g, "");
-    //     return rawText.length > 100 ? rawText.slice(0, 100) + "..." : rawText;
-    //   }
-    // },
     {
       field: 'author',
-      headerName: 'author',
+      headerName: t('menu.author'),
       valueFormatter: (params) => {
         // Check if author is an object with fullName property
         if (params.value && params.value.fullName) {
@@ -116,7 +107,7 @@ const News = () => {
     },
     {
       field: 'category',
-      headerName: 'Category',
+      headerName: t('menu.category'),
       flex: 1,
       valueFormatter: (params) => {
         // Kiểm tra xem params.value có chứa _id hay không
@@ -132,7 +123,7 @@ const News = () => {
     },
     {
       field: 'status',
-      headerName: 'status',
+      headerName: t('menu.status'),
       headerAlign: 'left',
       align: 'left',
       valueFormatter: (params) => {
@@ -146,15 +137,15 @@ const News = () => {
     },
     {
       field: 'views',
-      headerName: 'views',
+      headerName: t('menu.views'),
       headerAlign: 'left',
       align: 'left',
     },
-    { field: 'createdAt', headerName: 'createdAt', flex: 1 },
-    { field: 'updatedAt', headerName: 'updatedAt', flex: 1 },
+    { field: 'createdAt', headerName: t('menu.createdAt'), flex: 1 },
+    { field: 'updatedAt', headerName: t('menu.updatedAt'), flex: 1 },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('menu.action'),
       width: 150,
       renderCell: (params) => {
           return (
@@ -209,12 +200,15 @@ const News = () => {
       ...data,
       category: data.category?._id || data.category,
     };
+    
+    // Log hình ảnh để kiểm tra
+    console.log('Hình ảnh hiện tại:', editData.imageUrl);
+  
     setSelectedData(editData);
     setModalMode('edit');
     setOpenModal(true);
     setTitle('Sửa tin tức');
   };
-
   const handleClose = () => setOpenModal(false);
   const handleSubmit = (formData) => {
     const finalFormData = isDoctor && modalMode === 'create'
@@ -325,7 +319,7 @@ const News = () => {
     
   };
 
-  const { newsData, loading, error } = useSelector((state) => state.news);
+  const { newsData, loading } = useSelector((state) => state.news);
 
   const processedNewsData = newsData
   ?.filter(item => !isDoctor || item.author?._id === userId)

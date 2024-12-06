@@ -70,15 +70,14 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
                 <div className={cx('input--item-create')}>
                   <Input {...name_validation} />
                 </div>
-                <div className={cx('input--item-create')}>
-                  <Input type={showHidePassword ? 'password' : 'text'} {...password_validation} />
+                <div className={cx('input--item-create')} style={{ position: 'relative' }}>
+                  <Input type={showHidePassword ? 'password' : 'text'} {...password_validation} style={{paddingRight: '35px',}} />
                   <span
                     onClick={handleShowHidePassword}
                     style={{
                       position: 'absolute',
-                      right: '14px',
-                      top: '50%',
-                      transform: 'translateY(-300%)',
+                      right: '10px',  
+                      top: '50%',  
                       fontSize: '20px',
                       cursor: 'pointer',
                     }}
@@ -86,7 +85,7 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
                     {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                   </span>
                 </div>
-                <div className={cx('input--item-create')}>
+                <div className={cx('input--item-create')} style={{ position: 'relative' }}>
                   <Input
                     validation={{
                       required: {
@@ -99,14 +98,14 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
                     id="reEnterPassword"
                     placeholder="Please enter your reEnterPassword..."
                     name="reEnterPassword"
+                    style={{paddingRight: '35px',}} 
                   />
                   <span
                     onClick={handleShowHideReEnterPassword}
                     style={{
                       position: 'absolute',
-                      right: '14px',
-                      top: '53%',
-                      transform: 'translateY(-10%)',
+                      right: '10px',  
+                      top: '50%',  
                       fontSize: '20px',
                       cursor: 'pointer',
                     }}

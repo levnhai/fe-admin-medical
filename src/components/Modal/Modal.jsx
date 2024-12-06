@@ -17,6 +17,8 @@ const style = {
 
 const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, title }) => {
   const [formData, setFormData] = useState({});
+  const [imagePreview, setImagePreview] = useState(null);
+  //const [imageModalOpen, setImageModalOpen] = useState(false);
 
   // Reset form data whenever the modal opens or data changes
   useEffect(() => {
@@ -36,6 +38,9 @@ const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, ti
       }, {});
 
       setFormData(initialState);
+
+      // Reset image preview
+      setImagePreview(null);
     }
   }, [open, mode, data, fields]);
 
@@ -55,17 +60,34 @@ const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, ti
     onSubmit(formData);
     handleClose();
   };
-  const handleDelete = () => {
-    onDelete();
-    handleClose();
-  };
+  // const handleDelete = () => {
+  //   onDelete();
+  //   handleClose();
+  // };
   const handleModalClose = () => {
     // Reset form data when closing
     setFormData({});
     handleClose();
   };
 
+  // const handleImageClick = () => {
+  //   setImageModalOpen(true);
+  // };
+
+  // const handleCloseImageModal = () => {
+  //   setImageModalOpen(false);
+  // };
+
+  // const handleImagePreview = (previewUrl) => {
+  //   setImagePreview(previewUrl);
+  //   setImageModalOpen(true); 
+  // };
+  
+  // useEffect(() => {
+  //   console.log('Modal open?', imageModalOpen);
+  // }, [imageModalOpen]); // Theo dõi sự thay đổi của imageModalOpen
   return (
+    <>
     <Modal 
       open={open} 
       onClose={handleModalClose} 
@@ -104,7 +126,17 @@ const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, ti
         <Grid container spacing={2}>
           {fields.map((field) => (
             <Grid item xs={12} sm={field.grid || 6} key={field.name}>
-              {renderField(field, formData, handleChange)}
+              {renderField(
+                field, 
+                formData, 
+                handleChange, 
+                false, 
+                [imagePreview, setImagePreview],
+                {
+                  //onImagePreview: handleImagePreview
+                  onImagePreview: setImagePreview
+                }
+              )}
             </Grid>
           ))}
         </Grid>
@@ -120,16 +152,54 @@ const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, ti
           </Button>
           {mode === 'edit' && (
             <Button 
-              variant="contained" 
-              color="error" 
-              onClick={handleDelete}
-            >
-              Delete
-            </Button>
+            variant="contained" 
+            color="error" 
+            onClick={handleClose}
+          >
+            CLOSE
+          </Button>
           )}
         </Box>
       </Box>
     </Modal>
+    {/* <Dialog open={imageModalOpen} onClose={handleCloseImageModal} maxWidth="md" fullWidth>
+  <DialogTitle>
+    Image Preview
+    <IconButton
+      aria-label="close"
+      onClick={handleCloseImageModal}
+      sx={{
+        position: 'absolute',
+        right: 8,
+        top: 8,
+        color: (theme) => theme.palette.grey[500],
+      }}
+    >
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+  <DialogContent sx={{ position: 'relative', paddingTop: '20px' }}>
+    {imagePreview && (
+      console.log('hinh ne', imagePreview), // Kiểm tra giá trị của imagePreview
+      <img
+        src={imagePreview}
+        alt="Preview"
+        style={{
+          position: 'relative',
+          top: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          maxWidth: '100%',
+          maxHeight: '70vh',
+          objectFit: 'contain',
+          zIndex: 10,
+          display: 'block',
+        }}
+      />
+    )}
+  </DialogContent>
+</Dialog> */}
+  </>
   );
 };
 

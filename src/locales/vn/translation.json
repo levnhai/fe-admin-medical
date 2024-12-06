@@ -10,7 +10,14 @@
     "text": "đây là test",
     "news": "Tin tức",
     "title": "Tiêu đề",
-    "subtitle": "Tiêu đề phụ"
+    "subtitle": "Tiêu đề phụ",
+    "author": "Tác giả",
+    "category": "Danh mục",
+    "status": "Trạng thái",
+    "views": "Lượt xem",
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Ngày cập nhật",
+    "action": "Hành động"
   },
   "actions": {
     "add": "Thêm",
