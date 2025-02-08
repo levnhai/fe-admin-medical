@@ -28,7 +28,14 @@ export const Input = ({ name, label, type, id, placeholder, validation, multilin
         </AnimatePresence>
       </div>
       {multiline ? (
-        <textarea id={id} type={type} placeholder={placeholder} {...register(name, validation)}></textarea>
+        <textarea
+          id={id}
+          type={type}
+          className={cx('customInput')}
+          placeholder={placeholder}
+          rows="5"
+          {...register(name, validation)}
+        ></textarea>
       ) : (
         <input
           id={id}

@@ -24,6 +24,9 @@ import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
 import MapOutlinedIcon from '@mui/icons-material/MapOutlined';
 import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
 
+import { FaCalendarAlt } from 'react-icons/fa';
+import { FaUserDoctor } from 'react-icons/fa6';
+
 import { useTranslation } from 'react-i18next';
 
 const rolePermissions = {
@@ -42,16 +45,17 @@ const rolePermissions = {
     { title: 'Geography Chart', to: '/geography', icon: <MapOutlinedIcon /> },
   ],
   hospital_admin: [
-    { title: 'Dashboard', to: '/', icon: <HomeOutlinedIcon /> },
-    { title: 'Docter', to: '/docter', icon: <PeopleOutlinedIcon /> },
-    { title: 'User', to: '/user', icon: <PeopleOutlinedIcon /> },
-    { title: 'News', to: '/news', icon: <ReceiptOutlinedIcon /> },
-    { title: 'Cooperate', to: '/contact-cooperate', icon: <ConnectWithoutContactIcon /> },
+    { title: 'Trang chủ', to: '/', icon: <HomeOutlinedIcon /> },
+    { title: 'Bác sĩ', to: '/doctor', icon: <FaUserDoctor /> },
+    { title: 'Bệnh nhân', to: '/user', icon: <PeopleOutlinedIcon /> },
+    { title: 'Tin tức', to: '/news', icon: <ReceiptOutlinedIcon /> },
+    { title: 'Lịch làm việc', to: '/scheduler-doctor', icon: <FaCalendarAlt /> },
   ],
   docter: [
     { title: 'Dashboard', to: '/', icon: <HomeOutlinedIcon /> },
     { title: 'User', to: '/user', icon: <PeopleOutlinedIcon /> },
     { title: 'News', to: '/news', icon: <ReceiptOutlinedIcon /> },
+    { title: 'Lịch làm việc', to: '/scheduler-doctor', icon: <FaCalendarAlt /> },
   ],
 };
 
@@ -116,32 +120,33 @@ const Sidebar = () => {
           color: '#6870fa !important',
         },
         // Thêm styles cho mobile
-        ...(isMobile && !isCollapsed && {
-          '& .pro-sidebar': {
-            width: '100% !important',
-            minWidth: '100% !important',
-          },
-          '& .pro-sidebar-inner': {
-            width: '250px !important',
-          },
-          '& .pro-sidebar-wrapper': {
-            width: '250px !important',
-          },
-          // Thêm overlay khi sidebar mở trên mobile
-          '&::before': {
-            content: '""',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 999,
-          },
-        }),
+        ...(isMobile &&
+          !isCollapsed && {
+            '& .pro-sidebar': {
+              width: '100% !important',
+              minWidth: '100% !important',
+            },
+            '& .pro-sidebar-inner': {
+              width: '250px !important',
+            },
+            '& .pro-sidebar-wrapper': {
+              width: '250px !important',
+            },
+            // Thêm overlay khi sidebar mở trên mobile
+            '&::before': {
+              content: '""',
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 999,
+            },
+          }),
       }}
     >
-      <ProSidebar 
+      <ProSidebar
         collapsed={isCollapsed}
         style={{
           display: isMobile && isCollapsed ? 'none' : 'block',
@@ -158,12 +163,7 @@ const Sidebar = () => {
             }}
           >
             {!isCollapsed && (
-              <Box 
-                display="flex" 
-                justifyContent="space-between" 
-                alignItems="center" 
-                ml="15px"
-              >
+              <Box display="flex" justifyContent="space-between" alignItems="center" ml="15px">
                 <Typography variant="h3" color={colors.grey[100]}>
                   ADMINIS
                 </Typography>
@@ -182,7 +182,11 @@ const Sidebar = () => {
                   width="100px"
                   height="100px"
                   // src={base64UrlImage}
-                  style={{ cursor: 'pointer', borderRadius: '50%' }}
+                  style={{
+                    cursor: 'pointer',
+                    borderRadius: '50%',
+                    backgroundImage: `url(${require('../../assets/images/empty.png')})`,
+                  }}
                 />
               </Box>
               <Box textAlign="center">

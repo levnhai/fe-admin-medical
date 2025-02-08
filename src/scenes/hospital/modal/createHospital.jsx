@@ -154,149 +154,149 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
           <button className={cx('closeBtn')} onClick={() => setShowModalCreate(false)}>
             <RiCloseLine style={{ marginBottom: '-3px' }} />
           </button>
-          <div className={cx('modalContent')}>
-            <div className={cx('wrapper--input')}>
-              <FormProvider {...methods}>
-                <div className="w-full ">
-                  <Input {...name_validation} />
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
-                    <Input {...phone_validation} />
+          <div className={cx('body')}>
+            <div className={cx('modalContent')}>
+              <div className={cx('wrapper--input')}>
+                <FormProvider {...methods}>
+                  <div className="w-full ">
+                    <Input {...name_validation} />
                   </div>
-                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
-                    <Input {...email_validation} />
+                  <div className="flex gap-4">
+                    <div className="w-full md:w-1/2 mb-6 md:mb-0">
+                      <Input {...phone_validation} />
+                    </div>
+                    <div className="w-full md:w-1/2 mb-6 md:mb-0">
+                      <Input {...email_validation} />
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
-                    <Input type={showHidePassword ? 'password' : ' text'} {...password_validation} />
-                    <span
-                      onMouseDown={handleShowHidePassword}
-                      onMouseUp={() => setShowHidePassword(true)}
-                      onMouseLeave={() => setShowHidePassword(true)}
-                      className="absolute cursor-pointer text-xl top-2/4 right-3.5"
-                    >
-                      {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
-                    </span>
+                  <div className="flex gap-4">
+                    <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
+                      <Input type={showHidePassword ? 'password' : ' text'} {...password_validation} />
+                      <span
+                        onMouseDown={handleShowHidePassword}
+                        onMouseUp={() => setShowHidePassword(true)}
+                        onMouseLeave={() => setShowHidePassword(true)}
+                        className="absolute cursor-pointer text-xl top-2/4 right-3.5"
+                      >
+                        {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                      </span>
+                    </div>
+                    <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
+                      <Input
+                        validation={{
+                          required: {
+                            value: true,
+                            message: 'required',
+                          },
+                        }}
+                        label=""
+                        type={confirmPassword ? 'password' : ' text'}
+                        id="reEnterPassword"
+                        placeholder="Please enter your reEnterPassword..."
+                        name="reEnterPassword"
+                      />
+                      <span
+                        onMouseDown={handleShowHideReEnterPassword}
+                        onMouseUp={() => setConfirmPassword(true)}
+                        onMouseLeave={() => setConfirmPassword(true)}
+                        className="absolute cursor-pointer text-xl top-2/4 right-3.5"
+                      >
+                        {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                      </span>
+                    </div>
                   </div>
-                  <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
-                    <Input
-                      validation={{
-                        required: {
-                          value: true,
-                          message: 'required',
-                        },
-                      }}
-                      label=""
-                      type={confirmPassword ? 'password' : ' text'}
-                      id="reEnterPassword"
-                      placeholder="Please enter your reEnterPassword..."
-                      name="reEnterPassword"
-                    />
-                    <span
-                      onMouseDown={handleShowHideReEnterPassword}
-                      onMouseUp={() => setConfirmPassword(true)}
-                      onMouseLeave={() => setConfirmPassword(true)}
-                      className="absolute cursor-pointer text-xl top-2/4 right-3.5"
-                    >
-                      {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
-                    </span>
+                  <div className="flex gap-4 mt-4">
+                    <div className="w-full md:w-1/3 mb-6 md:mb-0">
+                      <select
+                        id="hospitalType"
+                        onChange={handleOnchange}
+                        value={form.hospitalType}
+                        name="hospitalType"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      >
+                        <option name="hospitalType" disabled value="">
+                          ---- Loại bệnh viện ---
+                        </option>
+                        <option name="hospitalType" value="benh-vien-cong">
+                          Bệnh viện công
+                        </option>
+                        <option name="hospitalType" value="benh-vien-tu">
+                          Bệnh viện tư
+                        </option>
+                        <option name="hospitalType" value="phong-kham">
+                          Phòng khám
+                        </option>
+                        <option name="hospitalType" value="phong-mach">
+                          Phòng mạch
+                        </option>
+                        <option name="hospitalType" value="xet-nghiem">
+                          Xét nghiệm
+                        </option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-4 mt-4">
-                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
-                    <select
-                      id="hospitalType"
-                      onChange={handleOnchange}
-                      value={form.hospitalType}
-                      name="hospitalType"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    >
-                      <option name="hospitalType" disabled value="">
-                        ---- Loại bệnh viện ---
-                      </option>
-                      <option name="hospitalType" value="benh-vien-cong">
-                        Bệnh viện công
-                      </option>
-                      <option name="hospitalType" value="benh-vien-tu">
-                        Bệnh viện tư
-                      </option>
-                      <option name="hospitalType" value="phong-kham">
-                        Phòng khám
-                      </option>
-                      <option name="hospitalType" value="phong-mach">
-                        Phòng mạch
-                      </option>
-                      <option name="hospitalType" value="xet-nghiem">
-                        Xét nghiệm
-                      </option>
-                    </select>
+                  <div className="flex gap-4 mt-4">
+                    <div className="w-full md:w-1/3 mb-6 md:mb-0">
+                      <select
+                        id="province"
+                        name="provinceId"
+                        value={form.provinceId}
+                        onChange={handleChangeProvince}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      >
+                        <option selected>Tỉnh/thành</option>
+                        {provinceData?.data.map((item, index) => {
+                          return (
+                            <option name="provinceId" value={item.id}>
+                              {item.name}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                    <div className="w-full md:w-1/3 mb-6 md:mb-0">
+                      <select
+                        id="district"
+                        name="districtId"
+                        value={form.districtId}
+                        onChange={handleChangeDistrict}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      >
+                        <option selected>Huyện/ Thị xã</option>
+                        {districtData?.data.map((item, index) => {
+                          return (
+                            <option name="districtId" value={item.id}>
+                              {item.name}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                    <div className="w-full md:w-1/3 mb-6 md:mb-0">
+                      <select
+                        id="ward"
+                        onChange={handleChangeWard}
+                        name="wardId"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                      >
+                        <option selected>Phường/ xã</option>
+                        {wardData?.data.map((item, index) => {
+                          return (
+                            <option name="wardId" value={item.id}>
+                              {item.name}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-4 mt-4">
-                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
-                    <select
-                      id="province"
-                      name="provinceId"
-                      value={form.provinceId}
-                      onChange={handleChangeProvince}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    >
-                      <option selected>Tỉnh/thành</option>
-                      {provinceData?.data.map((item, index) => {
-                        return (
-                          <option name="provinceId" value={item.id}>
-                            {item.name}
-                          </option>
-                        );
-                      })}
-                    </select>
+                  <div className="w-full">
+                    <Input {...street_validation} />
                   </div>
-                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
-                    <select
-                      id="district"
-                      name="districtId"
-                      value={form.districtId}
-                      onChange={handleChangeDistrict}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    >
-                      <option selected>Huyện/ Thị xã</option>
-                      {districtData?.data.map((item, index) => {
-                        return (
-                          <option name="districtId" value={item.id}>
-                            {item.name}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                  <div className="w-full md:w-1/3 mb-6 md:mb-0">
-                    <select
-                      id="ward"
-                      onChange={handleChangeWard}
-                      name="wardId"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    >
-                      <option selected>Phường/ xã</option>
-                      {wardData?.data.map((item, index) => {
-                        return (
-                          <option name="wardId" value={item.id}>
-                            {item.name}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                </div>
-                <div className="w-full">
-                  <Input {...street_validation} />
-                </div>
-                <div className="w-full">
-                  <Input {...desc_validation} />
-                </div>
-                <div className="mt-4">
                   <div>
+                    <Input className="w-full" {...desc_validation} />
+                  </div>
+                  <div className="mt-8">
                     <label className={cx('label-uploadImage')} htmlFor="upload-image">
                       Upload image
                     </label>
@@ -320,18 +320,18 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                     )}
                     {isOpenImage && <Lightbox mainSrc={previewImageURL} onCloseRequest={() => setIsOpenImage(false)} />}
                   </div>
-                </div>
-              </FormProvider>
+                </FormProvider>
+              </div>
             </div>
-          </div>
-          <div className={cx('modalActions')}>
-            <div className={cx('actionsContainer')}>
-              <button className={cx('deleteBtn')} onClick={handleSubmitCreateUser}>
-                Create hospital
-              </button>
-              <button className={cx('cancelBtn')} onClick={() => setShowModalCreate(false)}>
-                Cancel
-              </button>
+            <div className={cx('modalActions')}>
+              <div className={cx('actionsContainer')}>
+                <button className={cx('deleteBtn')} onClick={handleSubmitCreateUser}>
+                  Create hospital
+                </button>
+                <button className={cx('cancelBtn')} onClick={() => setShowModalCreate(false)}>
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>

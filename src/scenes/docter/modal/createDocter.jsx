@@ -19,10 +19,12 @@ import {
   email_validation,
   street_validation,
 } from '~/utils/inputValidations';
-import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
-import { fetchCreateDocter } from '~/redux/docter/docterSlice';
-import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
 import { ConvertBase64 } from '~/utils/common';
+
+import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
+import { fetchCreateDoctor } from '~/redux/doctor/doctorSlice';
+import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
+import { fetchAllSpecialty } from '~/redux/specialty/specialtySlice';
 
 import styles from './Modal.module.scss';
 const cx = className.bind(styles);
@@ -43,6 +45,7 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
     provinceId: '',
     districtId: '',
     hospitalId: '',
+    specialtyId: '',
     wardId: '',
     provinceName: '',
     districtName: '',
@@ -53,7 +56,10 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
   const provinceData = useSelector((state) => state.location.provinceData);
   const districtData = useSelector((state) => state.location.districtData);
   const wardData = useSelector((state) => state.location.wardData);
+  const specialtyData = useSelector((state) => state.specialty.specialtyData);
   const user = useSelector((state) => state.auth.user?.payload);
+
+  console.log('check specialtyData', specialtyData);
 
   const handleShowHidePassword = () => {
     setShowHidePassword(!showHidePassword);
@@ -126,7 +132,7 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
     console.log('check formData', data);
 
     try {
-      const response = await dispatch(fetchCreateDocter(data));
+      const response = await dispatch(fetchCreateDoctor(data));
       const result = await unwrapResult(response);
       console.log('check result', result);
       if (result?.status) {
@@ -145,6 +151,7 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
 
   useEffect(() => {
     dispatch(fetchAllProvinces());
+    dispatch(fetchAllSpecialty());
     dispatch(fetchAllHospital());
   }, []);
 
@@ -185,7 +192,7 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                       {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
                     </span>
                   </div>
-                  <div cNamelass="relative w-full md:w-1/2 mb-6 md:mb-0">
+                  <div className="relative w-full md:w-1/2 mb-6 md:mb-0">
                     <Input
                       validation={{
                         required: {
@@ -210,7 +217,7 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                   </div>
                 </div>
                 <div className="flex gap-4 mt-4">
-                  <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <select
                       id="gender"
                       onChange={handleOnchange}
@@ -221,12 +228,12 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                       <option disabled value="">
                         ---- Giới tính ---
                       </option>
-                      <option value="females">Nữ</option>
+                      <option value="female">Nữ</option>
                       <option value="other">Khác</option>
                       <option value="male">Nam</option>
                     </select>
                   </div>
-                  <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <select
                       id="province"
                       onChange={handleOnchange}
@@ -243,7 +250,30 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                       <option value="professor">Giáo sư</option>
                     </select>
                   </div>
-                  <div clNameass="w-full md:w-1/3 mb-6 md:mb-0">
+                </div>
+                <div className="flex gap-4 mt-4">
+                  <div className="w-full md:w-1/2 mb-6 md:mb-0">
+                    <select
+                      id="specialtyId"
+                      onChange={handleOnchange}
+                      value={form.specialtyId}
+                      name="specialtyId"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    >
+                      <option disabled value="">
+                        ---- Chuyên khoa ---
+                      </option>
+                      {specialtyData &&
+                        specialtyData?.data?.map((item, index) => {
+                          return (
+                            <option key={index} value={item._id}>
+                              {item.fullName}
+                            </option>
+                          );
+                        })}
+                    </select>
+                  </div>
+                  <div className="=w-full md:w-1/2 mb-6 md:mb-0">
                     <select
                       id="price"
                       onChange={handleOnchange}
