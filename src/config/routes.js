@@ -4,7 +4,7 @@ const routes = {
   news: '/news',
   category: '/categorynews',
   user: '/user',
-  docter: '/docter',
+  doctor: '/doctor',
   contactCooperate: '/contact-cooperate',
   form: '/form',
   bar: '/bar',
@@ -15,5 +15,6 @@ const routes = {
   geography: '/geography',
   login: '/login',
   unauthorized: '/unauthorized',
+  schedulerDoctor: '/scheduler-doctor',
 };
 export default routes;

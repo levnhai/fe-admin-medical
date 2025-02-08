@@ -13,7 +13,7 @@ import { Input } from '~/components/input/input';
 import { name_validation, phone_validation, email_validation } from '~/utils/inputValidations';
 
 import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
-import { fetchUpdateDoctor } from '~/redux/docter/docterSlice';
+import { fetchUpdateDoctor } from '~/redux/doctor/doctorSlice';
 import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
 import { ConvertBase64 } from '~/utils/common';
 

@@ -2,21 +2,19 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '~/axios';
 
 // get all docter
-export const fetchAllDocter = createAsyncThunk('docter/fetchAllDocter', async () => {
+export const fetchAllDoctor = createAsyncThunk('docter/fetchAllDoctor', async () => {
   try {
-    const response = await axios.get('/docter/get-all-docter', { withCredentials: true });
-    console.log('check response docter', response);
+    const response = await axios.get('/doctor/get-all-doctor', { withCredentials: true });
     return response.result;
   } catch (error) {
     throw new Error(error.message);
   }
 });
 
-// get all docter
-export const fetchDocterByHospital = createAsyncThunk('docter/fetchDocterByHospital', async (hospitalId) => {
+// get all docter by hospital
+export const fetchDoctorByHospital = createAsyncThunk('doctor/fetchDoctorByHospital', async (hospitalId) => {
   try {
-    console.log('check hospitalid', hospitalId);
-    const response = await axios.post('/docter/get-docter-by-hospital', { hospitalId }, { withCredentials: true });
+    const response = await axios.post('/doctor/get-doctor-by-hospital', { hospitalId }, { withCredentials: true });
     console.log('check response docter', response);
     return response.result;
   } catch (error) {
@@ -25,9 +23,9 @@ export const fetchDocterByHospital = createAsyncThunk('docter/fetchDocterByHospi
 });
 
 // create docter
-export const fetchCreateDocter = createAsyncThunk('docter/fetchCreateDocter', async (formData) => {
+export const fetchCreateDoctor = createAsyncThunk('docter/fetchCreateDoctor', async (formData) => {
   try {
-    const response = await axios.post('/docter/create-docter', { formData });
+    const response = await axios.post('/doctor/create-doctor', { formData });
 
     console.log('check response docter', response);
     return response.result;
@@ -38,7 +36,7 @@ export const fetchCreateDocter = createAsyncThunk('docter/fetchCreateDocter', as
 // update doctor
 export const fetchUpdateDoctor = createAsyncThunk('doctor/fetchUpdateDoctor', async ({ doctorId, formData }) => {
   try {
-    const response = await axios.put(`/docter/update-docter/${doctorId}`, formData);
+    const response = await axios.put(`/doctor/update-doctor/${doctorId}`, formData);
     return response.data;
   } catch (error) {
     throw new Error(error.message);
@@ -48,7 +46,7 @@ export const fetchUpdateDoctor = createAsyncThunk('doctor/fetchUpdateDoctor', as
 // delete doctor
 export const fetchDeleteDoctor = createAsyncThunk('doctor/fetchDeleteDoctor', async (doctorId) => {
   try {
-    const response = await axios.delete(`/docter/delete-docter/${doctorId}`);
+    const response = await axios.delete(`/doctor/delete-doctor/${doctorId}`);
 
     if (response.result && response.result.status === true) {
       return {
@@ -65,11 +63,11 @@ export const fetchDeleteDoctor = createAsyncThunk('doctor/fetchDeleteDoctor', as
   }
 });
 
-const docterSlice = createSlice({
-  name: 'docter',
+const doctorSlice = createSlice({
+  name: 'doctor',
   initialState: {
     docterData: null,
-    docterByHospitalData: null,
+    doctorByHospitalData: null,
     loading: false,
     error: null,
   },
@@ -77,29 +75,29 @@ const docterSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // get all docter
-      .addCase(fetchAllDocter.pending, (state) => {
+      .addCase(fetchAllDoctor.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchAllDocter.fulfilled, (state, action) => {
+      .addCase(fetchAllDoctor.fulfilled, (state, action) => {
         state.loading = false;
         state.docterData = action.payload;
       })
-      .addCase(fetchAllDocter.rejected, (state, action) => {
+      .addCase(fetchAllDoctor.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
 
       // get docter by hospital
-      .addCase(fetchDocterByHospital.pending, (state) => {
+      .addCase(fetchDoctorByHospital.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchDocterByHospital.fulfilled, (state, action) => {
+      .addCase(fetchDoctorByHospital.fulfilled, (state, action) => {
         state.loading = false;
-        state.docterByHospitalData = action.payload;
+        state.doctorByHospitalData = action.payload;
       })
-      .addCase(fetchDocterByHospital.rejected, (state, action) => {
+      .addCase(fetchDoctorByHospital.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
@@ -141,4 +139,4 @@ const docterSlice = createSlice({
   },
 });
 
-export default docterSlice.reducer;
+export default doctorSlice.reducer;

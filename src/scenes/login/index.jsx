@@ -38,7 +38,6 @@ function Login() {
       }
     } catch (error) {
       console.error('Login failed:', error);
-      // TODO: Add error handling, e.g., show error message to user
     }
   };
 

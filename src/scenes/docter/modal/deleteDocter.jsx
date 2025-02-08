@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { RiCloseLine } from 'react-icons/ri';
 import { toast } from 'react-toastify';
-import { fetchDeleteDoctor } from '~/redux/docter/docterSlice';
+import { fetchDeleteDoctor } from '~/redux/doctor/doctorSlice';
 import { useDispatch } from 'react-redux';
 import { unwrapResult } from '@reduxjs/toolkit';
 
@@ -19,13 +19,13 @@ function DeleteDocter({ setShowModalDelete, docter, handleGetAllDocter }) {
       toast.error('Dữ liệu bác sĩ không hợp lệ');
       return;
     }
-  
+
     if (isDeleting) return;
     setIsDeleting(true);
-  
+
     try {
       const resultAction = await dispatch(fetchDeleteDoctor(docter._id));
-  
+
       if (resultAction.meta.requestStatus === 'fulfilled') {
         setShowModalDelete(false);
         toast.success('Xóa bác sĩ thành công');

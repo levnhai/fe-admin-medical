@@ -8,9 +8,12 @@ import { encryptTransform } from 'redux-persist-transform-encrypt';
 import userSlice from './user/userSlice';
 import newsSlice from './news/newsSlice';
 import locationSlice from './location/locationSlice';
-import docterSlice from './docter/docterSlice';
+import doctorSlice from './doctor/doctorSlice';
 import hospitalSlice from './hospital/hospitalSlice';
-import authSlide from './auth/authSlice';
+import authSlice from './auth/authSlice';
+import specialtySlice from './specialty/specialtySlice';
+import scheduleSlice from './schedule/scheduleSlice';
+
 import contactSlice from './contact/contactSlice';
 import categorySlice from './news/categorySlice';
 
@@ -21,18 +24,21 @@ const persistConfig = {
   transforms: [encryptTransform({ secretKey: 'lvhai-16072002' })],
 };
 
-const persistedReducer = persistReducer(persistConfig, authSlide);
+const persistedReducer = persistReducer(persistConfig, authSlice);
 
 const Store = configureStore({
   reducer: {
     user: userSlice,
     news: newsSlice,
     location: locationSlice,
-    docter: docterSlice,
+    doctor: doctorSlice,
     hospital: hospitalSlice,
     auth: persistedReducer,
     contact: contactSlice,
+    specialty: specialtySlice,
+    schedule: scheduleSlice,
     categoryNews: categorySlice,
+
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
