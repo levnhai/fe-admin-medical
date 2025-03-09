@@ -1,38 +1,33 @@
-import { useTheme } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
-import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import Cookies from 'js-cookie';
+import { unwrapResult } from '@reduxjs/toolkit';
 
+//icon
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
 
-import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
+import { fetchAllAppointmentByhospital } from '~/redux/appointment/appointmentSlice';
+import { formatDate, extractTime } from '~/utils/time';
 
-import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
-import DeleteHospital from './modal/deleteHospital';
-import CreateHospital from './modal/createHospital';
-import EditHospital from './modal/editHospital';
-
-const Hospital = () => {
-  const theme = useTheme();
+const Appointment = () => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
-  const colors = tokens(theme.palette.mode);
 
-  const [showModalCreate, setShowModalCreate] = useState(false);
-  const [showModalDelete, setShowModalDelete] = useState(false);
-  const [showModalEdit, setShowModalEdit] = useState(false);
-  const [deleteHospital, setDeleteHospital] = useState();
-  const [editHospital, setEditHospital] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [appointmentData, setAppointmentData] = useState([]);
+  console.log('check appointment', appointmentData);
 
-  const hospitalData = useSelector((state) => state.hospital.hospitalData);
+  const token = Cookies.get('login');
+  console.log('token', token);
 
-  const isLoading = useSelector((state) => state.hospital.loading);
+  const isLoading = useSelector((state) => state.appointment.loading);
+  const userLogin = useSelector((state) => state.auth.user?.payload);
+  const hospitalId = userLogin?.userData?._id;
+  console.log('check hospitalId', hospitalId);
 
   // Hàm chuyển đổi chuỗi thành không dấu
   const removeAccents = (str) => {
@@ -41,16 +36,17 @@ const Hospital = () => {
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
-    hospitalData?.data?.filter((user) => {
+    appointmentData?.data?.filter((user) => {
       if (!searchTerm) return true;
 
       const searchValue = removeAccents(searchTerm.toLowerCase().trim());
 
       // Xử lý trường hợp giá trị null/undefined
-      const fullName = removeAccents(user.fullName?.toLowerCase() || '');
-      const phoneNumber = removeAccents(user.phoneNumber?.toLowerCase() || '');
+      const patientName = removeAccents(user?.record?.fullName?.toLowerCase() || '');
+      const doctorName = removeAccents(user?.doctor?.fullName?.toLowerCase() || '');
+      const phoneNumber = removeAccents(user?.record?.phoneNumber?.toLowerCase() || '');
 
-      return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
+      return patientName.includes(searchValue) || phoneNumber.includes(searchValue) || doctorName.includes(searchValue);
     }) || [];
 
   // Handle select all checkbox
@@ -77,40 +73,26 @@ const Hospital = () => {
   // Check if all filtered users are selected
   const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
-  const handleDeleteHospital = (hospitalId) => {
-    setShowModalDelete(true);
-    setDeleteHospital(hospitalId);
-  };
-  const handleEditHospital = (hospitalId) => {
-    const hospitalEdit = hospitalData?.data?.find((hospital) => hospital._id === hospitalId);
-    if (hospitalEdit) {
-      setEditHospital(hospitalEdit);
-      setShowModalEdit(true);
-    }
-  };
-
   // Handle search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     // Reset selected users when search term changes
     setSelectedUsers([]);
   };
+
   useEffect(() => {
-    dispatch(fetchAllHospital());
+    const fetchAppointment = async () => {
+      const res = await dispatch(fetchAllAppointmentByhospital());
+      const result = unwrapResult(res);
+      setAppointmentData(result);
+    };
+    fetchAppointment();
   }, []);
 
   return (
     <div className="p-2 sm:p-4 md:p-6">
-      <Header title="Quản lý Bệnh viện" subtitle="Tận tâm vì sức khỏe cộng đồng" />
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <button
-          type="button"
-          className=" text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
-          onClick={() => setShowModalCreate(true)}
-        >
-          Thêm bệnh viện
-        </button>
-      </div>
+      <Header title="Quản lý lịch khám bệnh" subtitle="Bác sĩ người tận tâm vì nghề nghiệp" />
+
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
           <div>
@@ -186,7 +168,7 @@ const Hospital = () => {
               <input
                 type="text"
                 className="w-full sm:w-80 p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                placeholder="Tìm kiếm bệnh viện..."
+                placeholder="Tìm kiếm bệnh nhân, bác sĩ..."
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
@@ -210,10 +192,7 @@ const Hospital = () => {
             </div>
           </div>
         </div>
-        <div
-          className="overflow-x-auto relative shadow-md"
-          style={{ borderTopLeftRadius: '0', borderTopRightRadius: '0' }}
-        >
+        <div className="overflow-x-auto relative shadow-md">
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
@@ -232,28 +211,31 @@ const Hospital = () => {
                   </div>
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Name
+                  Tên bệnh nhân
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Phone number
-                </th>
-                {/* <th scope="col" class="px-6 py-3">
-                Gender
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Position
-              </th> */}
-                <th scope="col" class="px-6 py-3">
-                  Address
+                  Số điện thoại
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  rating
+                  Giới tính
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Status
+                  Ngày khám
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  CreatedAt
+                  Giờ khám
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Giá
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Bác sĩ phụ trách
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  trạng thái
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Ngày đặt
                 </th>
                 <th scope="col" className="px-6 py-3">
                   Action
@@ -261,8 +243,8 @@ const Hospital = () => {
               </tr>
             </thead>
             {isLoading === true ? (
-              <LoadingSkeleton columns={7} />
-            ) : hospitalData && hospitalData?.data.length > 0 ? (
+              <LoadingSkeleton columns={10} />
+            ) : appointmentData && appointmentData?.data?.length > 0 ? (
               <tbody>
                 {filteredUsers.map((item, index) => {
                   let image = '';
@@ -292,35 +274,21 @@ const Hospital = () => {
                         scope="row"
                         className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
                       >
-                        <div
-                          className="w-10 h-10 rounded-full bg-contain bg-no-repeat"
-                          style={{
-                            backgroundImage: image
-                              ? `url(${image})`
-                              : `url(${require('../../assets/images/empty.png')})`,
-                          }}
-                        ></div>
                         <div className="ps-3">
-                          <div className="text-base font-semibold">{item.fullName}</div>
+                          <div className="text-base font-semibold">{item?.record?.fullName}</div>
                           <div className="font-normal text-gray-500">{item?.email}</div>
                         </div>
                       </th>
-                      <td class="px-6 py-4">{item?.phoneNumber}</td>
-                      {/* <td class="px-6 py-4">{item?.gender}</td>
-                    <td class="px-6 py-4">{item?.positionId}</td>
-                    <td class="px-6 py-4">{item?.price}</td> */}
-                      <td class="ps-3">
-                        {item?.address?.map((addr, i) => (
-                          <div key={i}>
-                            {`${addr.street}, ${addr.wardName}, ${addr.districtName}, ${addr.provinceName}`}
-                          </div>
-                        ))}
+                      <td className="px-6 py-4">{item?.record?.phoneNumber}</td>
+                      <td className="px-6 py-4">{item?.record?.gender === 'male' ? 'Nam' : 'Nữ'}</td>
+                      <td className="px-6 py-4">{formatDate(item?.date)}</td>
+                      <td className="px-6 py-4">
+                        {extractTime(item?.hours[0].start)} - {extractTime(item?.hours[0].end)}
                       </td>
-                      <td class="px-6 py-4">{item?.rating}</td>
-                      <td class="px-6 py-4">
-                        <div class="flex items-center">
-                          <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
-                        </div>
+                      <td className="px-6 py-4">{item?.price}</td>
+                      <td className="px-6 py-4">{item?.doctor?.fullName}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">{item?.status}</div>
                       </td>
                       <td className="px-6 py-4">
                         <a href="/#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
@@ -331,17 +299,13 @@ const Hospital = () => {
                         <div className="flex items-center space-x-3">
                           <button
                             className="text-blue-600 hover:text-blue-800"
-                            onClick={() => {
-                              handleEditHospital(item?._id);
-                            }}
+                            onClick={() => alert('tính năng đang phát triển, vui lòng thử lại sau')}
                           >
                             <CiEdit size={20} />
                           </button>
                           <button
                             className="text-red-600 hover:text-red-800"
-                            onClick={() => {
-                              handleDeleteHospital(item?._id);
-                            }}
+                            onClick={() => alert('tính năng đang phát triển, vui lòng thử lại sau')}
                           >
                             <AiOutlineDelete size={20} />
                           </button>
@@ -360,31 +324,9 @@ const Hospital = () => {
             )}
           </table>
         </div>
-        <div>
-          {showModalDelete && (
-            <DeleteHospital
-              setShowModalDelete={setShowModalDelete}
-              handleGetAllHospital={() => dispatch(fetchAllHospital())}
-              hospital={{ _id: deleteHospital }}
-            />
-          )}
-          {showModalCreate && (
-            <CreateHospital
-              setShowModalCreate={setShowModalCreate}
-              handleGetAllDocter={() => dispatch(fetchAllHospital())}
-            />
-          )}
-          {showModalEdit && (
-            <EditHospital
-              setShowModalEdit={setShowModalEdit}
-              handleGetAllHospital={() => dispatch(fetchAllHospital())}
-              hospital={editHospital}
-            />
-          )}
-        </div>
       </div>
     </div>
   );
 };
 
-export default Hospital;
+export default Appointment;

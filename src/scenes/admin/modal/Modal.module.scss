@@ -1,0 +1,272 @@
+.darkBG {
+  background-color: transparent;
+ width: 100vw;
+ height: 100vh;
+ z-index: 9999;
+ top: 50%;
+ left: 50%;
+ transform: translate(-50%, -50%);
+ position: fixed;
+}
+
+.centered {
+ position: fixed;
+ top: 52%;
+ left: 50%;
+ transform: translate(-50%, -50%);
+ z-index: 10000;
+}
+
+.modal {
+ width: 100%; // Make modal width responsive
+ min-width: 300px; // Minimum width for very small screens
+ background: white;
+ color: white;
+ z-index: 10;
+ border-radius: 16px;
+ padding: 10px 15px; // Reduce padding on smaller screens
+ box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
+ z-index: 10001;
+ position: relative;
+
+ @media (min-width: 768px) {
+   padding: 10px 30px; // Restore original padding on larger screens
+ }
+}
+
+.modalHeader {
+  height: 50px;
+  background: white;
+  overflow: hidden;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  border-bottom: 1px solid rgb(213 213 215);
+}
+
+.heading {
+  margin: 0;
+  padding: 10px;
+  color: rgb(92, 105, 227);
+  font-weight: 700;
+  font-size: 24px;
+  text-align: center;
+}
+
+.modalContent {
+  padding: 0px 10px 10px;
+  font-size: 14px;
+  color: #2c3e50;
+  text-align: center;
+}
+.input--item--create {
+  margin-top: -20px;
+  margin-bottom: -20px;
+}
+
+.input--item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 30px;
+  margin-top: 40px;
+  margin-bottom: 40px;
+
+  @media (min-width: 768px) {
+    flex-direction: row; // Return to row layout on larger screens
+    justify-content: space-between;
+    gap: 30px;
+    margin: 40px 0;
+  }
+
+  div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 30px;
+    position: relative;
+
+    @media (min-width: 768px) {
+      gap: 30px;
+    }
+  }
+}
+
+.label-uploadImage {
+  padding: 10px 20px;
+  background-color: #ddd;
+  border: 1px solid #333;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+
+  @media (min-width: 768px) {
+    padding: 10px 20px;
+    font-size: inherit;
+  }
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.customInput {
+  height: 50px;
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 0px 20px;
+  width: 100%;
+  min-width: 250px;
+  border: 1px solid #999;
+
+  @media (min-width: 768px) {
+    height: 50px;
+    padding: 0 20px;
+    min-width: 250px;
+  }
+
+  &:focus {
+    color: #495057;
+    background-color: #fff;
+    border: 2px solid #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+}
+
+.upload-image {
+  width: 213px !important;
+  height: 100px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  cursor: pointer;
+  box-shadow: 10px 10px 5px #ccc;
+}
+
+.text--danger {
+  position: absolute;
+  top: 52px;
+  left: 6px;
+  color: red;
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
+}
+
+.react--tel__input > .customInput {
+  font-weight: 700;
+
+  @media (min-width: 768px) {
+    font-size: 15px;
+  }
+}
+
+.showHideIcon {
+  position: absolute;
+  top: 40px;
+  right: 20px;
+}
+
+// .text--danger {
+//     display: none;
+// }
+
+.customFont {
+  font-size: 15px;
+  text-align: center;
+  margin: 10px 0px 10px;
+  padding-top: 10px;
+  color: rgb(140, 138, 138);
+  border-top: 1px solid rgb(213, 213, 215);
+}
+
+.customFont a {
+  color: #1da1f2;
+}
+
+.modalActions {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.actionsContainer {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 20px;
+
+  @media (min-width: 768px) {
+    flex-direction: row; // Return to row layout on larger screens
+    justify-content: space-around;
+    gap: 20px;
+  }
+
+}
+
+.closeBtn {
+  cursor: pointer;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 18px;
+  color: #2c3e50;
+  background: white;
+  transition: all 0.25s ease;
+  box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.06);
+  position: absolute;
+  right: 0;
+  top: 0;
+  align-self: flex-end;
+  margin-top: 3px;
+  margin-right: 5px;
+  z-index: 11;
+
+  &:hover {
+    box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
+    transform: translate(-4px, 4px);
+  }
+}
+
+.deleteBtn,
+.cancelBtn {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 24px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  border: none;
+  width: 100%;
+  max-width: 200px;
+  transition: all 0.25s ease;
+
+  @media (min-width: 768px) {
+    padding: 10px 32px;
+    font-size: 1rem;
+    width: auto;
+  }
+}
+
+.deleteBtn {
+  color: #fff;
+  background: #ff3e4e;
+
+  &:hover {
+    box-shadow: 0 10px 20px -10px rgba(255, 62, 78, 0.6);
+    transform: translateY(-5px);
+    background: #ff3e4e;
+  }
+}
+
+.cancelBtn {
+  color: #2c3e50;
+  background: #fcfcfc;
+
+  &:hover {
+    box-shadow: none;
+    transform: none;
+    background: whitesmoke;
+  }
+}

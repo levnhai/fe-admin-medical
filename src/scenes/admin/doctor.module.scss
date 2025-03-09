@@ -1,0 +1,215 @@
+.darkBG {
+  background-color: rgba(0, 0, 0, 0.2);
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+}
+
+.centered {
+  position: fixed;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.modal {
+  min-width: 500px;
+  background: white;
+  color: white;
+  z-index: 10;
+  border-radius: 16px;
+  padding: 10px 30px;
+  box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
+}
+
+.modalHeader {
+  height: 50px;
+  background: white;
+  overflow: hidden;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  border-bottom: 1px solid rgb(213 213 215);
+}
+
+.heading {
+  margin: 0;
+  padding: 10px;
+  color: rgb(92, 105, 227);
+  font-weight: 700;
+  font-size: 24px;
+  text-align: center;
+}
+
+.modalContent {
+  padding: 0px 10px 10px;
+  font-size: 14px;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.input--item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 30px;
+
+  div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 30px;
+    position: relative;
+  }
+}
+
+.label-uploadImage {
+  padding: 10px 20px;
+  background-color: #ddd;
+  border: 1px solid #333;
+  border-radius: 5px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.customInput {
+  height: 50px;
+  font-size: 14px;
+  border-radius: 6px;
+  padding: 0px 20px;
+  width: 100%;
+  border: 1px solid #999;
+
+  &:focus {
+    color: #495057;
+    background-color: #fff;
+    border: 2px solid #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+}
+
+.upload-image {
+  width: 213px !important;
+  height: 100px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  cursor: pointer;
+  box-shadow: 10px 10px 5px #ccc;
+}
+
+.text--danger {
+  position: absolute;
+  top: 52px;
+  left: 6px;
+  color: red;
+}
+
+.react--tel__input > .customInput {
+  font-weight: 700;
+}
+
+.showHideIcon {
+  position: absolute;
+  top: 40px;
+  right: 20px;
+}
+
+// .text--danger {
+//     display: none;
+// }
+
+.customFont {
+  font-size: 15px;
+  text-align: center;
+  margin: 10px 0px 10px;
+  padding-top: 10px;
+  color: rgb(140, 138, 138);
+  border-top: 1px solid rgb(213, 213, 215);
+}
+
+.customFont a {
+  color: #1da1f2;
+}
+
+.modalActions {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.actionsContainer {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.closeBtn {
+  cursor: pointer;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 18px;
+  color: #2c3e50;
+  background: white;
+  transition: all 0.25s ease;
+  box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.06);
+  position: absolute;
+  right: 0;
+  top: 0;
+  align-self: flex-end;
+  margin-top: 3px;
+  margin-right: 5px;
+}
+
+.closeBtn:hover {
+  box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
+  transform: translate(-4px, 4px);
+}
+
+.deleteBtn {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 15px 52px;
+  border-radius: 12px;
+  font-size: 1.4rem;
+  border: none;
+  color: #fff;
+  background: #ff3e4e;
+  transition: all 0.25s ease;
+}
+
+.deleteBtn:hover {
+  box-shadow: 0 10px 20px -10px rgba(255, 62, 78, 0.6);
+  transform: translateY(-5px);
+  background: #ff3e4e;
+}
+
+.cancelBtn {
+  cursor: pointer;
+  font-weight: 500;
+  padding: 15px 52px;
+  border-radius: 12px;
+  font-size: 1.4rem;
+  border: none;
+  color: #2c3e50;
+  background: #fcfcfc;
+  transition: all 0.25s ease;
+}
+
+.cancelBtn:hover {
+  box-shadow: none;
+  transform: none;
+  background: whitesmoke;
+}

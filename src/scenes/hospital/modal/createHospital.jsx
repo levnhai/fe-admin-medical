@@ -5,7 +5,15 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { unwrapResult } from '@reduxjs/toolkit';
 import Lightbox from 'react-image-lightbox';
-import 'react-image-lightbox/style.css';
+import 'react-markdown-editor-lite/lib/index.css';
+import MarkdownIt from 'markdown-it';
+import MdEditor from 'react-markdown-editor-lite';
+
+import MDEditor, { selectWord } from '@uiw/react-md-editor';
+// No import is required in the WebPack.
+import '@uiw/react-md-editor/markdown-editor.css';
+// No import is required in the WebPack.
+import '@uiw/react-markdown-preview/markdown.css';
 
 // icon
 import { RiCloseLine } from 'react-icons/ri';
@@ -29,6 +37,8 @@ const cx = className.bind(styles);
 
 function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
   const methods = useForm();
+  const mdParser = new MarkdownIt();
+
   const dispatch = useDispatch();
 
   const [previewImageURL, setpreViewImageURL] = useState();
@@ -43,8 +53,14 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
     provinceName: '',
     districtName: '',
     wardName: '',
+    contentHTML: '',
+    contentMarkdown: '',
     image: '',
   });
+
+  useEffect(() => {
+    console.log('📦 Form state updated:', form);
+  }, [form]);
 
   const provinceData = useSelector((state) => state.location.provinceData);
   const districtData = useSelector((state) => state.location.districtData);
@@ -87,6 +103,8 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
     }));
   };
 
+  const [value, setValue] = React.useState('dsfs');
+
   const handleOnchange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -114,13 +132,20 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
     setShowHidePassword(!showHidePassword);
   };
 
+  // onClick
+  const handleEditorChange = ({ html, text }) => {
+    console.log('hai le');
+    console.log('hai le htmlq', html);
+    console.log('hai le q', text);
+    setForm({ ...form, contentHTML: html, contentMarkdown: text });
+  };
+
   const handleShowHideReEnterPassword = () => {
     setConfirmPassword(!confirmPassword);
   };
 
   const handleSubmitCreateUser = methods.handleSubmit(async (formData) => {
     const data = { ...formData, ...form };
-    console.log('check formData', data);
 
     try {
       const response = await dispatch(fetchCreateHospital(data));
@@ -295,6 +320,21 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
                   </div>
                   <div>
                     <Input className="w-full" {...desc_validation} />
+                  </div>
+                  <div className={cx('markdown')}>
+                    {/* <MdEditor
+                      style={{ height: '200px' }}
+                      renderHTML={(text) => mdParser.render(text)}
+                      onChange={handleEditorChange}
+                      value={form.contentHTML}
+                    /> */}
+
+                    {/* <MDEditor
+                      height={200}
+                      value={form.contentHTML}
+                      onChange={(value) => setForm({ ...form, contentHTML: mdParser.render(value) })}
+                    /> */}
+                    <MDEditor height={200} value={form.contentHTML} onChange={setForm.contentHTML} />
                   </div>
                   <div className="mt-8">
                     <label className={cx('label-uploadImage')} htmlFor="upload-image">

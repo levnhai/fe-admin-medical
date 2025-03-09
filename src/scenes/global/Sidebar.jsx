@@ -10,7 +10,6 @@ import { Buffer } from 'buffer';
 
 import { tokens } from '../../theme';
 
-// Giữ nguyên các imports icons từ code cũ
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
@@ -24,7 +23,7 @@ import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
 import MapOutlinedIcon from '@mui/icons-material/MapOutlined';
 import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
 
-import { FaCalendarAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaNotesMedical } from 'react-icons/fa';
 import { FaUserDoctor } from 'react-icons/fa6';
 
 import { useTranslation } from 'react-i18next';
@@ -32,6 +31,7 @@ import { useTranslation } from 'react-i18next';
 const rolePermissions = {
   system_admin: [
     { title: 'Dashboard', to: '/', icon: <HomeOutlinedIcon /> },
+    // { title: 'Admin', to: '/system-admin', icon: <HomeOutlinedIcon /> },
     { title: 'Hospital', to: '/hospital', icon: <PeopleOutlinedIcon /> },
     { title: 'User', to: '/user', icon: <PeopleOutlinedIcon /> },
     { title: 'News', to: '/news', icon: <ReceiptOutlinedIcon /> },
@@ -51,12 +51,14 @@ const rolePermissions = {
     { title: 'Bệnh nhân', to: '/user', icon: <PeopleOutlinedIcon /> },
     { title: 'Tin tức', to: '/news', icon: <ReceiptOutlinedIcon /> },
     { title: 'Lịch làm việc', to: '/scheduler-doctor', icon: <FaCalendarAlt /> },
+    { title: 'Lịch hẹn khám', to: '/scheduler-appointment', icon: <FaNotesMedical /> },
   ],
-  docter: [
+  doctor: [
     { title: 'Dashboard', to: '/', icon: <HomeOutlinedIcon /> },
     { title: 'User', to: '/user', icon: <PeopleOutlinedIcon /> },
     { title: 'News', to: '/news', icon: <ReceiptOutlinedIcon /> },
     { title: 'Lịch làm việc', to: '/scheduler-doctor', icon: <FaCalendarAlt /> },
+    { title: 'Lịch hẹn khám', to: '/scheduler-appointment', icon: <FaNotesMedical /> },
   ],
 };
 
@@ -91,10 +93,11 @@ const Sidebar = () => {
   const userRole = token ? jwtDecode(token).role : 'guest';
   // const decoded = jwtDecode(token);
   const menuItems = rolePermissions[userRole] || [];
-  console.log('check user role: ', userRole);
+  // console.log('check user role: ', userRole);
 
   const user = useSelector((state) => state.auth.user?.payload);
-  // let base64UrlImage = Buffer.from(user?.userData?.image, 'base64').toString('binary');
+  console.log('check user role: ', user?.userData?.image?.data.length);
+  let base64UrlImage = Buffer.from(user?.userData?.image?.data, 'base64').toString('binary');
 
   return (
     <Box
@@ -182,11 +185,12 @@ const Sidebar = () => {
                   alt="profile-user"
                   width="100px"
                   height="100px"
-                  // src={base64UrlImage}
+                  src={base64UrlImage}
+                  // src={imageUrl}
                   style={{
                     cursor: 'pointer',
                     borderRadius: '50%',
-                    backgroundImage: `url(${require('../../assets/images/empty.png')})`,
+                    // backgroundImage: `url(${require('../../assets/images/empty.png')})`,
                   }}
                 />
               </Box>

@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '~/axios';
 
-// get all docter
-export const fetchAllDoctor = createAsyncThunk('docter/fetchAllDoctor', async () => {
+// get all doctor
+export const fetchAllDoctor = createAsyncThunk('doctor/fetchAllDoctor', async () => {
   try {
     const response = await axios.get('/doctor/get-all-doctor', { withCredentials: true });
     return response.result;
@@ -11,23 +11,30 @@ export const fetchAllDoctor = createAsyncThunk('docter/fetchAllDoctor', async ()
   }
 });
 
-// get all docter by hospital
+// get all doctor by hospital
 export const fetchDoctorByHospital = createAsyncThunk('doctor/fetchDoctorByHospital', async (hospitalId) => {
   try {
     const response = await axios.post('/doctor/get-doctor-by-hospital', { hospitalId }, { withCredentials: true });
-    console.log('check response docter', response);
     return response.result;
   } catch (error) {
     throw new Error(error.message);
   }
 });
 
-// create docter
-export const fetchCreateDoctor = createAsyncThunk('docter/fetchCreateDoctor', async (formData) => {
+// create doctor
+export const fetchCreateDoctor = createAsyncThunk('doctor/fetchCreateDoctor', async (formData) => {
   try {
     const response = await axios.post('/doctor/create-doctor', { formData });
+    return response.result;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+});
 
-    console.log('check response docter', response);
+// create doctor
+export const fetchCreateAdmin = createAsyncThunk('doctor/fetchCreateAdmin', async (formData) => {
+  try {
+    const response = await axios.post('/admin/create-admin', { formData });
     return response.result;
   } catch (error) {
     throw new Error(error.message);

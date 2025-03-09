@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Box, 
-  Button, 
-  ButtonGroup, 
-  useTheme, 
-  Snackbar, 
-  Alert 
-} from '@mui/material';
+import { Box, Button, ButtonGroup, useTheme, Snackbar, Alert } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
@@ -17,12 +10,12 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
-import MyModal from '~/components/Modal/Modal';
-import { 
-  fetchAllCategoryNews, 
-  fetchCreateCategoryNews, 
-  fetchUpdateCategoryNews, 
-  fetchDeleteCategoryNews 
+import MyModal from '~/components/Modal/MyModal';
+import {
+  fetchAllCategoryNews,
+  fetchCreateCategoryNews,
+  fetchUpdateCategoryNews,
+  fetchDeleteCategoryNews,
 } from '~/redux/news/categorySlice';
 
 const CategoryNews = () => {
@@ -35,7 +28,7 @@ const CategoryNews = () => {
   const [notification, setNotification] = useState({
     open: false,
     message: '',
-    severity: 'success'
+    severity: 'success',
   });
 
   const [openModal, setOpenModal] = useState(false);
@@ -45,44 +38,44 @@ const CategoryNews = () => {
 
   // Define fields for the category news modal
   const categoryNewsFields = [
-    { 
-      name: 'name', 
-      label: 'Category Name', 
-      type: 'text', 
-      grid: 6, 
-      required: true 
+    {
+      name: 'name',
+      label: 'Category Name',
+      type: 'text',
+      grid: 6,
+      required: true,
     },
-    { 
-      name: 'description', 
-      label: 'Description', 
-      type: 'textarea', 
-      grid: 12 
+    {
+      name: 'description',
+      label: 'Description',
+      type: 'textarea',
+      grid: 12,
     },
-    { 
-      name: 'status', 
-      label: 'Status', 
-      type: 'option', 
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'option',
       options: [
         { value: 0, label: 'Inactive' },
-        { value: 1, label: 'Active' }
+        { value: 1, label: 'Active' },
       ],
       grid: 6,
-      required: true
-    }
+      required: true,
+    },
   ];
 
   // Define columns for the data grid
   const columns = [
     { field: 'id', headerName: 'ID', flex: 0.5 },
-    { 
-      field: 'name', 
-      headerName: 'Category Name', 
-      flex: 1 
+    {
+      field: 'name',
+      headerName: 'Category Name',
+      flex: 1,
     },
-    { 
-      field: 'description', 
-      headerName: 'Description', 
-      flex: 2 
+    {
+      field: 'description',
+      headerName: 'Description',
+      flex: 2,
     },
     {
       field: 'status',
@@ -90,15 +83,15 @@ const CategoryNews = () => {
       valueFormatter: (params) => {
         const statusMap = {
           0: 'Inactive',
-          1: 'Active'
+          1: 'Active',
         };
         return statusMap[params.value] || 'Unknown';
-      }
+      },
     },
     {
       field: 'createdAt',
       headerName: 'Created At',
-      flex: 1
+      flex: 1,
     },
     {
       field: 'actions',
@@ -106,18 +99,10 @@ const CategoryNews = () => {
       width: 150,
       renderCell: (params) => (
         <ButtonGroup variant="contained" aria-label="Basic button group">
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={() => handleOpenEdit(params.row)}
-          >
+          <Button variant="contained" color="primary" onClick={() => handleOpenEdit(params.row)}>
             <EditIcon />
           </Button>
-          <Button 
-            variant="contained" 
-            color="error" 
-            onClick={() => handleDelete(params.row._id)}
-          >
+          <Button variant="contained" color="error" onClick={() => handleDelete(params.row._id)}>
             <DeleteIcon />
           </Button>
         </ButtonGroup>
@@ -130,7 +115,7 @@ const CategoryNews = () => {
     setNotification({
       open: true,
       message,
-      severity
+      severity,
     });
   };
 
@@ -179,10 +164,12 @@ const CategoryNews = () => {
           showNotification('An error occurred', 'error');
         });
     } else {
-      dispatch(fetchUpdateCategoryNews({ 
-        id: selectedData._id, 
-        formData 
-      }))
+      dispatch(
+        fetchUpdateCategoryNews({
+          id: selectedData._id,
+          formData,
+        }),
+      )
         .then((response) => {
           if (response.payload) {
             showNotification('Category updated successfully');
@@ -218,19 +205,21 @@ const CategoryNews = () => {
   };
 
   // Get categories from Redux store
-  const { categories = [], loading = false, error } = useSelector((state) => 
-    state.categoryNews || { categories: [], loading: false, error: null }
-  );
+  const {
+    categories = [],
+    loading = false,
+    error,
+  } = useSelector((state) => state.categoryNews || { categories: [], loading: false, error: null });
   useEffect(() => {
     // console.log('Categories:', categories);
     // console.log('Loading:', loading);
     // console.log('Error:', error);
   }, [categories, loading, error]);
-  
+
   // Process data for DataGrid
   const processedCategoryData = categories?.map((item) => ({
     ...item,
-    id: item._id
+    id: item._id,
   }));
 
   // Fetch categories on component mount
@@ -240,46 +229,43 @@ const CategoryNews = () => {
 
   return (
     <Box m="20px">
-      <Header 
-        title="Category Management" 
-        subtitle="Manage news categories" 
-      />
+      <Header title="Category Management" subtitle="Manage news categories" />
       <Box
         m="40px 0 0 0"
         height="75vh"
         display="flex"
         flexDirection="column"
         sx={{
-            '& .MuiDataGrid-root': { border: 'none' },
-            '& .MuiDataGrid-cell': { borderBottom: 'none' },
-            '& .name-column--cell': { color: colors.greenAccent[300] },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: colors.blueAccent[700],
-              borderBottom: 'none',
-            },
-            '& .MuiDataGrid-virtualScroller': {
-              backgroundColor: colors.primary[400],
-            },
-            '& .MuiDataGrid-footerContainer': {
-              borderTop: 'none',
-              backgroundColor: colors.blueAccent[700],
-            },
-            '& .MuiCheckbox-root': {
-              color: `${colors.greenAccent[200]} !important`,
-            },
-            '& .MuiDataGrid-toolbarContainer .MuiButton-text': {
-              color: `${colors.grey[100]} !important`,
-            },
-          }}
-        >
+          '& .MuiDataGrid-root': { border: 'none' },
+          '& .MuiDataGrid-cell': { borderBottom: 'none' },
+          '& .name-column--cell': { color: colors.greenAccent[300] },
+          '& .MuiDataGrid-columnHeaders': {
+            backgroundColor: colors.blueAccent[700],
+            borderBottom: 'none',
+          },
+          '& .MuiDataGrid-virtualScroller': {
+            backgroundColor: colors.primary[400],
+          },
+          '& .MuiDataGrid-footerContainer': {
+            borderTop: 'none',
+            backgroundColor: colors.blueAccent[700],
+          },
+          '& .MuiCheckbox-root': {
+            color: `${colors.greenAccent[200]} !important`,
+          },
+          '& .MuiDataGrid-toolbarContainer .MuiButton-text': {
+            color: `${colors.grey[100]} !important`,
+          },
+        }}
+      >
         <Button
           variant="contained"
           color="primary"
           onClick={handleOpenCreate}
-          style={{ 
-            width: '150px', 
-            marginBottom: '10px', 
-            backgroundColor: '#6EC207' 
+          style={{
+            width: '150px',
+            marginBottom: '10px',
+            backgroundColor: '#6EC207',
           }}
         >
           Add Category
@@ -287,13 +273,9 @@ const CategoryNews = () => {
         </Button>
 
         {loading && <div>Loading...</div>}
-        
+
         {processedCategoryData && (
-          <DataGrid 
-            rows={processedCategoryData} 
-            columns={columns} 
-            components={{ Toolbar: GridToolbar }} 
-          />
+          <DataGrid rows={processedCategoryData} columns={columns} components={{ Toolbar: GridToolbar }} />
         )}
 
         <MyModal
@@ -313,11 +295,7 @@ const CategoryNews = () => {
           onClose={handleCloseNotification}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert 
-            onClose={handleCloseNotification}
-            severity={notification.severity}
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: '100%' }}>
             {notification.message}
           </Alert>
         </Snackbar>

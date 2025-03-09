@@ -3,36 +3,60 @@ import { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-
+import { jwtDecode } from 'jwt-decode';
+import Cookies from 'js-cookie';
+import { unwrapResult } from '@reduxjs/toolkit';
+import { useForm, Controller } from 'react-hook-form';
+import classNames from 'classnames/bind';
+import styles from './doctor.module.scss';
+import Select from 'react-select';
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
 
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
+import { fetchDoctorByHospital, fetchDeleteDoctor } from '~/redux/doctor/doctorSlice';
+import CreateDocter from './modal/createDocter';
+import EditDocter from './modal/editDocter';
+import Modal from '~/components/Modal';
+import Button from '~/components/Button';
+import { toast } from 'react-toastify';
 
-import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
-import DeleteHospital from './modal/deleteHospital';
-import CreateHospital from './modal/createHospital';
-import EditHospital from './modal/editHospital';
+const cx = classNames.bind(styles);
 
-const Hospital = () => {
+const SystemAdmin = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+  } = useForm();
   const { t } = useTranslation();
   const colors = tokens(theme.palette.mode);
 
+  const [doctorData, setDoctorData] = useState(false);
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
-  const [deleteHospital, setDeleteHospital] = useState();
-  const [editHospital, setEditHospital] = useState(null);
+  const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+
+  console.log('check doctor data', doctorData);
+
+  const [editDocter, setEditDocter] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
 
-  const hospitalData = useSelector((state) => state.hospital.hospitalData);
+  const token = Cookies.get('login');
+  const decodeToken = jwtDecode(token);
 
-  const isLoading = useSelector((state) => state.hospital.loading);
+  // const doctorData = useSelector((state) => state.doctor.doctorByHospitalData);
+  const isLoading = useSelector((state) => state.doctor.loading);
+  const userLogin = useSelector((state) => state.auth.user?.payload);
+  const userId = userLogin?.userData?._id;
 
   // Hàm chuyển đổi chuỗi thành không dấu
   const removeAccents = (str) => {
@@ -41,17 +65,19 @@ const Hospital = () => {
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
-    hospitalData?.data?.filter((user) => {
-      if (!searchTerm) return true;
+    (doctorData?.length > 0 &&
+      doctorData?.filter((user) => {
+        if (!searchTerm) return true;
 
-      const searchValue = removeAccents(searchTerm.toLowerCase().trim());
+        const searchValue = removeAccents(searchTerm.toLowerCase().trim());
 
-      // Xử lý trường hợp giá trị null/undefined
-      const fullName = removeAccents(user.fullName?.toLowerCase() || '');
-      const phoneNumber = removeAccents(user.phoneNumber?.toLowerCase() || '');
+        // Xử lý trường hợp giá trị null/undefined
+        const fullName = removeAccents(user.fullName?.toLowerCase() || '');
+        const phoneNumber = removeAccents(user.phoneNumber?.toLowerCase() || '');
 
-      return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
-    }) || [];
+        return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
+      })) ||
+    [];
 
   // Handle select all checkbox
   const handleSelectAll = (e) => {
@@ -77,14 +103,11 @@ const Hospital = () => {
   // Check if all filtered users are selected
   const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
-  const handleDeleteHospital = (hospitalId) => {
-    setShowModalDelete(true);
-    setDeleteHospital(hospitalId);
-  };
-  const handleEditHospital = (hospitalId) => {
-    const hospitalEdit = hospitalData?.data?.find((hospital) => hospital._id === hospitalId);
-    if (hospitalEdit) {
-      setEditHospital(hospitalEdit);
+  const handleEditDocter = (docterId) => {
+    const docterEdit = doctorData?.find((docter) => docter._id === docterId);
+    console.log('check docter edit', docterEdit);
+    if (docterEdit) {
+      setEditDocter(docterEdit);
       setShowModalEdit(true);
     }
   };
@@ -95,20 +118,48 @@ const Hospital = () => {
     // Reset selected users when search term changes
     setSelectedUsers([]);
   };
+
+  const submitForm = async (data) => {
+    try {
+      console.log('thành công');
+    } catch (error) {
+      // toast.error(error);
+    }
+  };
+
+  const fetchDoctorData = async () => {
+    const res = await dispatch(fetchDoctorByHospital(userId));
+    const result = unwrapResult(res);
+    console.log('check doctor data', result);
+    setDoctorData(result?.data);
+  };
+
+  const handleDeleteDoctor = async () => {
+    const res = await dispatch(fetchDeleteDoctor(selectedDoctorId));
+    const result = unwrapResult(res);
+    setShowModalDelete(false);
+    if (result?.status) {
+      toast.success(result.message);
+      fetchDoctorData();
+    } else {
+      toast.warning(result.message);
+    }
+  };
+
   useEffect(() => {
-    dispatch(fetchAllHospital());
+    fetchDoctorData();
   }, []);
 
   return (
     <div className="p-2 sm:p-4 md:p-6">
-      <Header title="Quản lý Bệnh viện" subtitle="Tận tâm vì sức khỏe cộng đồng" />
+      <Header title="Quản lý bác sĩ" subtitle="Bác sĩ người tận tâm vì nghề nghiệp" />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <button
           type="button"
           className=" text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
           onClick={() => setShowModalCreate(true)}
         >
-          Thêm bệnh viện
+          Thêm bác sĩ
         </button>
       </div>
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -186,7 +237,7 @@ const Hospital = () => {
               <input
                 type="text"
                 className="w-full sm:w-80 p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                placeholder="Tìm kiếm bệnh viện..."
+                placeholder="Tìm kiếm bác sĩ..."
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
@@ -210,10 +261,7 @@ const Hospital = () => {
             </div>
           </div>
         </div>
-        <div
-          className="overflow-x-auto relative shadow-md"
-          style={{ borderTopLeftRadius: '0', borderTopRightRadius: '0' }}
-        >
+        <div className="overflow-x-auto relative shadow-md">
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
@@ -232,37 +280,37 @@ const Hospital = () => {
                   </div>
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Name
+                  Họ và tên
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Phone number
-                </th>
-                {/* <th scope="col" class="px-6 py-3">
-                Gender
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Position
-              </th> */}
-                <th scope="col" class="px-6 py-3">
-                  Address
+                  Số điện thoại
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  rating
+                  Giới tính
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Status
+                  Chức vụ
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  CreatedAt
+                  Giá
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Action
+                  Đánh giá
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Trạng thái
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Ngày tạo
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Hoạt động
                 </th>
               </tr>
             </thead>
             {isLoading === true ? (
-              <LoadingSkeleton columns={7} />
-            ) : hospitalData && hospitalData?.data.length > 0 ? (
+              <LoadingSkeleton columns={9} />
+            ) : doctorData && doctorData?.length > 0 ? (
               <tbody>
                 {filteredUsers.map((item, index) => {
                   let image = '';
@@ -305,21 +353,14 @@ const Hospital = () => {
                           <div className="font-normal text-gray-500">{item?.email}</div>
                         </div>
                       </th>
-                      <td class="px-6 py-4">{item?.phoneNumber}</td>
-                      {/* <td class="px-6 py-4">{item?.gender}</td>
-                    <td class="px-6 py-4">{item?.positionId}</td>
-                    <td class="px-6 py-4">{item?.price}</td> */}
-                      <td class="ps-3">
-                        {item?.address?.map((addr, i) => (
-                          <div key={i}>
-                            {`${addr.street}, ${addr.wardName}, ${addr.districtName}, ${addr.provinceName}`}
-                          </div>
-                        ))}
-                      </td>
-                      <td class="px-6 py-4">{item?.rating}</td>
-                      <td class="px-6 py-4">
-                        <div class="flex items-center">
-                          <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
+                      <td className="px-6 py-4">{item?.phoneNumber}</td>
+                      <td className="px-6 py-4">{item?.gender}</td>
+                      <td className="px-6 py-4">{item?.positionId}</td>
+                      <td className="px-6 py-4">{item?.price}</td>
+                      <td className="px-6 py-4">{item?.rating}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -332,7 +373,7 @@ const Hospital = () => {
                           <button
                             className="text-blue-600 hover:text-blue-800"
                             onClick={() => {
-                              handleEditHospital(item?._id);
+                              handleEditDocter(item?._id);
                             }}
                           >
                             <CiEdit size={20} />
@@ -340,7 +381,8 @@ const Hospital = () => {
                           <button
                             className="text-red-600 hover:text-red-800"
                             onClick={() => {
-                              handleDeleteHospital(item?._id);
+                              setShowModalDelete(true);
+                              setSelectedDoctorId(item?._id);
                             }}
                           >
                             <AiOutlineDelete size={20} />
@@ -360,25 +402,33 @@ const Hospital = () => {
             )}
           </table>
         </div>
+        {/*  modal delete */}
+        <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa bác sĩ">
+          <div>
+            <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa bác sĩ này nó không ?</p>
+            <div className="flex justify-end border-t py-2 pr-6 gap-4">
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+                Đóng
+              </Button>
+              <Button className="bg-red-400 text-white" onClick={handleDeleteDoctor}>
+                Đồng ý
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
         <div>
-          {showModalDelete && (
-            <DeleteHospital
-              setShowModalDelete={setShowModalDelete}
-              handleGetAllHospital={() => dispatch(fetchAllHospital())}
-              hospital={{ _id: deleteHospital }}
-            />
-          )}
           {showModalCreate && (
-            <CreateHospital
+            <CreateDocter
               setShowModalCreate={setShowModalCreate}
-              handleGetAllDocter={() => dispatch(fetchAllHospital())}
+              handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userId))}
             />
           )}
           {showModalEdit && (
-            <EditHospital
+            <EditDocter
               setShowModalEdit={setShowModalEdit}
-              handleGetAllHospital={() => dispatch(fetchAllHospital())}
-              hospital={editHospital}
+              handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userId))}
+              docter={editDocter}
             />
           )}
         </div>
@@ -387,4 +437,4 @@ const Hospital = () => {
   );
 };
 
-export default Hospital;
+export default SystemAdmin;

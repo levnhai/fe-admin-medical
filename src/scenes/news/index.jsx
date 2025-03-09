@@ -13,14 +13,9 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
-import { 
-  fetchAllNews,
-  fetchCreateNews, 
-  fetchUpdateNews, 
-  fetchDeleteNews
-} from '~/redux/news/newsSlice';
-import {fetchAllCategoryNews} from '~/redux/news/categorySlice';
-import MyModal from '~/components/Modal/Modal';
+import { fetchAllNews, fetchCreateNews, fetchUpdateNews, fetchDeleteNews } from '~/redux/news/newsSlice';
+import { fetchAllCategoryNews } from '~/redux/news/categorySlice';
+import MyModal from '~/components/Modal/MyModal';
 
 const News = () => {
   const theme = useTheme();
@@ -32,7 +27,7 @@ const News = () => {
   const [notification, setNotification] = useState({
     open: false,
     message: '',
-    severity: 'success'
+    severity: 'success',
   });
 
   const [openModal, setOpenModal] = useState(false);
@@ -41,54 +36,59 @@ const News = () => {
   const [selectedData, setSelectedData] = useState(null);
 
   const token = Cookies.get('login');
-  const decodedToken = token ? jwtDecode(token) : null; 
-  const userRoleFromToken = decodedToken?.role || 'guest'; 
+  const decodedToken = token ? jwtDecode(token) : null;
+  const userRoleFromToken = decodedToken?.role || 'guest';
   const user = useSelector((state) => state.auth.user?.payload);
   const userRole = user?.role || userRoleFromToken;
   const isDoctor = userRole === 'docter';
   //console.log('check role nè: ', userRole);
-  const userId = decodedToken?.accountId  || user?.payload?.accountId;
+  const userId = decodedToken?.accountId || user?.payload?.accountId;
   console.log('check id nè: ', userId);
   const { categories } = useSelector((state) => state.categoryNews);
 
   const newsFields = [
     { name: 'title', label: 'title', type: 'text', grid: 6 },
     { name: 'subtitle', label: 'subtitle', type: 'text', grid: 6 },
-    isDoctor?{ 
-          name: 'status', 
-          label: 'Status', 
-          type: 'option', grid: 2,
+    isDoctor
+      ? {
+          name: 'status',
+          label: 'Status',
+          type: 'option',
+          grid: 2,
           options: [
             { value: 2, label: 'Nháp' },
-            { value: 3, label: 'Xóa' }
+            { value: 3, label: 'Xóa' },
           ],
-          required: true
-        }: { 
-          name: 'status', 
-          label: 'Status', 
-          type: 'option', grid: 2,
+          required: true,
+        }
+      : {
+          name: 'status',
+          label: 'Status',
+          type: 'option',
+          grid: 2,
           options: [
             { value: 1, label: 'Công khai' },
             { value: 2, label: 'Nháp' },
-            { value: 3, label: 'Xóa' }
+            { value: 3, label: 'Xóa' },
           ],
-          required: true
+          required: true,
         },
     { name: 'tags', label: 'tags', type: 'text', grid: 4 },
     {
       name: 'category',
       label: 'category',
       type: 'option',
-      options: categories?.map((category) => ({
-        value: category._id, 
-        label: category.name,  
-      })) || [],
+      options:
+        categories?.map((category) => ({
+          value: category._id,
+          label: category.name,
+        })) || [],
       grid: 3,
     },
     { name: 'views', label: 'views', type: 'number', grid: 3 },
     { name: 'imageUrl', label: 'imageUrl', type: 'file', grid: 4 },
-    { name: 'content', label: 'content', type: 'textarea', grid: 12},
-    ];
+    { name: 'content', label: 'content', type: 'textarea', grid: 12 },
+  ];
 
   const columns = [
     { field: 'id', headerName: 'ID', flex: 0.5 },
@@ -103,7 +103,7 @@ const News = () => {
           return params.value.fullName;
         }
         return 'Unknown'; // Fallback if no name is found
-      }
+      },
     },
     {
       field: 'category',
@@ -119,7 +119,7 @@ const News = () => {
           }
         }
         return 'Chưa xác định';
-      }
+      },
     },
     {
       field: 'status',
@@ -130,10 +130,10 @@ const News = () => {
         const statusMap = {
           3: 'Deleted',
           1: 'Published',
-          2: 'Draft'
+          2: 'Draft',
         };
         return statusMap[params.value] || 'Unknown';
-      }
+      },
     },
     {
       field: 'views',
@@ -148,24 +148,16 @@ const News = () => {
       headerName: t('menu.action'),
       width: 150,
       renderCell: (params) => {
-          return (
-            <ButtonGroup variant="contained" aria-label="Basic button group">
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={() => handleOpenEdit(params.row)}
-              >
-                <EditIcon />
-              </Button>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={() => handleDelete(params.row.id)}
-              >
-                <DeleteIcon />
-              </Button>
-            </ButtonGroup>
-          );
+        return (
+          <ButtonGroup variant="contained" aria-label="Basic button group">
+            <Button variant="contained" color="primary" onClick={() => handleOpenEdit(params.row)}>
+              <EditIcon />
+            </Button>
+            <Button variant="contained" color="primary" onClick={() => handleDelete(params.row.id)}>
+              <DeleteIcon />
+            </Button>
+          </ButtonGroup>
+        );
         return null;
       },
     },
@@ -176,7 +168,7 @@ const News = () => {
     setNotification({
       open: true,
       message,
-      severity
+      severity,
     });
   };
 
@@ -200,10 +192,10 @@ const News = () => {
       ...data,
       category: data.category?._id || data.category,
     };
-    
+
     // Log hình ảnh để kiểm tra
     console.log('Hình ảnh hiện tại:', editData.imageUrl);
-  
+
     setSelectedData(editData);
     setModalMode('edit');
     setOpenModal(true);
@@ -211,59 +203,62 @@ const News = () => {
   };
   const handleClose = () => setOpenModal(false);
   const handleSubmit = (formData) => {
-    const finalFormData = isDoctor && modalMode === 'create'
-    ? { ...formData, status: 2 }
-    : isDoctor && modalMode === 'edit'
-      ? { 
-          ...formData, 
-          status: [0, 2].includes(formData.status) ? formData.status : 2 
-        }
-      : formData;
+    const finalFormData =
+      isDoctor && modalMode === 'create'
+        ? { ...formData, status: 2 }
+        : isDoctor && modalMode === 'edit'
+        ? {
+            ...formData,
+            status: [0, 2].includes(formData.status) ? formData.status : 2,
+          }
+        : formData;
 
-  if (finalFormData.imageUrl instanceof File) {
-    const reader = new FileReader();
-    reader.readAsDataURL(finalFormData.imageUrl);
-    reader.onloadend = () => {
-      const processedFormData = {
-        ...finalFormData,
-        imageUrl: reader.result
+    if (finalFormData.imageUrl instanceof File) {
+      const reader = new FileReader();
+      reader.readAsDataURL(finalFormData.imageUrl);
+      reader.onloadend = () => {
+        const processedFormData = {
+          ...finalFormData,
+          imageUrl: reader.result,
+        };
+
+        if (modalMode === 'create') {
+          dispatch(fetchCreateNews({ formData: processedFormData }))
+            .then((response) => {
+              if (response.payload) {
+                showNotification('Thêm tin tức thành công');
+                handleClose();
+                dispatch(fetchAllNews());
+              } else {
+                showNotification('Thêm tin tức thất bại', 'error');
+              }
+            })
+            .catch(() => {
+              showNotification('Đã có lỗi xảy ra', 'error');
+            });
+        } else {
+          // Similar update logic
+          dispatch(
+            fetchUpdateNews({
+              id: selectedData.id,
+              formData: processedFormData,
+            }),
+          )
+            .then((response) => {
+              if (response.payload) {
+                showNotification('Cập nhật tin tức thành công');
+                handleClose();
+                dispatch(fetchAllNews());
+              } else {
+                showNotification('Cập nhật tin tức thất bại', 'error');
+              }
+            })
+            .catch(() => {
+              showNotification('Đã có lỗi xảy ra', 'error');
+            });
+        }
       };
-      
-      if (modalMode === 'create') {
-        dispatch(fetchCreateNews({ formData: processedFormData }))
-          .then((response) => {
-            if (response.payload) {
-              showNotification('Thêm tin tức thành công');
-              handleClose();
-              dispatch(fetchAllNews());
-            } else {
-              showNotification('Thêm tin tức thất bại', 'error');
-            }
-          })
-          .catch(() => {
-            showNotification('Đã có lỗi xảy ra', 'error');
-          });
-      } else {
-        // Similar update logic
-        dispatch(fetchUpdateNews({ 
-          id: selectedData.id, 
-          formData: processedFormData 
-        }))
-          .then((response) => {
-            if (response.payload) {
-              showNotification('Cập nhật tin tức thành công');
-              handleClose();
-              dispatch(fetchAllNews());
-            } else {
-              showNotification('Cập nhật tin tức thất bại', 'error');
-            }
-          })
-          .catch(() => {
-            showNotification('Đã có lỗi xảy ra', 'error');
-          });
-      }
-    };
-  } else {
+    } else {
       // Similar modifications for the case when imageUrl is not a file
       if (modalMode === 'create') {
         dispatch(fetchCreateNews({ formData: finalFormData }))
@@ -280,10 +275,12 @@ const News = () => {
             showNotification('Đã có lỗi xảy ra', 'error');
           });
       } else {
-        dispatch(fetchUpdateNews({ 
-          id: selectedData.id, 
-          formData: finalFormData 
-        }))
+        dispatch(
+          fetchUpdateNews({
+            id: selectedData.id,
+            formData: finalFormData,
+          }),
+        )
           .then((response) => {
             if (response.payload) {
               showNotification('Cập nhật tin tức thành công');
@@ -303,31 +300,30 @@ const News = () => {
     const isConfirmed = window.confirm('Bạn có chắc chắn muốn xóa tin này?');
     if (isConfirmed) {
       dispatch(fetchDeleteNews(id))
-      .then((response) => {
-        if (response.payload) {
-          showNotification('Xóa tin tức thành công');
-          // Tự động fetch lại danh sách tin tức
-          dispatch(fetchAllNews());
-        } else {
-          showNotification('Bạn không có quyền xóa tin tức', 'error');
-        }
-      })
-      .catch(() => {
-        showNotification('Đã có lỗi xảy ra', 'error');
-      });
+        .then((response) => {
+          if (response.payload) {
+            showNotification('Xóa tin tức thành công');
+            // Tự động fetch lại danh sách tin tức
+            dispatch(fetchAllNews());
+          } else {
+            showNotification('Bạn không có quyền xóa tin tức', 'error');
+          }
+        })
+        .catch(() => {
+          showNotification('Đã có lỗi xảy ra', 'error');
+        });
     }
-    
   };
 
   const { newsData, loading } = useSelector((state) => state.news);
 
   const processedNewsData = newsData
-  ?.filter(item => !isDoctor || item.author?._id === userId)
-  ?.map((item) => ({
-    ...item,
-    id: item._id || item.newsPost?._id || item.news?._id || item.id || item.message
-  }));
-  
+    ?.filter((item) => !isDoctor || item.author?._id === userId)
+    ?.map((item) => ({
+      ...item,
+      id: item._id || item.newsPost?._id || item.news?._id || item.id || item.message,
+    }));
+
   useEffect(() => {
     dispatch(fetchAllCategoryNews());
     dispatch(fetchAllNews());
@@ -335,10 +331,7 @@ const News = () => {
 
   return (
     <Box m="20px">
-      <Header 
-        title={t('menu.news')} 
-        subtitle="Thông tin, tin tức mới nhất dành cho bạn" 
-      />
+      <Header title={t('menu.news')} subtitle="Thông tin, tin tức mới nhất dành cho bạn" />
       <Box
         m="40px 0 0 0"
         height="75vh"
@@ -371,10 +364,10 @@ const News = () => {
           variant="contained"
           color="primary"
           onClick={handleOpenCreate}
-          style={{ 
-            width: '100px', 
-            flex: 'end', 
-            backgroundColor: '#6EC207' 
+          style={{
+            width: '100px',
+            flex: 'end',
+            backgroundColor: '#6EC207',
           }}
         >
           {t('actions.add')}
@@ -383,11 +376,7 @@ const News = () => {
         {loading && <div>Loading...</div>}
         {/* {error && <div>Error: {error}</div>} */}
         {processedNewsData && (
-          <DataGrid 
-            rows={processedNewsData} 
-            columns={columns} 
-            components={{ Toolbar: GridToolbar }} 
-          />
+          <DataGrid rows={processedNewsData} columns={columns} components={{ Toolbar: GridToolbar }} />
         )}
 
         <MyModal
@@ -408,11 +397,7 @@ const News = () => {
           onClose={handleCloseNotification}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert 
-            onClose={handleCloseNotification}
-            severity={notification.severity}
-            sx={{ width: '100%' }}
-          >
+          <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: '100%' }}>
             {notification.message}
           </Alert>
         </Snackbar>

@@ -16,6 +16,8 @@ import scheduleSlice from './schedule/scheduleSlice';
 
 import contactSlice from './contact/contactSlice';
 import categorySlice from './news/categorySlice';
+import dashboardSlice from './dashboard/dashboardSlice';
+import appointmentSlice from './appointment/appointmentSlice';
 
 const persistConfig = {
   key: 'auth',
@@ -38,7 +40,8 @@ const Store = configureStore({
     specialty: specialtySlice,
     schedule: scheduleSlice,
     categoryNews: categorySlice,
-
+    dashboard: dashboardSlice,
+    appointment: appointmentSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

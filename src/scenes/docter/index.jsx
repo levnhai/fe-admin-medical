@@ -5,28 +5,47 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
-
+import { unwrapResult } from '@reduxjs/toolkit';
+import { useForm, Controller } from 'react-hook-form';
+import classNames from 'classnames/bind';
+import styles from './doctor.module.scss';
+import Select from 'react-select';
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
 
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
-import { fetchDoctorByHospital } from '~/redux/doctor/doctorSlice';
-import DeleteDocter from './modal/deleteDocter';
+import { fetchDoctorByHospital, fetchDeleteDoctor } from '~/redux/doctor/doctorSlice';
 import CreateDocter from './modal/createDocter';
 import EditDocter from './modal/editDocter';
+import Modal from '~/components/Modal';
+import Button from '~/components/Button';
+import { toast } from 'react-toastify';
+
+const cx = classNames.bind(styles);
 
 const Doctor = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+  } = useForm();
   const { t } = useTranslation();
   const colors = tokens(theme.palette.mode);
 
+  const [doctorData, setDoctorData] = useState(false);
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
-  const [deleteDoctor, setDeleteDoctor] = useState();
+  const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+
+  console.log('check doctor data', doctorData);
+
   const [editDocter, setEditDocter] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -34,9 +53,10 @@ const Doctor = () => {
   const token = Cookies.get('login');
   const decodeToken = jwtDecode(token);
 
-  const docterData = useSelector((state) => state.doctor.doctorByHospitalData);
+  // const doctorData = useSelector((state) => state.doctor.doctorByHospitalData);
   const isLoading = useSelector((state) => state.doctor.loading);
   const userLogin = useSelector((state) => state.auth.user?.payload);
+  const userId = userLogin?.userData?._id;
 
   // Hàm chuyển đổi chuỗi thành không dấu
   const removeAccents = (str) => {
@@ -45,17 +65,19 @@ const Doctor = () => {
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
-    docterData?.data?.filter((user) => {
-      if (!searchTerm) return true;
+    (doctorData?.length > 0 &&
+      doctorData?.filter((user) => {
+        if (!searchTerm) return true;
 
-      const searchValue = removeAccents(searchTerm.toLowerCase().trim());
+        const searchValue = removeAccents(searchTerm.toLowerCase().trim());
 
-      // Xử lý trường hợp giá trị null/undefined
-      const fullName = removeAccents(user.fullName?.toLowerCase() || '');
-      const phoneNumber = removeAccents(user.phoneNumber?.toLowerCase() || '');
+        // Xử lý trường hợp giá trị null/undefined
+        const fullName = removeAccents(user.fullName?.toLowerCase() || '');
+        const phoneNumber = removeAccents(user.phoneNumber?.toLowerCase() || '');
 
-      return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
-    }) || [];
+        return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
+      })) ||
+    [];
 
   // Handle select all checkbox
   const handleSelectAll = (e) => {
@@ -81,13 +103,8 @@ const Doctor = () => {
   // Check if all filtered users are selected
   const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
-  const handleDeleteDocter = (docterId) => {
-    console.log('check id', docterId);
-    setShowModalDelete(true);
-    setDeleteDoctor(docterId);
-  };
   const handleEditDocter = (docterId) => {
-    const docterEdit = docterData?.data?.find((docter) => docter._id === docterId);
+    const docterEdit = doctorData?.find((docter) => docter._id === docterId);
     console.log('check docter edit', docterEdit);
     if (docterEdit) {
       setEditDocter(docterEdit);
@@ -101,8 +118,36 @@ const Doctor = () => {
     // Reset selected users when search term changes
     setSelectedUsers([]);
   };
+
+  const submitForm = async (data) => {
+    try {
+      console.log('thành công');
+    } catch (error) {
+      // toast.error(error);
+    }
+  };
+
+  const fetchDoctorData = async () => {
+    const res = await dispatch(fetchDoctorByHospital(userId));
+    const result = unwrapResult(res);
+    console.log('check doctor data', result);
+    setDoctorData(result?.data);
+  };
+
+  const handleDeleteDoctor = async () => {
+    const res = await dispatch(fetchDeleteDoctor(selectedDoctorId));
+    const result = unwrapResult(res);
+    setShowModalDelete(false);
+    if (result?.status) {
+      toast.success(result.message);
+      fetchDoctorData();
+    } else {
+      toast.warning(result.message);
+    }
+  };
+
   useEffect(() => {
-    dispatch(fetchDoctorByHospital(userLogin?.userData?._id));
+    fetchDoctorData();
   }, []);
 
   return (
@@ -216,7 +261,7 @@ const Doctor = () => {
             </div>
           </div>
         </div>
-        <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+        <div className="overflow-x-auto relative shadow-md">
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
@@ -235,37 +280,37 @@ const Doctor = () => {
                   </div>
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Name
+                  Họ và tên
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Phone number
+                  Số điện thoại
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Gender
+                  Giới tính
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Position
+                  Chức vụ
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Price
+                  Giá
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  rating
+                  Đánh giá
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Status
+                  Trạng thái
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  CreatedAt
+                  Ngày tạo
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Action
+                  Hoạt động
                 </th>
               </tr>
             </thead>
             {isLoading === true ? (
-             <LoadingSkeleton columns={9} />
-            ) : docterData && docterData?.data.length > 0 ? (
+              <LoadingSkeleton columns={9} />
+            ) : doctorData && doctorData?.length > 0 ? (
               <tbody>
                 {filteredUsers.map((item, index) => {
                   let image = '';
@@ -336,7 +381,8 @@ const Doctor = () => {
                           <button
                             className="text-red-600 hover:text-red-800"
                             onClick={() => {
-                              handleDeleteDocter(item?._id);
+                              setShowModalDelete(true);
+                              setSelectedDoctorId(item?._id);
                             }}
                           >
                             <AiOutlineDelete size={20} />
@@ -356,24 +402,32 @@ const Doctor = () => {
             )}
           </table>
         </div>
+        {/*  modal delete */}
+        <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa bác sĩ">
+          <div>
+            <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa bác sĩ này nó không ?</p>
+            <div className="flex justify-end border-t py-2 pr-6 gap-4">
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+                Đóng
+              </Button>
+              <Button className="bg-red-400 text-white" onClick={handleDeleteDoctor}>
+                Đồng ý
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
         <div>
-          {showModalDelete && (
-            <DeleteDocter
-              setShowModalDelete={setShowModalDelete}
-              handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userLogin?.userData?._id))}
-              docter={{ _id: deleteDoctor }}
-            />
-          )}
           {showModalCreate && (
             <CreateDocter
               setShowModalCreate={setShowModalCreate}
-              handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userLogin?.userData?._id))}
+              handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userId))}
             />
           )}
           {showModalEdit && (
             <EditDocter
               setShowModalEdit={setShowModalEdit}
-              handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userLogin?.userData?._id))}
+              handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userId))}
               docter={editDocter}
             />
           )}
