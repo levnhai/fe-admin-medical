@@ -1,20 +1,32 @@
 import { Box } from '@mui/material';
-import { useTheme, Button, ButtonGroup, Snackbar, Alert } from '@mui/material';
-
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
+import { useTheme, Button, ButtonGroup} from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import { unwrapResult } from '@reduxjs/toolkit';
+import LoadingSkeleton from '~/scenes/loading/loading_skeleton2';
+
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
-import { fetchAllNews, fetchCreateNews, fetchUpdateNews, fetchDeleteNews } from '~/redux/news/newsSlice';
+import { 
+  fetchAllNews, 
+  fetchCreateNews, 
+  fetchUpdateNews, 
+  fetchDeleteNews, 
+  fetchMyNews,
+  fetchHospitalAndDoctorNews 
+} from '~/redux/news/newsSlice';
 import { fetchAllCategoryNews } from '~/redux/news/categorySlice';
+import Modal from '~/components/Modal';
+// import Button from '~/components/Button';
 import MyModal from '~/components/Modal/MyModal';
 
 const News = () => {
@@ -22,66 +34,84 @@ const News = () => {
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
-
-  // State for notifications
-  const [notification, setNotification] = useState({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
-
+ 
   const [openModal, setOpenModal] = useState(false);
+  const [showModalDelete, setShowModalDelete] = useState(false);
   const [title, setTitle] = useState('');
   const [modalMode, setModalMode] = useState('create');
   const [selectedData, setSelectedData] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+
 
   const token = Cookies.get('login');
   const decodedToken = token ? jwtDecode(token) : null;
   const userRoleFromToken = decodedToken?.role || 'guest';
   const user = useSelector((state) => state.auth.user?.payload);
   const userRole = user?.role || userRoleFromToken;
-  const isDoctor = userRole === 'docter';
-  const userId = decodedToken?.accountId || user?.payload?.accountId;
+  const isDoctor = userRole === 'doctor';
+  const isHospitalAdmin = userRole === 'hospital_admin';
   const { categories } = useSelector((state) => state.categoryNews);
+  const { newsData, loading } = useSelector((state) => state.news);
+  const isLoading = useSelector((state) => state.user.loading);
+
+  let pageTitle = t('menu.news');
+  let pageSubtitle = "Thông tin, tin tức mới nhất dành cho bạn";
+  
+  if (isDoctor) {
+    pageTitle = "Tin tức của tôi";
+    pageSubtitle = "Quản lý các tin tức bạn đã tạo";
+  } else if (isHospitalAdmin) {
+    pageTitle = "Tin tức bệnh viện";
+    pageSubtitle = "Quản lý tin tức của bệnh viện và các bác sĩ";
+  }
+
+
+  const getStatusOptions = () => {
+    if (isDoctor) {
+      return [
+        { value: 2, label: 'Nháp' },
+        { value: 3, label: 'Xóa' },
+      ];
+    } else if (isHospitalAdmin) {
+      return [
+        { value: 1, label: 'Công khai' },
+        { value: 2, label: 'Nháp' },
+        { value: 3, label: 'Xóa' },
+      ];
+    } else {
+      // Admin or other roles
+      return [
+        { value: 1, label: 'Công khai' },
+        { value: 2, label: 'Nháp' },
+        { value: 3, label: 'Xóa' },
+      ];
+    }
+  };
 
   const newsFields = [
     { name: 'title', label: 'title', type: 'text', grid: 6 },
     { name: 'subtitle', label: 'subtitle', type: 'text', grid: 6 },
-    isDoctor
-      ? {
-          name: 'status',
-          label: 'Status',
-          type: 'option',
-          grid: 2,
-          options: [
-            { value: 2, label: 'Nháp' },
-            { value: 3, label: 'Xóa' },
-          ],
-          required: true,
-        }
-      : {
-          name: 'status',
-          label: 'Status',
-          type: 'option',
-          grid: 2,
-          options: [
-            { value: 1, label: 'Công khai' },
-            { value: 2, label: 'Nháp' },
-            { value: 3, label: 'Xóa' },
-          ],
-          required: true,
-        },
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'option',
+      grid: 2,
+      options: getStatusOptions(),
+      required: true,
+    },
     { name: 'tags', label: 'tags', type: 'text', grid: 4 },
     {
       name: 'category',
       label: 'category',
       type: 'option',
       options:
-        categories?.map((category) => ({
+      categories
+        ?.filter(category => category.status === 1)
+        .map((category) => ({
           value: category._id,
           label: category.name,
         })) || [],
-      grid: 3,
+    grid: 3,
     },
     { name: 'views', label: 'views', type: 'number', grid: 3 },
     { name: 'imageUrl', label: 'imageUrl', type: 'file', grid: 4 },
@@ -91,10 +121,11 @@ const News = () => {
   const columns = [
     { field: 'id', headerName: 'ID', flex: 0.5 },
     { field: 'title', headerName: t('menu.title'), flex: 1 },
-    { field: 'subtitle', headerName: t('menu.title'), flex: 1 },
+    { field: 'subtitle', headerName: t('menu.subtitle'), flex: 1 },
     {
       field: 'author',
       headerName: t('menu.author'),
+      flex: 1,
       valueFormatter: (params) => {
         // Check if author is an object with fullName property
         if (params.value && params.value.fullName) {
@@ -104,13 +135,26 @@ const News = () => {
       },
     },
     {
+      field: 'authorModel',
+      headerName: 'Author Type',
+      flex: 0.5,
+      valueFormatter: (params) => {
+        const modelMap = {
+          'Doctor': 'Bác sĩ',
+          'Hospital': 'Bệnh viện',
+          'Admin': 'Admin'
+        };
+        return params.value ? modelMap[params.value] || params.value : 'Unknown';
+      },
+    },
+    {
       field: 'category',
       headerName: t('menu.category'),
       flex: 1,
       valueFormatter: (params) => {
-        // Kiểm tra xem params.value có chứa _id hay không
+        // Check if params.value contains _id
         if (params.value && params.value._id) {
-          // Tìm danh mục trong categories
+          // Find category in categories
           const category = categories?.find((cat) => cat._id === params.value._id);
           if (category) {
             return category.name;
@@ -146,36 +190,47 @@ const News = () => {
       headerName: t('menu.action'),
       width: 150,
       renderCell: (params) => {
+        // Check edit permissions
+        let canEdit = true;
+        let canDelete = true;
+        
         return (
           <ButtonGroup variant="contained" aria-label="Basic button group">
-            <Button variant="contained" color="primary" onClick={() => handleOpenEdit(params.row)}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={() => handleOpenEdit(params.row)}
+              disabled={!canEdit}
+            >
               <EditIcon />
             </Button>
-            <Button variant="contained" color="primary" onClick={() => handleDelete(params.row.id)}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={() => 
+               { setShowModalDelete(true)
+                setSelectedUserId(params.row.id)}
+              }
+              // disabled={!canDelete}
+            >
               <DeleteIcon />
             </Button>
           </ButtonGroup>
         );
-        return null;
       },
     },
   ];
 
-  // Hàm hiển thị thông báo
-  const showNotification = (message, severity = 'success') => {
-    setNotification({
-      open: true,
-      message,
-      severity,
-    });
-  };
-
-  // Đóng thông báo
-  const handleCloseNotification = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
+  const handleDeleteNews = async () => {
+    const res = await dispatch(fetchDeleteNews(selectedUserId));
+    const result = unwrapResult(res);
+    setShowModalDelete(false);
+    if (result?.status) {
+      toast.success(result?.message);
+      fetchNewsData();
+    } else {
+      toast.warning(result?.message);
     }
-    setNotification({ ...notification, open: false });
   };
 
   const handleOpenCreate = () => {
@@ -196,17 +251,27 @@ const News = () => {
     setOpenModal(true);
     setTitle('Sửa tin tức');
   };
+
   const handleClose = () => setOpenModal(false);
+
+  const validateStatusChange = (status, currentStatus) => {
+    if (isDoctor) {
+      return status === 2 || status === 3 ? status : 2;
+    } else if (isHospitalAdmin) {
+      return status;
+    } else {
+      return status;
+    }
+  };
+
   const handleSubmit = (formData) => {
-    const finalFormData =
-      isDoctor && modalMode === 'create'
-        ? { ...formData, status: 2 }
-        : isDoctor && modalMode === 'edit'
-        ? {
-            ...formData,
-            status: [0, 2].includes(formData.status) ? formData.status : 2,
-          }
-        : formData;
+    let finalFormData = { ...formData };
+    
+    if (modalMode === 'create') {
+      finalFormData.status = isDoctor ? 2 : formData.status;
+    } else if (modalMode === 'edit') {
+      finalFormData.status = validateStatusChange(formData.status, selectedData.status);
+    }
 
     if (finalFormData.imageUrl instanceof File) {
       const reader = new FileReader();
@@ -221,18 +286,17 @@ const News = () => {
           dispatch(fetchCreateNews({ formData: processedFormData }))
             .then((response) => {
               if (response.payload) {
-                showNotification('Thêm tin tức thành công');
+                toast.success('Thêm tin tức thành công');
                 handleClose();
-                dispatch(fetchAllNews());
+                loadNewsData();
               } else {
-                showNotification('Thêm tin tức thất bại', 'error');
+                toast.warning('Thêm tin tức thất bại', 'error');
               }
             })
             .catch(() => {
-              showNotification('Đã có lỗi xảy ra', 'error');
+              toast.error('Đã có lỗi xảy ra', 'error');
             });
         } else {
-          // Similar update logic
           dispatch(
             fetchUpdateNews({
               id: selectedData.id,
@@ -241,33 +305,32 @@ const News = () => {
           )
             .then((response) => {
               if (response.payload) {
-                showNotification('Cập nhật tin tức thành công');
+                toast.success('Cập nhật tin tức thành công');
                 handleClose();
-                dispatch(fetchAllNews());
+                loadNewsData();
               } else {
-                showNotification('Cập nhật tin tức thất bại', 'error');
+                toast.warning('Cập nhật tin tức thất bại', 'error');
               }
             })
             .catch(() => {
-              showNotification('Đã có lỗi xảy ra', 'error');
+              toast.error('Đã có lỗi xảy ra', 'error');
             });
         }
       };
     } else {
-      // Similar modifications for the case when imageUrl is not a file
       if (modalMode === 'create') {
         dispatch(fetchCreateNews({ formData: finalFormData }))
           .then((response) => {
             if (response.payload) {
-              showNotification('Thêm tin tức thành công');
+              toast.success('Thêm tin tức thành công');
               handleClose();
-              dispatch(fetchAllNews());
+              loadNewsData();
             } else {
-              showNotification('Thêm tin tức thất bại', 'error');
+              toast.warning('Thêm tin tức thất bại', 'error');
             }
           })
           .catch(() => {
-            showNotification('Đã có lỗi xảy ra', 'error');
+            toast.error('Đã có lỗi xảy ra', 'error');
           });
       } else {
         dispatch(
@@ -278,55 +341,56 @@ const News = () => {
         )
           .then((response) => {
             if (response.payload) {
-              showNotification('Cập nhật tin tức thành công');
+              toast.success('Cập nhật tin tức thành công');
               handleClose();
-              dispatch(fetchAllNews());
+              loadNewsData();
             } else {
-              showNotification('Cập nhật tin tức thất bại', 'error');
+              toast.warning('Cập nhật tin tức thất bại', 'error');
             }
           })
           .catch(() => {
-            showNotification('Đã có lỗi xảy ra', 'error');
+            toast.error('Đã có lỗi xảy ra', 'error');
           });
       }
     }
   };
-  const handleDelete = (id) => {
-    const isConfirmed = window.confirm('Bạn có chắc chắn muốn xóa tin này?');
-    if (isConfirmed) {
-      dispatch(fetchDeleteNews(id))
-        .then((response) => {
-          if (response.payload) {
-            showNotification('Xóa tin tức thành công');
-            // Tự động fetch lại danh sách tin tức
-            dispatch(fetchAllNews());
-          } else {
-            showNotification('Bạn không có quyền xóa tin tức', 'error');
-          }
-        })
-        .catch(() => {
-          showNotification('Đã có lỗi xảy ra', 'error');
-        });
-    }
-  };
 
-  const { newsData, loading } = useSelector((state) => state.news);
 
   const processedNewsData = newsData
-    ?.filter((item) => !isDoctor || item.author?._id === userId)
     ?.map((item) => ({
       ...item,
       id: item._id || item.newsPost?._id || item.news?._id || item.id || item.message,
     }));
 
+  // Function to load appropriate news data based on user role
+  const loadNewsData = () => {
+    if (isDoctor) {
+      dispatch(fetchMyNews());
+    } else if (isHospitalAdmin) {
+      dispatch(fetchHospitalAndDoctorNews());
+    } else {
+      dispatch(fetchAllNews());
+    }
+  };
+
+  const fetchNewsData = async () => {
+    const res = await dispatch(fetchAllNews());
+    const result = unwrapResult(res);
+    // setUserData(result?.user);
+  };
+
   useEffect(() => {
     dispatch(fetchAllCategoryNews());
-    dispatch(fetchAllNews());
-  }, [dispatch]);
+    loadNewsData();
+  }, [dispatch, isDoctor, isHospitalAdmin]);
 
+  
   return (
     <Box m="20px">
-      <Header title={t('menu.news')} subtitle="Thông tin, tin tức mới nhất dành cho bạn" />
+      <Header 
+        title={pageTitle} 
+        subtitle={pageSubtitle} 
+      />
       <Box
         m="40px 0 0 0"
         height="75vh"
@@ -360,42 +424,50 @@ const News = () => {
           color="primary"
           onClick={handleOpenCreate}
           style={{
-            width: '100px',
-            flex: 'end',
+            width: '150px',
+            marginBottom: '10px',
             backgroundColor: '#6EC207',
           }}
         >
-          {t('actions.add')}
+          Thêm tin tức
           <AddIcon />
         </Button>
-        {loading && <div>Loading...</div>}
-        {/* {error && <div>Error: {error}</div>} */}
-        {processedNewsData && (
-          <DataGrid rows={processedNewsData} columns={columns} components={{ Toolbar: GridToolbar }} />
+        {loading || !processedNewsData ? (
+            <LoadingSkeleton columns={5} />
+          ) : (
+            <DataGrid 
+              rows={processedNewsData} 
+              columns={columns} 
+              components={{ Toolbar: GridToolbar }}
+            />
+          )}
+
+        {isLoading ? (
+          <LoadingSkeleton columns={5} />
+        ) : (
+          <MyModal
+            open={openModal}
+            handleClose={handleClose}
+            mode={modalMode}
+            onSubmit={handleSubmit}
+            data={selectedData}
+            title={title}
+            fields={newsFields}
+          />
         )}
-
-        <MyModal
-          open={openModal}
-          handleClose={handleClose}
-          mode={modalMode}
-          onSubmit={handleSubmit}
-          onDelete={handleDelete}
-          data={selectedData}
-          title={title}
-          fields={newsFields}
-        />
-
-        {/* Thêm Snackbar để hiển thị thông báo */}
-        <Snackbar
-          open={notification.open}
-          autoHideDuration={3000}
-          onClose={handleCloseNotification}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: '100%' }}>
-            {notification.message}
-          </Alert>
-        </Snackbar>
+        <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa tin tức">
+          <div>
+            <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa tin này không ?</p>
+            <div className="flex justify-end border-t py-2 pr-6 gap-4">
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+                Đóng
+              </Button>
+              <Button className="bg-red-400 px-6 py-2 text-white" onClick={handleDeleteNews}>
+                Đồng ý
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </Box>
     </Box>
   );

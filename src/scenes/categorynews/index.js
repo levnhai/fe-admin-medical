@@ -1,8 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Button, ButtonGroup, useTheme, Snackbar, Alert } from '@mui/material';
+import { Box } from '@mui/material';
+import { useTheme, Button, ButtonGroup } from '@mui/material';
+import { jwtDecode } from 'jwt-decode';
+import Cookies from 'js-cookie';
+import { useEffect, useState } from 'react';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import { unwrapResult } from '@reduxjs/toolkit';
+import LoadingSkeleton from '~/scenes/loading/loading_skeleton2';
 
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -10,6 +16,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
+import Modal from '~/components/Modal';
 import MyModal from '~/components/Modal/MyModal';
 import {
   fetchAllCategoryNews,
@@ -18,46 +25,62 @@ import {
   fetchDeleteCategoryNews,
 } from '~/redux/news/categorySlice';
 
+// Helper function to remove <p> tags from text
+const removePTags = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/<p>/g, '')
+    .replace(/<\/p>/g, '')
+    .replace(/<p\s+[^>]*>/g, '');
+};
+
 const CategoryNews = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
-  // State for notifications
-  const [notification, setNotification] = useState({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
-
   const [openModal, setOpenModal] = useState(false);
+  const [showModalDelete, setShowModalDelete] = useState(false);
   const [title, setTitle] = useState('');
   const [modalMode, setModalMode] = useState('create');
   const [selectedData, setSelectedData] = useState(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+
+  const token = Cookies.get('login');
+  const decodedToken = token ? jwtDecode(token) : null;
+  const userRoleFromToken = decodedToken?.role || 'guest';
+  const user = useSelector((state) => state.auth.user?.payload);
+  const userRole = user?.role || userRoleFromToken;
+
+  const { categories, loading, error } = useSelector((state) => state.categoryNews);
+  const isLoading = useSelector((state) => state.user.loading);
+
+  const pageTitle = "Thể loại tin tức";
+  const pageSubtitle = "Quản lý thể loại tin tức cho hệ thống";
 
   // Define fields for the category news modal
   const categoryNewsFields = [
     {
       name: 'name',
-      label: 'Category Name',
+      label: 'Tên thể loại',
       type: 'text',
       grid: 6,
       required: true,
     },
     {
       name: 'description',
-      label: 'Description',
+      label: 'Mô tả',
       type: 'textarea',
       grid: 12,
     },
     {
       name: 'status',
-      label: 'Status',
+      label: 'Trạng thái',
       type: 'option',
       options: [
-        { value: 0, label: 'Inactive' },
-        { value: 1, label: 'Active' },
+        { value: 1, label: 'Công khai' },
+        { value: 2, label: 'Ẩn' },
       ],
       grid: 6,
       required: true,
@@ -69,153 +92,151 @@ const CategoryNews = () => {
     { field: 'id', headerName: 'ID', flex: 0.5 },
     {
       field: 'name',
-      headerName: 'Category Name',
+      headerName: t('menu.name'),
       flex: 1,
     },
     {
       field: 'description',
-      headerName: 'Description',
+      headerName: t('menu.description'),
       flex: 2,
+      valueFormatter: (params) => {
+        // Remove p tags when displaying in the grid
+        return removePTags(params.value);
+      },
     },
     {
       field: 'status',
-      headerName: 'Status',
+      headerName: t('menu.status'),
+      headerAlign: 'left',
+      align: 'left',
       valueFormatter: (params) => {
         const statusMap = {
-          0: 'Inactive',
-          1: 'Active',
+          1: 'Công khai',
+          2: 'Ẩn',
         };
         return statusMap[params.value] || 'Unknown';
       },
     },
-    {
-      field: 'createdAt',
-      headerName: 'Created At',
-      flex: 1,
-    },
+    { field: 'createdAt', headerName: t('menu.createdAt'), flex: 1 },
+    { field: 'updatedAt', headerName: t('menu.updatedAt'), flex: 1 },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('menu.action'),
       width: 150,
-      renderCell: (params) => (
-        <ButtonGroup variant="contained" aria-label="Basic button group">
-          <Button variant="contained" color="primary" onClick={() => handleOpenEdit(params.row)}>
-            <EditIcon />
-          </Button>
-          <Button variant="contained" color="error" onClick={() => handleDelete(params.row._id)}>
-            <DeleteIcon />
-          </Button>
-        </ButtonGroup>
-      ),
+      renderCell: (params) => {
+        return (
+          <ButtonGroup variant="contained" aria-label="Basic button group">
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={() => handleOpenEdit(params.row)}
+            >
+              <EditIcon />
+            </Button>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={() => {
+                setShowModalDelete(true);
+                setSelectedCategoryId(params.row.id);
+              }}
+            >
+              <DeleteIcon />
+            </Button>
+          </ButtonGroup>
+        );
+      },
     },
   ];
 
-  // Notification helper function
-  const showNotification = (message, severity = 'success') => {
-    setNotification({
-      open: true,
-      message,
-      severity,
-    });
-  };
-
-  // Close notification handler
-  const handleCloseNotification = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
+  const handleDeleteCategory = async () => {
+    const res = await dispatch(fetchDeleteCategoryNews(selectedCategoryId));
+    const result = unwrapResult(res);
+    setShowModalDelete(false);
+    if (result?.status) {
+      toast.success(result?.message || "Xóa thể loại thành công");
+      fetchCategoryData();
+    } else {
+      toast.warning(result?.message || "Xóa thể loại thất bại");
     }
-    setNotification({ ...notification, open: false });
   };
 
-  // Open create modal
   const handleOpenCreate = () => {
     setSelectedData(null);
     setModalMode('create');
     setOpenModal(true);
-    setTitle('Add Category');
+    setTitle('Thêm thể loại');
   };
 
-  // Open edit modal
   const handleOpenEdit = (data) => {
-    setSelectedData(data);
+    // Clean up the description before setting it for editing
+    const cleanedData = {
+      ...data,
+      description: removePTags(data.description)
+    };
+    setSelectedData(cleanedData);
     setModalMode('edit');
     setOpenModal(true);
-    setTitle('Edit Category');
+    setTitle('Sửa thể loại');
   };
 
-  // Close modal
   const handleClose = () => setOpenModal(false);
 
-  // Submit handler for create/update
   const handleSubmit = (formData) => {
+    // Clean up the description before submitting
+    const cleanedFormData = {
+      ...formData,
+      description: removePTags(formData.description)
+    };
+
     if (modalMode === 'create') {
-      dispatch(fetchCreateCategoryNews({ formData }))
+      dispatch(fetchCreateCategoryNews({ formData: cleanedFormData }))
         .then((response) => {
           if (response.payload) {
-            showNotification('Category created successfully');
+            toast.success('Thêm thể loại thành công');
             handleClose();
-            dispatch(fetchAllCategoryNews());
+            fetchCategoryData();
           } else {
-            showNotification('Failed to create category', 'error');
+            toast.warning('Thêm thể loại thất bại', 'error');
           }
         })
         .catch(() => {
-          showNotification('An error occurred', 'error');
+          toast.error('Đã có lỗi xảy ra', 'error');
         });
     } else {
       dispatch(
         fetchUpdateCategoryNews({
-          id: selectedData._id,
-          formData,
+          id: selectedData.id,
+          formData: cleanedFormData,
         }),
       )
         .then((response) => {
           if (response.payload) {
-            showNotification('Category updated successfully');
+            toast.success('Cập nhật thể loại thành công');
             handleClose();
-            dispatch(fetchAllCategoryNews());
+            fetchCategoryData();
           } else {
-            showNotification('Failed to update category', 'error');
+            toast.warning('Cập nhật thể loại thất bại', 'error');
           }
         })
         .catch(() => {
-          showNotification('An error occurred', 'error');
+          toast.error('Đã có lỗi xảy ra', 'error');
         });
     }
   };
-
-  // Delete handler
-  const handleDelete = (id) => {
-    const isConfirmed = window.confirm('Are you sure you want to delete this category?');
-    if (isConfirmed) {
-      dispatch(fetchDeleteCategoryNews(id))
-        .then((response) => {
-          if (response.payload) {
-            showNotification('Category deleted successfully');
-            dispatch(fetchAllCategoryNews());
-          } else {
-            showNotification('Failed to delete category', 'error');
-          }
-        })
-        .catch(() => {
-          showNotification('An error occurred', 'error');
-        });
-    }
-  };
-
-  // Get categories from Redux store
-  const {
-    categories = [],
-    loading = false,
-    error,
-  } = useSelector((state) => state.categoryNews || { categories: [], loading: false, error: null });
-  useEffect(() => {}, [categories, loading, error]);
 
   // Process data for DataGrid
   const processedCategoryData = categories?.map((item) => ({
     ...item,
-    id: item._id,
+    id: item._id || item.id,
+    // Clean description here too for redundancy/safety
+    description: item.description
   }));
+
+  const fetchCategoryData = async () => {
+    const res = await dispatch(fetchAllCategoryNews());
+    const result = unwrapResult(res);
+  };
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -224,7 +245,10 @@ const CategoryNews = () => {
 
   return (
     <Box m="20px">
-      <Header title="Category Management" subtitle="Manage news categories" />
+      <Header 
+        title={pageTitle} 
+        subtitle={pageSubtitle} 
+      />
       <Box
         m="40px 0 0 0"
         height="75vh"
@@ -263,37 +287,43 @@ const CategoryNews = () => {
             backgroundColor: '#6EC207',
           }}
         >
-          Add Category
+          Thêm thể loại
           <AddIcon />
         </Button>
+        {loading || !processedCategoryData ? (
+          <LoadingSkeleton columns={5} />
+            ) : (
+              <DataGrid 
+                rows={processedCategoryData} 
+                columns={columns} 
+                components={{ Toolbar: GridToolbar }}
+              />
+            )}
+        
 
-        {loading && <div>Loading...</div>}
+          <MyModal
+            open={openModal}
+            handleClose={handleClose}
+            mode={modalMode}
+            onSubmit={handleSubmit}
+            data={selectedData}
+            title={title}
+            fields={categoryNewsFields}
+          />
 
-        {processedCategoryData && (
-          <DataGrid rows={processedCategoryData} columns={columns} components={{ Toolbar: GridToolbar }} />
-        )}
-
-        <MyModal
-          open={openModal}
-          handleClose={handleClose}
-          mode={modalMode}
-          onSubmit={handleSubmit}
-          onDelete={handleDelete}
-          data={selectedData}
-          title={title}
-          fields={categoryNewsFields}
-        />
-
-        <Snackbar
-          open={notification.open}
-          autoHideDuration={3000}
-          onClose={handleCloseNotification}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: '100%' }}>
-            {notification.message}
-          </Alert>
-        </Snackbar>
+        <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa thể loại">
+          <div>
+            <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa thể loại này không ?</p>
+            <div className="flex justify-end border-t py-2 pr-6 gap-4">
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+                Đóng
+              </Button>
+              <Button className="bg-red-400 px-6 py-2 text-white" onClick={handleDeleteCategory}>
+                Đồng ý
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </Box>
     </Box>
   );
