@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ProSidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Box, IconButton, Typography, useTheme } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -13,14 +13,7 @@ import { tokens } from '../../theme';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
-import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
-import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
-import PieChartOutlineOutlinedIcon from '@mui/icons-material/PieChartOutlineOutlined';
-import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
-import MapOutlinedIcon from '@mui/icons-material/MapOutlined';
 import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
 
 import { FaCalendarAlt, FaNotesMedical } from 'react-icons/fa';
@@ -30,20 +23,21 @@ import { useTranslation } from 'react-i18next';
 
 const rolePermissions = {
   system_admin: [
-    { title: 'Dashboard', to: '/', icon: <HomeOutlinedIcon /> },
+    { title: 'Trang chủ', to: '/', icon: <HomeOutlinedIcon /> },
     // { title: 'Admin', to: '/system-admin', icon: <HomeOutlinedIcon /> },
-    { title: 'Hospital', to: '/hospital', icon: <PeopleOutlinedIcon /> },
-    { title: 'User', to: '/user', icon: <PeopleOutlinedIcon /> },
-    { title: 'News', to: '/news', icon: <ReceiptOutlinedIcon /> },
-    { title: 'Category News', to: '/categorynews', icon: <ReceiptOutlinedIcon /> },
-    { title: 'Cooperate', to: '/contact-cooperate', icon: <ConnectWithoutContactIcon /> },
-    { title: 'Profile Form', to: '/form', icon: <PersonOutlinedIcon /> },
-    { title: 'Calendar', to: '/calendar', icon: <CalendarTodayOutlinedIcon /> },
-    { title: 'FAQ Page', to: '/faq', icon: <HelpOutlineOutlinedIcon /> },
-    { title: 'Bar Chart', to: '/bar', icon: <BarChartOutlinedIcon /> },
-    { title: 'Pie Chart', to: '/pie', icon: <PieChartOutlineOutlinedIcon /> },
-    { title: 'Line Chart', to: '/line', icon: <TimelineOutlinedIcon /> },
-    { title: 'Geography Chart', to: '/geography', icon: <MapOutlinedIcon /> },
+    { title: 'Bệnh viện', to: '/hospital', icon: <PeopleOutlinedIcon /> },
+    { title: 'Bác sĩ', to: '/doctor', icon: <FaUserDoctor /> },
+    { title: 'Người dùng', to: '/user', icon: <PeopleOutlinedIcon /> },
+    { title: 'Tin tức', to: '/news', icon: <ReceiptOutlinedIcon /> },
+    { title: 'Thể loại', to: '/categorynews', icon: <ReceiptOutlinedIcon /> },
+    { title: 'Hợp tác', to: '/contact-cooperate', icon: <ConnectWithoutContactIcon /> },
+    // { title: 'Profile Form', to: '/form', icon: <PersonOutlinedIcon /> },
+    // { title: 'Calendar', to: '/calendar', icon: <CalendarTodayOutlinedIcon /> },
+    // { title: 'FAQ Page', to: '/faq', icon: <HelpOutlineOutlinedIcon /> },
+    // { title: 'Bar Chart', to: '/bar', icon: <BarChartOutlinedIcon /> },
+    // { title: 'Pie Chart', to: '/pie', icon: <PieChartOutlineOutlinedIcon /> },
+    // { title: 'Line Chart', to: '/line', icon: <TimelineOutlinedIcon /> },
+    // { title: 'Geography Chart', to: '/geography', icon: <MapOutlinedIcon /> },
   ],
   hospital_admin: [
     { title: 'Trang chủ', to: '/', icon: <HomeOutlinedIcon /> },
@@ -54,9 +48,9 @@ const rolePermissions = {
     { title: 'Lịch hẹn khám', to: '/scheduler-appointment', icon: <FaNotesMedical /> },
   ],
   doctor: [
-    { title: 'Dashboard', to: '/', icon: <HomeOutlinedIcon /> },
-    { title: 'User', to: '/user', icon: <PeopleOutlinedIcon /> },
-    { title: 'News', to: '/news', icon: <ReceiptOutlinedIcon /> },
+    { title: 'Trang chủ', to: '/', icon: <HomeOutlinedIcon /> },
+    { title: 'Người dùng', to: '/user', icon: <PeopleOutlinedIcon /> },
+    { title: 'Tin tức', to: '/news', icon: <ReceiptOutlinedIcon /> },
     { title: 'Lịch làm việc', to: '/scheduler-doctor', icon: <FaCalendarAlt /> },
     { title: 'Lịch hẹn khám', to: '/scheduler-appointment', icon: <FaNotesMedical /> },
   ],
@@ -167,7 +161,7 @@ const Sidebar = () => {
             {!isCollapsed && (
               <Box display="flex" justifyContent="space-between" alignItems="center" ml="15px">
                 <Typography variant="h3" color={colors.grey[100]}>
-                  ADMINIS
+                  Quản trị
                 </Typography>
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon />

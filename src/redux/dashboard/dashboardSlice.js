@@ -10,15 +10,6 @@ export const fetchAllDashboardStats = createAsyncThunk('dashboard/fetchAllDashbo
   }
 });
 
-export const fetchStatsByHospital = createAsyncThunk('dashboard/fetchStatsByHospital', async ({ hospitalId }) => {
-  try {
-    const response = await axios.post('/stats-by-hospital', { hospitalId });
-    return response.result;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-});
-
 const dashboard = createSlice({
   name: 'dashboard',
   initialState: {

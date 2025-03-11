@@ -126,17 +126,21 @@ const Calendar = () => {
     fetchDoctor();
   }, [dispatch]);
 
+  
+
   return (
     <div className="mx-6">
       <Header title="Lịch làm việc" subtitle="Làm việc hiệu quả" />
-      <div className="flex justify-end ">
-        <button
-          onClick={() => setIsModalCreate(true)}
-          className=" text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
-        >
-          Thêm lịch hẹn
-        </button>
-      </div>
+      {userRole === 'hospital_admin' && (
+        <div className="flex justify-end ">
+          <button
+            onClick={() => setIsModalCreate(true)}
+            className=" text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
+          >
+            Thêm lịch hẹn
+          </button>
+        </div>
+      )}
       <div display="flex" justifyContent="space-between">
         {/* CALENDAR SIDEBAR */}
         <div flex="1 1 20%" backgroundColor={colors.primary[400]} p="15px" borderRadius="4px">

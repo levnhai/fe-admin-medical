@@ -4,7 +4,7 @@ import axios from '~/axios';
 // get all schedule
 export const fetchAllScheduleByHospital = createAsyncThunk('schedule/fetchAllScheduleByHospital', async () => {
   try {
-    const response = await axios.get('/schedule/get-schedule-by-hospital');
+    const response = await axios.get('/schedule/get-schedule');
     return response.result;
   } catch (error) {
     throw new Error(error.message);

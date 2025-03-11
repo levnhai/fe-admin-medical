@@ -3,6 +3,7 @@ import { Buffer } from 'buffer';
 import { useDispatch, useSelector } from 'react-redux';
 import Cookies from 'js-cookie';
 import { unwrapResult } from '@reduxjs/toolkit';
+import { jwtDecode } from 'jwt-decode';
 
 //icon
 import { CiEdit } from 'react-icons/ci';
@@ -15,6 +16,7 @@ import { formatDate, extractTime } from '~/utils/time';
 
 const Appointment = () => {
   const dispatch = useDispatch();
+  const token = Cookies.get('login');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -23,6 +25,7 @@ const Appointment = () => {
 
   const isLoading = useSelector((state) => state.appointment.loading);
   const userLogin = useSelector((state) => state.auth.user?.payload);
+  const userRole = token ? jwtDecode(token).role : 'guest';
   const hospitalId = userLogin?.userData?._id;
   console.log('check hospitalId', hospitalId);
 

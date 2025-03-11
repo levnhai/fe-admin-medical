@@ -1,8 +1,6 @@
 import { Box, Button, IconButton, Typography, useTheme } from '@mui/material';
 import { tokens } from '../../theme';
-import { mockTransactions } from '../../data/mockData';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
-import EmailIcon from '@mui/icons-material/Email';
 import Header from '../../components/Header';
 import LineChart from '../../components/LineChart';
 import GeographyChart from '../../components/GeographyChart';
@@ -12,16 +10,16 @@ import ProgressCircle from '../../components/ProgressCircle';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { unwrapResult } from '@reduxjs/toolkit';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
 import { FaUserDoctor, FaHospitalUser } from 'react-icons/fa6';
-import { FaHospitalAlt } from 'react-icons/fa';
+import { FaHospitalAlt, FaCalendarPlus } from 'react-icons/fa';
 import { IoNewspaper } from 'react-icons/io5';
 import { MdPriceChange } from 'react-icons/md';
 
-import { fetchAllDashboardStats, fetchStatsByHospital } from '~/redux/dashboard/dashboardSlice';
+import { fetchAllDashboardStats } from '~/redux/dashboard/dashboardSlice';
 import { formatDate, extractTime } from '~/utils/time';
 
 const Dashboard = () => {
@@ -30,37 +28,44 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const token = Cookies.get('login');
-  const userLogin = useSelector((state) => state.auth.user?.payload);
   const userRole = token ? jwtDecode(token).role : 'guest';
-  const userId = userLogin?.userData?._id;
 
   const [statsData, setStatsData] = useState();
 
-  useEffect(() => {
-    switch (userRole) {
-      case 'system_admin':
-        let fetchStats = async () => {
-          const res = await dispatch(fetchAllDashboardStats());
-          const result = unwrapResult(res);
-          setStatsData(result);
-        };
-        fetchStats();
-        break;
-      case 'hospital_admin':
-        let fetchStatsByhospital = async () => {
-          const res = await dispatch(fetchStatsByHospital({ hospitalId: userId }));
-          const result = unwrapResult(res);
-          setStatsData(result);
-        };
-        fetchStatsByhospital();
-        break;
+  // useEffect(() => {
+  //   switch (userRole) {
+  //     case 'system_admin':
+  //       let fetchStats = async () => {
+  //         const res = await dispatch(fetchAllDashboardStats());
+  //         const result = unwrapResult(res);
+  //         setStatsData(result);
+  //       };
+  //       fetchStats();
+  //       break;
+  //     case 'hospital_admin':
+  //       let fetchStatsByhospital = async () => {
+  //         const res = await dispatch(fetchStatsByHospital({ hospitalId: userId }));
+  //         const result = unwrapResult(res);
+  //         setStatsData(result);
+  //       };
+  //       fetchStatsByhospital();
+  //       break;
 
-      case 'doctor':
-        console.log('user role doctor');
-        break;
-      default:
-        console.log('user role default');
-    }
+  //     case 'doctor':
+  //       console.log('user role doctor');
+  //       break;
+  //     default:
+  //       console.log('user role default');
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    let fetchStats = async () => {
+      const res = await dispatch(fetchAllDashboardStats());
+      const result = unwrapResult(res);
+      setStatsData(result);
+    };
+    fetchStats();
   }, []);
 
   return (
@@ -123,7 +128,7 @@ const Dashboard = () => {
           </Box>
         )}
 
-        {userRole === 'hospital_admin' && (
+        {(userRole === 'hospital_admin' || userRole === 'doctor') && (
           <Box
             gridColumn="span 3"
             backgroundColor={colors.primary[400]}
@@ -140,21 +145,75 @@ const Dashboard = () => {
             />
           </Box>
         )}
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title={statsData?.data?.doctorCount}
-            subtitle="Bác sĩ"
-            progress="0.50"
-            increase="+21%"
-            icon={<FaUserDoctor className="text-green-300 text-xl" />}
-          />
-        </Box>
+
+        {userRole === 'doctor' && (
+          <Box
+            gridColumn="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <StatBox
+              title={statsData?.data?.appointmentCount}
+              subtitle="Lịch hẹn"
+              progress="0.75"
+              increase="+14%"
+              icon={<FaCalendarPlus className="text-green-300 text-xl" />}
+            />
+          </Box>
+        )}
+        {userRole === 'doctor' && (
+          <Box
+            gridColumn="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <StatBox
+              title={statsData?.data?.appointmentCount}
+              subtitle="Thành công"
+              progress="0.75"
+              increase="+14%"
+              icon={<FaCalendarPlus className="text-green-300 text-xl" />}
+            />
+          </Box>
+        )}
+        {userRole === 'doctor' && (
+          <Box
+            gridColumn="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <StatBox
+              title={statsData?.data?.appointmentCount}
+              subtitle="Thất bại"
+              progress="0.75"
+              increase="+14%"
+              icon={<FaCalendarPlus className="text-green-300 text-xl" />}
+            />
+          </Box>
+        )}
+        {(userRole === 'hospital_admin' || userRole === 'system_admin') && (
+          <Box
+            gridColumn="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <StatBox
+              title={statsData?.data?.doctorCount}
+              subtitle="Bác sĩ"
+              progress="0.50"
+              increase="+21%"
+              icon={<FaUserDoctor className="text-green-300 text-xl" />}
+            />
+          </Box>
+        )}
         {userRole === 'hospital_admin' && (
           <Box
             gridColumn="span 3"
@@ -172,21 +231,23 @@ const Dashboard = () => {
             />
           </Box>
         )}
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title={statsData?.data?.userCount}
-            subtitle="Người dùng"
-            progress="0.30"
-            increase="+5%"
-            icon={<FaHospitalUser className="text-green-300 text-xl" />}
-          />
-        </Box>
+        {(userRole === 'hospital_admin' || userRole === 'system_admin') && (
+          <Box
+            gridColumn="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <StatBox
+              title={statsData?.data?.userCount}
+              subtitle="Người dùng"
+              progress="0.30"
+              increase="+5%"
+              icon={<FaHospitalUser className="text-green-300 text-xl" />}
+            />
+          </Box>
+        )}
         {userRole === 'system_admin' && (
           <Box
             gridColumn="span 3"
@@ -209,10 +270,11 @@ const Dashboard = () => {
           <Box mt="25px" p="0 30px" display="flex " justifyContent="space-between" alignItems="center">
             <Box>
               <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
-                Doanh thu
+                Doanh thu, doanh số
               </Typography>
               <Typography variant="h3" fontWeight="bold" color={colors.greenAccent[500]}>
-                $59,342.32
+                {`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `},
+                {`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Lượt  `}
               </Typography>
             </Box>
             <Box>
@@ -313,7 +375,7 @@ const Dashboard = () => {
           </Box>
         )}
         {/* ROW 3 */}
-        <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]} p="30px">
+        {/* <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]} p="30px">
           <Typography variant="h5" fontWeight="600">
             Campaign
           </Typography>
@@ -340,7 +402,7 @@ const Dashboard = () => {
           <Box height="200px">
             <GeographyChart isDashboard={true} />
           </Box>
-        </Box>
+        </Box> */}
       </Box>
     </Box>
   );

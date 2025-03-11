@@ -1,6 +1,5 @@
 import { Box, IconButton, useTheme } from '@mui/material';
 import { useContext, useState, useRef, useEffect } from 'react';
-import { ColorModeContext, tokens } from '../../theme';
 import InputBase from '@mui/material/InputBase';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
@@ -9,10 +8,15 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import classNames from 'classnames/bind';
-import styles from './topbar.module.scss';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import { useSelector } from 'react-redux';
+
+// icon
 import { IoPersonSharp } from 'react-icons/io5';
+
+import { ColorModeContext, tokens } from '../../theme';
+import styles from './topbar.module.scss';
 
 const cx = classNames.bind(styles);
 
@@ -22,8 +26,9 @@ const Topbar = () => {
   const modalRef = useRef(null);
   const btnLoginRef = useRef(null);
   const navigate = useNavigate();
-  const colors = tokens(theme.palette.mode);
   const colorMode = useContext(ColorModeContext);
+  const userLogin = useSelector((state) => state.auth.user?.payload);
+  console.log('check user login', userLogin);
 
   const handleClickOusideModal = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target) && !btnLoginRef.current.contains(e.target)) {
@@ -73,8 +78,8 @@ const Topbar = () => {
             <div className={cx('profile-header')}>
               <div className={cx('profile-avata')}></div>
               <div className={cx('profile-info')}>
-                <span>Xin chào</span>
-                <h5> bệnh viện đa khoa đồng nai</h5>
+                <span className="text-blue-700">Xin chào</span>
+                <h5>{userLogin?.userData?.fullName}</h5>
               </div>
             </div>
             <ul className={cx('information-list')}>
