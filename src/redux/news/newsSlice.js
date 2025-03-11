@@ -14,6 +14,30 @@ export const fetchAllNews = createAsyncThunk(
   }
 );
 
+// Lấy tin tức của bác sĩ đang đăng nhập
+export const fetchMyNews = createAsyncThunk(
+  'news/fetchMyNews',
+  async () => {
+    try {
+      const response = await axios.get('news/my-posts');
+      return response.result?.posts;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+);
+export const fetchHospitalAndDoctorNews = createAsyncThunk(
+  'news/fetchHospitalAndDoctorNews',
+  async () => {
+    try {
+      const response = await axios.get('news/hospital-posts');
+      return response.result?.posts;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+);
+
 // Tạo mới tin tức
 export const fetchCreateNews = createAsyncThunk(
   'news/fetchCreateNews',
@@ -45,8 +69,8 @@ export const fetchDeleteNews = createAsyncThunk(
   'news/fetchDeleteNews',
   async (id) => {
     try {
-      await axios.delete(`news/delete/${id}`);
-      return id; // Trả về ID đã xóa
+       const response =await axios.delete(`news/delete/${id}`);
+      return response.result;
     } catch (error) {
       throw new Error(error.message);
     }
@@ -79,6 +103,37 @@ const newsSlice = createSlice({
         state.newsData = [];
       })
 
+      // Xử lý fetchMyNews (tin tức của bác sĩ)
+      .addCase(fetchMyNews.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMyNews.fulfilled, (state, action) => {
+        state.loading = false;
+        state.newsData = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchMyNews.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+        state.newsData = [];
+      })
+
+      .addCase(fetchHospitalAndDoctorNews.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchHospitalAndDoctorNews.fulfilled, (state, action) => {
+        state.loading = false;
+        state.newsData = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchHospitalAndDoctorNews.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+        state.newsData = [];
+      })
+      
       // Xử lý fetchCreateNews
       .addCase(fetchCreateNews.pending, (state) => {
         state.loading = true;

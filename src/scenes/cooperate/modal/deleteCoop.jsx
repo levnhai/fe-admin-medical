@@ -63,7 +63,7 @@ function DeleteCoop({ setShowModalDelete, contact, handleGetAllContact  }) {
                   handleBtnDeleteContact(contact);
                 }}
               >
-                Delete User
+                Delete Contact
               </button>
               <button className={cx('cancelBtn')} onClick={() => setShowModalDelete(false)}>
                 Cancel

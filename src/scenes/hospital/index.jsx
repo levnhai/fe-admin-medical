@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import { unwrapResult } from '@reduxjs/toolkit';
 
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
@@ -10,9 +12,11 @@ import { AiOutlineDelete } from 'react-icons/ai';
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
+import Modal from '~/components/Modal';
+import Button from '~/components/Button';
 
-import { fetchAllHospital } from '~/redux/hospital/hospitalSlice';
-import DeleteHospital from './modal/deleteHospital';
+import { fetchAllHospital, fetchDeleteHospital } from '~/redux/hospital/hospitalSlice';
+// Removed the unused import
 import CreateHospital from './modal/createHospital';
 import EditHospital from './modal/editHospital';
 
@@ -26,6 +30,7 @@ const Hospital = () => {
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
   const [deleteHospital, setDeleteHospital] = useState();
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [editHospital, setEditHospital] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -62,7 +67,16 @@ const Hospital = () => {
       setSelectedUsers([]);
     }
   };
-
+  
+  const fetchHospitalData = async () => {
+    try {
+      await dispatch(fetchAllHospital()).unwrap();
+    } catch (error) {
+      console.error('Error fetching hospital:', error);
+      toast.error('Không thể tải dữ liệu bệnh viện. Vui lòng thử lại sau.');
+    }
+  };
+  
   // Handle individual checkbox
   const handleSelectUser = (userId) => {
     setSelectedUsers((prev) => {
@@ -77,10 +91,39 @@ const Hospital = () => {
   // Check if all filtered users are selected
   const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
-  const handleDeleteHospital = (hospitalId) => {
+  // Fix: Set the selectedUserId when confirming delete
+  const confirmDeleteHospital = (hospitalId) => {
+    setSelectedUserId(hospitalId); // Set the ID to be deleted
     setShowModalDelete(true);
-    setDeleteHospital(hospitalId);
   };
+  
+  const handleDeleteHospital = async () => {
+    try {
+      // Make sure we have a selectedUserId
+      if (!selectedUserId) {
+        toast.error('Không tìm thấy ID bệnh viện để xóa');
+        return;
+      }
+      
+      const res = await dispatch(fetchDeleteHospital(selectedUserId));
+      const result = unwrapResult(res);
+      
+      if (result?.status) {
+        toast.success(result?.message || 'Xóa bệnh viện thành công');
+        setSelectedUsers(prev => prev.filter(id => id !== selectedUserId));
+        fetchHospitalData();
+      } else {
+        toast.warning(result?.message || 'Không thể xóa bệnh viện');
+      }
+    } catch (error) {
+      console.error('Error deleting hospital:', error);
+      toast.error('Đã xảy ra lỗi khi xóa bệnh viện');
+    } finally {
+      setShowModalDelete(false);
+      setSelectedUserId(null);
+    }
+  };
+  
   const handleEditHospital = (hospitalId) => {
     const hospitalEdit = hospitalData?.data?.find((hospital) => hospital._id === hospitalId);
     if (hospitalEdit) {
@@ -95,6 +138,7 @@ const Hospital = () => {
     // Reset selected users when search term changes
     setSelectedUsers([]);
   };
+  
   useEffect(() => {
     dispatch(fetchAllHospital());
   }, []);
@@ -181,7 +225,7 @@ const Hospital = () => {
           <label htmlFor="table-search" className="sr-only">
             Search
           </label>
-          <div class="relative">
+          <div className="relative">
             <div className="w-full sm:w-auto relative">
               <input
                 type="text"
@@ -237,17 +281,11 @@ const Hospital = () => {
                 <th scope="col" className="px-6 py-3">
                   Phone number
                 </th>
-                {/* <th scope="col" class="px-6 py-3">
-                Gender
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Position
-              </th> */}
-                <th scope="col" class="px-6 py-3">
+                <th scope="col" className="px-6 py-3">
                   Address
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  rating
+                  Rating
                 </th>
                 <th scope="col" className="px-6 py-3">
                   Status
@@ -305,21 +343,18 @@ const Hospital = () => {
                           <div className="font-normal text-gray-500">{item?.email}</div>
                         </div>
                       </th>
-                      <td class="px-6 py-4">{item?.phoneNumber}</td>
-                      {/* <td class="px-6 py-4">{item?.gender}</td>
-                    <td class="px-6 py-4">{item?.positionId}</td>
-                    <td class="px-6 py-4">{item?.price}</td> */}
-                      <td class="ps-3">
+                      <td className="px-6 py-4">{item?.phoneNumber}</td>
+                      <td className="ps-3">
                         {item?.address?.map((addr, i) => (
                           <div key={i}>
                             {`${addr.street}, ${addr.wardName}, ${addr.districtName}, ${addr.provinceName}`}
                           </div>
                         ))}
                       </td>
-                      <td class="px-6 py-4">{item?.rating}</td>
-                      <td class="px-6 py-4">
-                        <div class="flex items-center">
-                          <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
+                      <td className="px-6 py-4">{item?.rating}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -340,7 +375,7 @@ const Hospital = () => {
                           <button
                             className="text-red-600 hover:text-red-800"
                             onClick={() => {
-                              handleDeleteHospital(item?._id);
+                              confirmDeleteHospital(item?._id);
                             }}
                           >
                             <AiOutlineDelete size={20} />
@@ -360,14 +395,20 @@ const Hospital = () => {
             )}
           </table>
         </div>
+        <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa bệnh viện">
+          <div>
+            <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa bệnh viện này không ?</p>
+            <div className="flex justify-end border-t py-2 pr-6 gap-4">
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+                Đóng
+              </Button>
+              <Button className="bg-red-400 text-white" onClick={handleDeleteHospital}>
+                Đồng ý
+              </Button>
+            </div>
+          </div>
+        </Modal>
         <div>
-          {showModalDelete && (
-            <DeleteHospital
-              setShowModalDelete={setShowModalDelete}
-              handleGetAllHospital={() => dispatch(fetchAllHospital())}
-              hospital={{ _id: deleteHospital }}
-            />
-          )}
           {showModalCreate && (
             <CreateHospital
               setShowModalCreate={setShowModalCreate}
