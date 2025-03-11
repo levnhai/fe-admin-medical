@@ -22,9 +22,7 @@ export const fetchAllUsers = createAsyncThunk('user/fetchAllUsers', async () => 
 
 export const fetchDeleteUser = createAsyncThunk('user/fetchDeleteUser', async (id) => {
   try {
-    console.log('check id', id);
     const response = await axios.post('/user/delete-user', { id });
-    console.log('check response', response);
     return response.result;
   } catch (error) {
     throw new Error(error.message);

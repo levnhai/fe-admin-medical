@@ -93,10 +93,8 @@ const Sidebar = () => {
   const userRole = token ? jwtDecode(token).role : 'guest';
   // const decoded = jwtDecode(token);
   const menuItems = rolePermissions[userRole] || [];
-  // console.log('check user role: ', userRole);
 
   const user = useSelector((state) => state.auth.user?.payload);
-  console.log('check user role: ', user?.userData?.image?.data.length);
   let base64UrlImage = Buffer.from(user?.userData?.image?.data, 'base64').toString('binary');
 
   return (

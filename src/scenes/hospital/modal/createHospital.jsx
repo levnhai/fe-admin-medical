@@ -58,9 +58,7 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
     image: '',
   });
 
-  useEffect(() => {
-    console.log('📦 Form state updated:', form);
-  }, [form]);
+  useEffect(() => {}, [form]);
 
   const provinceData = useSelector((state) => state.location.provinceData);
   const districtData = useSelector((state) => state.location.districtData);
@@ -134,9 +132,6 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
 
   // onClick
   const handleEditorChange = ({ html, text }) => {
-    console.log('hai le');
-    console.log('hai le htmlq', html);
-    console.log('hai le q', text);
     setForm({ ...form, contentHTML: html, contentMarkdown: text });
   };
 
@@ -150,7 +145,6 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
     try {
       const response = await dispatch(fetchCreateHospital(data));
       const result = await unwrapResult(response);
-      console.log('check response', result);
       if (result?.status) {
         toast.success(result?.message);
         handleGetAllDocter();

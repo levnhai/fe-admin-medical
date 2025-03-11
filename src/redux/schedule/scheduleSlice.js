@@ -5,7 +5,6 @@ import axios from '~/axios';
 export const fetchAllScheduleByHospital = createAsyncThunk('schedule/fetchAllScheduleByHospital', async () => {
   try {
     const response = await axios.get('/schedule/get-schedule-by-hospital');
-    console.log('check response docter', response);
     return response.result;
   } catch (error) {
     throw new Error(error.message);
@@ -15,7 +14,6 @@ export const fetchAllScheduleByHospital = createAsyncThunk('schedule/fetchAllSch
 // create schedule
 export const fetchCreateSchedule = createAsyncThunk('schedule/fetchCreateSchedule', async (formData) => {
   try {
-    console.log('check response docter slice', formData);
     const response = await axios.post('/schedule/create-schedule', { formData });
     return response.result;
   } catch (error) {

@@ -9,6 +9,8 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import { useForm, Controller } from 'react-hook-form';
 import Select from 'react-select';
 import classNames from 'classnames/bind';
+import { jwtDecode } from 'jwt-decode';
+import Cookies from 'js-cookie';
 
 import Header from '../../components/Header';
 import { tokens } from '../../theme';
@@ -22,6 +24,7 @@ const cx = classNames.bind(styles);
 
 const Calendar = () => {
   const theme = useTheme();
+  const token = Cookies.get('login');
   const colors = tokens(theme.palette.mode);
   const dispatch = useDispatch();
   const [events, setEvents] = useState([]);
@@ -38,9 +41,9 @@ const Calendar = () => {
 
   const userLogin = useSelector((state) => state.auth.user?.payload);
   const hospitalId = userLogin?.userData?._id;
+  const userRole = token ? jwtDecode(token).role : 'guest';
 
-  console.log('check user login', hospitalId);
-  console.log('check events', events);
+  console.log('check userRole', userRole);
 
   const handleDateClick = (selected) => {
     const title = prompt('Please enter a new title for your event');
@@ -89,7 +92,7 @@ const Calendar = () => {
           end: `${hour.end}`,
         })),
       );
-      console.log('schedule data:', scheduleData);
+      console.log('check scheduleData', scheduleData);
       setEvents(scheduleData);
     } catch (error) {}
   };
@@ -106,8 +109,6 @@ const Calendar = () => {
 
       const res = await dispatch(fetchCreateSchedule(formData));
       const result = unwrapResult(res);
-      console.log('result', result);
-      console.log('check data', formData);
       if (result.status) {
         fetchScheduleByHospital();
         setIsModalCreate(false);
@@ -185,8 +186,6 @@ const Calendar = () => {
             eventClick={handleEventClick}
             eventsSet={(events) => setCurrentEvents(events)}
             eventContent={(arg) => {
-              console.log('check arg', arg);
-
               const startUTC = arg.event.start;
               const endUTC = arg.event.end;
               const start =

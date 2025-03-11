@@ -25,19 +25,19 @@ function EditUser({ setShowModalEdit, handleGetAllUser, user }) {
   const [messagesError, setMessageError] = useState({
     phoneNumber: '',
     fullName: '',
-    email: ''
+    email: '',
   });
 
   const handleOnchange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear error message when user starts typing
-    setMessageError(prev => ({
+    setMessageError((prev) => ({
       ...prev,
-      [name]: ''
+      [name]: '',
     }));
   };
 
@@ -78,36 +78,34 @@ function EditUser({ setShowModalEdit, handleGetAllUser, user }) {
     }
 
     try {
-      const response = await dispatch(fetchEditUser({
-        userId: formData.id,
-        userData: formData
-      })).unwrap();
-    
+      const response = await dispatch(
+        fetchEditUser({
+          userId: formData.id,
+          userData: formData,
+        }),
+      ).unwrap();
+
       toast.success('Cập nhật thông tin thành công');
       handleGetAllUser();
       setShowModalEdit(false);
     } catch (error) {
-      // Log ra để debug
-      console.log('Error object:', error);
-      
-      // Lấy message từ error.result hoặc error
       const errorMessage = error?.result?.message || error?.message || 'Có lỗi xảy ra, vui lòng thử lại sau';
-      
+
       if (errorMessage === 'Email đã tồn tại') {
-        setMessageError(prev => ({
+        setMessageError((prev) => ({
           ...prev,
-          email: 'Email đã tồn tại trong hệ thống'
+          email: 'Email đã tồn tại trong hệ thống',
         }));
       } else if (errorMessage === 'Số điện thoại đã tồn tại') {
-        setMessageError(prev => ({
+        setMessageError((prev) => ({
           ...prev,
-          phoneNumber: 'Số điện thoại đã tồn tại trong hệ thống' 
+          phoneNumber: 'Số điện thoại đã tồn tại trong hệ thống',
         }));
       } else {
         toast.error(errorMessage);
       }
     }
-};
+  };
 
   return (
     <>

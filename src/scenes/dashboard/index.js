@@ -19,6 +19,7 @@ import { jwtDecode } from 'jwt-decode';
 import { FaUserDoctor, FaHospitalUser } from 'react-icons/fa6';
 import { FaHospitalAlt } from 'react-icons/fa';
 import { IoNewspaper } from 'react-icons/io5';
+import { MdPriceChange } from 'react-icons/md';
 
 import { fetchAllDashboardStats, fetchStatsByHospital } from '~/redux/dashboard/dashboardSlice';
 import { formatDate, extractTime } from '~/utils/time';
@@ -34,7 +35,6 @@ const Dashboard = () => {
   const userId = userLogin?.userData?._id;
 
   const [statsData, setStatsData] = useState();
-  console.log('check state', statsData);
 
   useEffect(() => {
     switch (userRole) {
@@ -122,6 +122,24 @@ const Dashboard = () => {
             />
           </Box>
         )}
+
+        {userRole === 'hospital_admin' && (
+          <Box
+            gridColumn="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <StatBox
+              title={`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `}
+              subtitle="Doanh thu"
+              progress="0.75"
+              increase="+14%"
+              icon={<MdPriceChange className="text-green-300 text-xl" />}
+            />
+          </Box>
+        )}
         <Box
           gridColumn="span 3"
           backgroundColor={colors.primary[400]}
@@ -169,21 +187,23 @@ const Dashboard = () => {
             icon={<FaHospitalUser className="text-green-300 text-xl" />}
           />
         </Box>
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title={statsData?.data?.newCount}
-            subtitle="Tin tức"
-            progress="0.80"
-            increase="+43%"
-            icon={<IoNewspaper className="text-green-300 text-xl" />}
-          />
-        </Box>
+        {userRole === 'system_admin' && (
+          <Box
+            gridColumn="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <StatBox
+              title={statsData?.data?.newCount}
+              subtitle="Tin tức"
+              progress="0.80"
+              increase="+43%"
+              icon={<IoNewspaper className="text-green-300 text-xl" />}
+            />
+          </Box>
+        )}
         {/* ROW 2 */}
         <Box gridColumn="span 8" gridRow="span 2" backgroundColor={colors.primary[400]}>
           <Box mt="25px" p="0 30px" display="flex " justifyContent="space-between" alignItems="center">
@@ -205,47 +225,93 @@ const Dashboard = () => {
             <LineChart isDashboard={true} />
           </Box>
         </Box>
-        <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]} overflow="auto">
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            borderBottom={`4px solid ${colors.primary[500]}`}
-            colors={colors.grey[100]}
-            p="15px"
-          >
-            <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
-              Lịch hẹn khám
-            </Typography>
-          </Box>
-          {statsData?.data?.appointment.map((item, index) => (
+        {userRole === 'hospital_admin' && (
+          <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]} overflow="auto">
             <Box
-              // key={`${transaction.txId}-${i}`}
               display="flex"
               justifyContent="space-between"
               alignItems="center"
               borderBottom={`4px solid ${colors.primary[500]}`}
+              colors={colors.grey[100]}
               p="15px"
             >
-              <Box>
-                <Typography color={colors.greenAccent[500]} variant="h5" fontWeight="600">
-                  {item?.record?.fullName}
-                </Typography>
-                <Typography color={colors.grey[100]}>{item?.record?.phoneNumber}</Typography>
-              </Box>
-              {/* <Box color={colors.grey[100]}>{formatDate(item?.date)}</Box> */}
-              <Box>
-                <Typography color={colors.grey[100]}>
-                  {extractTime(item?.hours[0]?.start)} - {extractTime(item?.hours[0]?.end)}
-                </Typography>
-                <Typography color={colors.grey[100]}>{formatDate(item?.date)}</Typography>
-              </Box>
-              <Box backgroundColor={colors.greenAccent[500]} p="5px 10px" borderRadius="4px">
-                {item?.price} vnđ
-              </Box>
+              <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
+                Lịch hẹn khám
+              </Typography>
             </Box>
-          ))}
-        </Box>
+            {statsData?.data?.appointment.map((item, index) => (
+              <Box
+                // key={`${transaction.txId}-${i}`}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                borderBottom={`4px solid ${colors.primary[500]}`}
+                p="15px"
+              >
+                <Box>
+                  <Typography color={colors.greenAccent[500]} variant="h5" fontWeight="600">
+                    {item?.record?.fullName}
+                  </Typography>
+                  <Typography color={colors.grey[100]}>{item?.record?.phoneNumber}</Typography>
+                </Box>
+                {/* <Box color={colors.grey[100]}>{formatDate(item?.date)}</Box> */}
+                <Box>
+                  <Typography color={colors.grey[100]}>
+                    {extractTime(item?.hours[0]?.start)} - {extractTime(item?.hours[0]?.end)}
+                  </Typography>
+                  <Typography color={colors.grey[100]}>{formatDate(item?.date)}</Typography>
+                </Box>
+                <Box backgroundColor={colors.greenAccent[500]} p="5px 10px" borderRadius="4px">
+                  {item?.price} vnđ
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        )}
+
+        {userRole === 'system_admin' && (
+          <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]} overflow="auto">
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              borderBottom={`4px solid ${colors.primary[500]}`}
+              colors={colors.grey[100]}
+              p="15px"
+            >
+              <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
+                Bệnh viện nổi bật
+              </Typography>
+            </Box>
+            {statsData?.data?.hospitalData?.map((item, index) => (
+              <Box
+                // key={`${transaction.txId}-${i}`}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                borderBottom={`4px solid ${colors.primary[500]}`}
+                p="15px"
+              >
+                <Box>
+                  <Typography color={colors.greenAccent[500]} variant="h5" fontWeight="600">
+                    {item?.fullName}
+                  </Typography>
+                  {/* <Typography color={colors.grey[100]}>{item?.hospitalType}</Typography> */}
+                </Box>
+                {/* <Box color={colors.grey[100]}>{formatDate(item?.date)}</Box> */}
+                {/* <Box>
+                  <Typography color={colors.grey[100]}>
+                    {extractTime(item?.hours[0]?.start)} - {extractTime(item?.hours[0]?.end)}
+                  </Typography>
+                  <Typography color={colors.grey[100]}>{formatDate(item?.date)}</Typography>
+                </Box>
+                <Box backgroundColor={colors.greenAccent[500]} p="5px 10px" borderRadius="4px">
+                  {item?.price} vnđ
+                </Box> */}
+              </Box>
+            ))}
+          </Box>
+        )}
         {/* ROW 3 */}
         <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]} p="30px">
           <Typography variant="h5" fontWeight="600">

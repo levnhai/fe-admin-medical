@@ -29,9 +29,6 @@ const ContactCooperate = () => {
   // Safe access to contactData with default empty array
   const contacts = useSelector((state) => state.contact.contactData) || [];
   const isLoading = useSelector((state) => state.contact.loading);
-  
-
-  console.log('Current contacts from Redux:', contacts);
 
   const removeAccents = (str) => {
     if (!str) return '';
@@ -48,23 +45,15 @@ const ContactCooperate = () => {
     return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
   });
 
-  console.log('Filtered users:', filteredUsers);
-
   const handleSelectAll = (e) => {
-    setSelectedUsers(e.target.checked ? filteredUsers.map(user => user._id) : []);
+    setSelectedUsers(e.target.checked ? filteredUsers.map((user) => user._id) : []);
   };
 
   const handleSelectUser = (userId) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
+    setSelectedUsers((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]));
   };
 
-  const isAllSelected = 
-    filteredUsers.length > 0 && 
-    filteredUsers.every(user => selectedUsers.includes(user._id));
+  const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
   const handleDeleteContact = (id) => {
     setShowModalDelete(true);
@@ -72,7 +61,7 @@ const ContactCooperate = () => {
   };
 
   const handleEditContact = (id) => {
-    const contactEdit = contacts.find(contact => contact._id === id);
+    const contactEdit = contacts.find((contact) => contact._id === id);
     if (contactEdit) {
       setEditContact(contactEdit);
       setShowModalEdit(true);
@@ -84,24 +73,22 @@ const ContactCooperate = () => {
     setSelectedUsers([]);
   };
 
-  
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await dispatch(fetchAllContacts()).unwrap();
-        console.log('API Response:', result); // Debug log
       } catch (error) {
         console.error('Error fetching contacts:', error);
       }
     };
-    
+
     fetchData();
   }, [dispatch]);
 
   return (
     <div className="p-2 sm:p-4 md:p-6">
       <Header title="Quản lý yêu cầu hợp tác" subtitle="Hợp tác với chúng tôi" />
-      
+
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
           <div>
@@ -161,9 +148,7 @@ const ContactCooperate = () => {
 
         {/* Table */}
         {contacts.length === 0 ? (
-          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-            Hiện tại không có dữ liệu nào
-          </div>
+          <div className="p-4 text-center text-gray-500 dark:text-gray-400">Hiện tại không có dữ liệu nào</div>
         ) : (
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             {/* Table Header */}
@@ -177,84 +162,94 @@ const ContactCooperate = () => {
                     onChange={handleSelectAll}
                   />
                 </th>
-                <th scope="col" className="px-6 py-3">Name</th>
-                <th scope="col" className="px-6 py-3">Phone number</th>
-                <th scope="col" className="px-6 py-3">Note</th>
-                <th scope="col" className="px-6 py-3">Status</th>
-                <th scope="col" className="px-6 py-3">CreatedAt</th>
-                <th scope="col" className="px-6 py-3">Action</th>
+                <th scope="col" className="px-6 py-3">
+                  Name
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Phone number
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Note
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Status
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  CreatedAt
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Action
+                </th>
               </tr>
             </thead>
 
             {/* Table Body */}
             {isLoading ? (
-                  <LoadingSkeleton />
-                ) : (
-                  contacts.length > 0 ? (
-                    <tbody>
-                      {filteredUsers.map((item, index) => {
-                        let image = item.image 
-                          ? Buffer.from(item.image, 'base64').toString('binary')
-                          : require('../../assets/images/empty.png');
+              <LoadingSkeleton />
+            ) : contacts.length > 0 ? (
+              <tbody>
+                {filteredUsers.map((item, index) => {
+                  let image = item.image
+                    ? Buffer.from(item.image, 'base64').toString('binary')
+                    : require('../../assets/images/empty.png');
 
-                        return (
-                          <tr
-                            key={item._id}
-                            className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  return (
+                    <tr
+                      key={item._id}
+                      className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    >
+                      <td className="w-4 p-4">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                          checked={selectedUsers.includes(item._id)}
+                          onChange={() => handleSelectUser(item._id)}
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <div
+                            className="w-10 h-10 rounded-full bg-contain bg-no-repeat"
+                            style={{ backgroundImage: `url(${image})` }}
+                          />
+                          <div className="pl-3">
+                            <div className="text-base font-semibold">{item.fullName}</div>
+                            <div className="font-normal text-gray-500">{item.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">{item.phoneNumber}</td>
+                      <td className="px-6 py-4">{item.note}</td>
+                      <td className="px-6 py-4">{item.status}</td>
+                      <td className="px-6 py-4">{item.createdAt}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          <button
+                            className="text-blue-600 hover:text-blue-800"
+                            onClick={() => handleEditContact(item._id)}
                           >
-                          <td className="w-4 p-4">
-                            <input
-                              type="checkbox"
-                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                              checked={selectedUsers.includes(item._id)}
-                              onChange={() => handleSelectUser(item._id)}
-                            />
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center">
-                              <div
-                                className="w-10 h-10 rounded-full bg-contain bg-no-repeat"
-                                style={{ backgroundImage: `url(${image})` }}
-                              />
-                              <div className="pl-3">
-                                <div className="text-base font-semibold">{item.fullName}</div>
-                                <div className="font-normal text-gray-500">{item.email}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">{item.phoneNumber}</td>
-                          <td className="px-6 py-4">{item.note}</td>
-                          <td className="px-6 py-4">{item.status}</td>
-                          <td className="px-6 py-4">{item.createdAt}</td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center space-x-3">
-                              <button
-                                className="text-blue-600 hover:text-blue-800"
-                                onClick={() => handleEditContact(item._id)}
-                              >
-                                <CiEdit size={20} />
-                              </button>
-                              <button
-                                className="text-red-600 hover:text-red-800"
-                                onClick={() => handleDeleteContact(item._id)}
-                              >
-                                <AiOutlineDelete size={20} />
-                              </button>
-                            </div>
-                          </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  ) : (
-                <tbody>
-                  <tr>
-                    <td colSpan="7" className="p-4 text-center text-gray-500 dark:text-gray-400">
-                      Hiện tại không có dữ liệu nào
-                    </td>
-                  </tr>
-                </tbody>
-              )
+                            <CiEdit size={20} />
+                          </button>
+                          <button
+                            className="text-red-600 hover:text-red-800"
+                            onClick={() => handleDeleteContact(item._id)}
+                          >
+                            <AiOutlineDelete size={20} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            ) : (
+              <tbody>
+                <tr>
+                  <td colSpan="7" className="p-4 text-center text-gray-500 dark:text-gray-400">
+                    Hiện tại không có dữ liệu nào
+                  </td>
+                </tr>
+              </tbody>
             )}
           </table>
         )}

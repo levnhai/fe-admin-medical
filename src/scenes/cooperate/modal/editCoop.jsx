@@ -10,22 +10,21 @@ import 'react-image-lightbox/style.css';
 import { RiCloseLine } from 'react-icons/ri';
 
 import { Input } from '~/components/input/input';
-import { name_validation, phone_validation, email_validation} from '~/utils/inputValidations';
+import { name_validation, phone_validation, email_validation } from '~/utils/inputValidations';
 
-import { fetchUpdateContact  } from '~/redux/contact/contactSlice';
+import { fetchUpdateContact } from '~/redux/contact/contactSlice';
 
 import styles from './Modal.module.scss';
 const cx = className.bind(styles);
 
 function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
-  console.log(' data:', contact);
   const methods = useForm({
     defaultValues: {
-        fullName: '',
-        phoneNumber: '',
-        email: '',
-        note: ''
-    }
+      fullName: '',
+      phoneNumber: '',
+      email: '',
+      note: '',
+    },
   });
   const dispatch = useDispatch();
 
@@ -36,14 +35,12 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
   //   setForm({ ...form, [e.target.name]: e.target.value });
   // };
 
-
-  
   const handleSubmitEditContact = methods.handleSubmit(async (formData) => {
     if (!contact?._id) {
       toast.error('Contact ID is missing');
       return;
     }
-  
+
     // Combine form data from react-hook-form and local state
     const data = {
       fullName: formData.fullName,
@@ -51,16 +48,18 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
       email: formData.email,
       note: formData.note,
       status: form.status,
-      updatedAt: new Date().toISOString() // Add updatedAt field
+      updatedAt: new Date().toISOString(), // Add updatedAt field
     };
-  
+
     try {
-      const resultAction = await dispatch(fetchUpdateContact({ 
-        id: contact._id, 
-        data // Changed from formData to data to match the API expectation
-      }));
+      const resultAction = await dispatch(
+        fetchUpdateContact({
+          id: contact._id,
+          data, // Changed from formData to data to match the API expectation
+        }),
+      );
       const response = unwrapResult(resultAction);
-      
+
       if (response.success) {
         toast.success('Cập nhật thành công');
         handleGetAllContact();
@@ -73,14 +72,14 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
       toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
     }
   });
-  
+
   useEffect(() => {
     if (contact) {
       methods.reset({
         fullName: contact.fullName || '',
         phoneNumber: contact.phoneNumber || '',
         email: contact.email || '',
-        note: contact.note || ''
+        note: contact.note || '',
       });
 
       setForm({
@@ -106,7 +105,7 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
                 <div class="w-full ">
                   <Input {...name_validation} />
                 </div>
-                
+
                 <div class="flex gap-4">
                   <div class="w-full md:w-1/2 mb-6 md:mb-0">
                     <Input {...phone_validation} />
@@ -119,10 +118,12 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
                   <div class="w-full md:w-1/3 mb-6 md:mb-0">
                     <select
                       id="status"
-                      onChange={(e) => setForm(prev => ({
-                        ...prev,
-                        status: e.target.value
-                      }))}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          status: e.target.value,
+                        }))
+                      }
                       value={form.status}
                       name="status"
                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"

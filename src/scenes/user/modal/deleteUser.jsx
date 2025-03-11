@@ -16,7 +16,6 @@ function DeleteUser({ setShowModalDelete, deleteUserId, handleGetAllUser }) {
   const handleBtnDeleteDocter = async (deleteUserId) => {
     const res = await dispatch(fetchDeleteUser(deleteUserId));
     const userDelete = unwrapResult(res);
-    console.log('check docter', userDelete);
     if (userDelete?.status) {
       setShowModalDelete(false);
       handleGetAllUser();

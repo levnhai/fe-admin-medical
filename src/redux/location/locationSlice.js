@@ -13,28 +13,23 @@ export const fetchAllProvinces = createAsyncThunk('provinces/fetchAllProvinces',
 
 // get all districts by province
 export const fetchDistrictsByProvince = createAsyncThunk('provinces/fetchDistrictsByProvince', async (provinceId) => {
-  console.log('checkk provinceId', provinceId);
   const response = await fetch(`https://open.oapi.vn/location/districts/${provinceId}`);
   if (!response.ok) {
     throw new Error('Failed to fetch provinces');
   }
   const data = await response.json();
-  console.log('check data fetchAllDistricts', data);
   return data;
 });
 
 // get all ward by districts
 export const fetchWardsByDistricts = createAsyncThunk('provinces/fetchWardsByDistricts', async (districtId) => {
-  console.log('checkk districtId', districtId);
   const response = await fetch(`https://open.oapi.vn/location/wards/${districtId}`);
   if (!response.ok) {
     throw new Error('Failed to fetch provinces');
   }
   const data = await response.json();
-  console.log('check data fetchAllDistricts', data);
   return data;
 });
-
 
 const locationSlice = createSlice({
   name: 'location',

@@ -21,9 +21,6 @@ const Appointment = () => {
   const [appointmentData, setAppointmentData] = useState([]);
   console.log('check appointment', appointmentData);
 
-  const token = Cookies.get('login');
-  console.log('token', token);
-
   const isLoading = useSelector((state) => state.appointment.loading);
   const userLogin = useSelector((state) => state.auth.user?.payload);
   const hospitalId = userLogin?.userData?._id;
@@ -36,7 +33,7 @@ const Appointment = () => {
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
-    appointmentData?.data?.filter((user) => {
+    appointmentData?.filter((user) => {
       if (!searchTerm) return true;
 
       const searchValue = removeAccents(searchTerm.toLowerCase().trim());
@@ -84,7 +81,9 @@ const Appointment = () => {
     const fetchAppointment = async () => {
       const res = await dispatch(fetchAllAppointmentByhospital());
       const result = unwrapResult(res);
-      setAppointmentData(result);
+      const scheduleSort = result?.data?.sort((a, b) => new Date(b.date) - new Date(a.date));
+      console.log('check result', scheduleSort);
+      setAppointmentData(scheduleSort);
     };
     fetchAppointment();
   }, []);
@@ -244,7 +243,7 @@ const Appointment = () => {
             </thead>
             {isLoading === true ? (
               <LoadingSkeleton columns={10} />
-            ) : appointmentData && appointmentData?.data?.length > 0 ? (
+            ) : appointmentData && appointmentData?.length > 0 ? (
               <tbody>
                 {filteredUsers.map((item, index) => {
                   let image = '';

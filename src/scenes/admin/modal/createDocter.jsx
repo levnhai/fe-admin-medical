@@ -59,8 +59,6 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
   const specialtyData = useSelector((state) => state.specialty.specialtyData);
   const user = useSelector((state) => state.auth.user?.payload);
 
-  console.log('check specialtyData', specialtyData);
-
   const handleShowHidePassword = () => {
     setShowHidePassword(!showHidePassword);
   };
@@ -129,18 +127,15 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
 
   const handleSubmitCreateUser = methods.handleSubmit(async (formData) => {
     const data = { ...formData, ...form, hospitalId: user?.userData?._id };
-    console.log('check formData', data);
 
     try {
       const response = await dispatch(fetchCreateAdmin(data));
       const result = await unwrapResult(response);
-      console.log('check result', result);
       if (result?.status) {
         toast.success(result?.message);
         handleGetAllDocter();
         setShowModalCreate(false);
       } else {
-        console.log('hai ke');
         toast.warning(result?.message);
         setShowModalCreate(true);
       }

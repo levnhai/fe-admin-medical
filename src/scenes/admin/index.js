@@ -44,14 +44,9 @@ const SystemAdmin = () => {
   const [showModalEdit, setShowModalEdit] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
 
-  console.log('check doctor data', doctorData);
-
   const [editDocter, setEditDocter] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
-
-  const token = Cookies.get('login');
-  const decodeToken = jwtDecode(token);
 
   // const doctorData = useSelector((state) => state.doctor.doctorByHospitalData);
   const isLoading = useSelector((state) => state.doctor.loading);
@@ -105,7 +100,6 @@ const SystemAdmin = () => {
 
   const handleEditDocter = (docterId) => {
     const docterEdit = doctorData?.find((docter) => docter._id === docterId);
-    console.log('check docter edit', docterEdit);
     if (docterEdit) {
       setEditDocter(docterEdit);
       setShowModalEdit(true);
@@ -119,18 +113,9 @@ const SystemAdmin = () => {
     setSelectedUsers([]);
   };
 
-  const submitForm = async (data) => {
-    try {
-      console.log('thành công');
-    } catch (error) {
-      // toast.error(error);
-    }
-  };
-
   const fetchDoctorData = async () => {
     const res = await dispatch(fetchDoctorByHospital(userId));
     const result = unwrapResult(res);
-    console.log('check doctor data', result);
     setDoctorData(result?.data);
   };
 

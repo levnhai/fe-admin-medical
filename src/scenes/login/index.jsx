@@ -31,7 +31,6 @@ function Login() {
     try {
       const response = await dispatch(fetchLogin({ phoneNumber, password }));
       const result = unwrapResult(response);
-      console.log('check', result);
 
       Cookies.set('login', result.token, {
         expires: rememberMe ? 7 : 1,
@@ -43,7 +42,6 @@ function Login() {
         dispatch(loginUser(response));
         navigate('/');
       } else {
-        console.log('chreck hair le');
         toast.error(result.message);
       }
     } catch (error) {

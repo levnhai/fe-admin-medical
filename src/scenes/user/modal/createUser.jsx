@@ -39,7 +39,6 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
     try {
       const response = await dispatch(fetchCreateUser(formData)).unwrap();
       if (response) {
-        console.log('tao là hải kê');
         toast.success('User created successfully!');
         handleGetAllUser();
         setShowModalCreate(false);
@@ -71,13 +70,17 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
                   <Input {...name_validation} />
                 </div>
                 <div className={cx('input--item-create')} style={{ position: 'relative' }}>
-                  <Input type={showHidePassword ? 'password' : 'text'} {...password_validation} style={{paddingRight: '35px',}} />
+                  <Input
+                    type={showHidePassword ? 'password' : 'text'}
+                    {...password_validation}
+                    style={{ paddingRight: '35px' }}
+                  />
                   <span
                     onClick={handleShowHidePassword}
                     style={{
                       position: 'absolute',
-                      right: '10px',  
-                      top: '50%',  
+                      right: '10px',
+                      top: '50%',
                       fontSize: '20px',
                       cursor: 'pointer',
                     }}
@@ -98,14 +101,14 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
                     id="reEnterPassword"
                     placeholder="Please enter your reEnterPassword..."
                     name="reEnterPassword"
-                    style={{paddingRight: '35px',}} 
+                    style={{ paddingRight: '35px' }}
                   />
                   <span
                     onClick={handleShowHideReEnterPassword}
                     style={{
                       position: 'absolute',
-                      right: '10px',  
-                      top: '50%',  
+                      right: '10px',
+                      top: '50%',
                       fontSize: '20px',
                       cursor: 'pointer',
                     }}

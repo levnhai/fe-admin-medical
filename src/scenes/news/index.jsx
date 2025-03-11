@@ -41,9 +41,7 @@ const News = () => {
   const user = useSelector((state) => state.auth.user?.payload);
   const userRole = user?.role || userRoleFromToken;
   const isDoctor = userRole === 'docter';
-  //console.log('check role nè: ', userRole);
   const userId = decodedToken?.accountId || user?.payload?.accountId;
-  console.log('check id nè: ', userId);
   const { categories } = useSelector((state) => state.categoryNews);
 
   const newsFields = [
@@ -192,9 +190,6 @@ const News = () => {
       ...data,
       category: data.category?._id || data.category,
     };
-
-    // Log hình ảnh để kiểm tra
-    console.log('Hình ảnh hiện tại:', editData.imageUrl);
 
     setSelectedData(editData);
     setModalMode('edit');

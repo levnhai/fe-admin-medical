@@ -85,7 +85,6 @@ const User = () => {
   const fetchPatientData = async () => {
     const res = await dispatch(fetchAllUsers());
     const result = unwrapResult(res);
-    console.log('check user data', result);
     setUserData(result?.user);
   };
 

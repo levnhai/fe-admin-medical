@@ -4,7 +4,6 @@ import axios from '~/axios';
 export const fetchAllSpecialty = createAsyncThunk('docter/fetchAllSpecialty', async () => {
   try {
     const response = await axios.get('/specialty/get-all-specialty');
-    console.log('check response', response.result);
     return response.result;
   } catch (error) {
     throw new Error(error.message);

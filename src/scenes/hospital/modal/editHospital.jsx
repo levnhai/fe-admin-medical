@@ -29,7 +29,6 @@ import styles from './Modal.module.scss';
 const cx = className.bind(styles);
 
 function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
-  console.log('Hospital data:', hospital);
   const methods = useForm({
     defaultValues: {
       fullName: '',
@@ -178,9 +177,6 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
       street: formData.street,
     };
 
-    console.log('Sending payload:', payload);
-    console.log('Hospital ID:', hospital._id);
-
     try {
       const response = await dispatch(
         fetchEditHospital({
@@ -188,8 +184,6 @@ function EditHospital({ setShowModalEdit, handleGetAllHospital, hospital }) {
           formData: payload,
         }),
       );
-
-      console.log('API Response:', response);
 
       // Nếu không có lỗi được throw, coi như thành công
       toast.success('Cập nhật thành công');

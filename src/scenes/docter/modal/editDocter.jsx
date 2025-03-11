@@ -76,7 +76,6 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
     const select = e.target;
     const districtId = select.value;
     const districtName = select.options[select.selectedIndex].text;
-    console.log('check huyen: ', districtName);
     if (districtId && districtId !== 'Huyện/ Thị xã') {
       setForm((prev) => ({
         ...prev,
@@ -128,7 +127,6 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
 
   const handleSubmitEditDoctor = methods.handleSubmit(async (formData) => {
     const data = { ...formData, ...form };
-    console.log('check form data', data);
 
     // Validate address data
     if (!form.provinceId || form.provinceId === 'Tỉnh/thành') {
@@ -166,8 +164,6 @@ function EditDocter({ setShowModalEdit, handleGetAllDocter, docter }) {
           formData: payload,
         }),
       );
-
-      console.log('API Response:', response);
 
       // Nếu không có lỗi được throw, coi như thành công
       toast.success('Cập nhật thành công');

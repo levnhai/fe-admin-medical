@@ -148,7 +148,6 @@ const CategoryNews = () => {
 
   // Submit handler for create/update
   const handleSubmit = (formData) => {
-    console.log('formData in submit:', formData);
     if (modalMode === 'create') {
       dispatch(fetchCreateCategoryNews({ formData }))
         .then((response) => {
@@ -210,11 +209,7 @@ const CategoryNews = () => {
     loading = false,
     error,
   } = useSelector((state) => state.categoryNews || { categories: [], loading: false, error: null });
-  useEffect(() => {
-    // console.log('Categories:', categories);
-    // console.log('Loading:', loading);
-    // console.log('Error:', error);
-  }, [categories, loading, error]);
+  useEffect(() => {}, [categories, loading, error]);
 
   // Process data for DataGrid
   const processedCategoryData = categories?.map((item) => ({
