@@ -10,6 +10,15 @@ export const fetchAllAppointmentByhospital = createAsyncThunk('appointment/fetch
   }
 });
 
+export const fetchUpdateStatus = createAsyncThunk('appointment/fetchUpdateStatus', async ({ status, id }) => {
+  try {
+    const response = await axios.put(`/appointment/update-status/${id}`, { status });
+    return response.result;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+});
+
 const appointment = createSlice({
   name: 'appointment',
   initialState: {

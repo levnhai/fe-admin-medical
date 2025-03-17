@@ -141,6 +141,7 @@ function CreateDocter({ setShowModalCreate, handleGetAllDocter }) {
 
   const handleSubmitCreateUser = methods.handleSubmit(async (formData) => {
     const data = { ...formData, ...form };
+    console.log('check data', data);
 
     try {
       const response = await dispatch(fetchCreateHospital(data));

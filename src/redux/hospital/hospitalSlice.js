@@ -22,38 +22,28 @@ export const fetchCreateHospital = createAsyncThunk('hospital/fetchCreateHospita
 });
 
 // edit hospital
-export const fetchEditHospital = createAsyncThunk(
-  'hospital/fetchEditHospital',
-  async ({ hospitalId, formData }) => {
-    try {
-      const response = await axios.post(
-        `/hospital/edit-hospital/${hospitalId}`,
-        formData 
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+export const fetchEditHospital = createAsyncThunk('hospital/fetchEditHospital', async ({ hospitalId, formData }) => {
+  try {
+    const response = await axios.post(`/hospital/edit-hospital/${hospitalId}`, formData);
+    return response.data;
+  } catch (error) {
+    throw error;
   }
-);
-export const fetchDeleteHospital = createAsyncThunk(
-  'hospital/fetchDeleteHospital',
-  async (hospitalId) => {
-    const response = await axios.delete(`/hospital/delete-hospital/${hospitalId}`);
+});
+export const fetchDeleteHospital = createAsyncThunk('hospital/fetchDeleteHospital', async (hospitalId) => {
+  const response = await axios.delete(`/hospital/delete-hospital/${hospitalId}`);
 
-    if (response.result && response.result.status === true) {
-      return {
-        status: true,
-        hospitalId,
-        message: response.result.message,
-        code: response.result.code
-      };
-    }
-
-    throw new Error(response.result?.message || 'Không thể xóa bệnh viện');
+  if (response.result && response.result.status === true) {
+    return {
+      status: true,
+      hospitalId,
+      message: response.result.message,
+      code: response.result.code,
+    };
   }
-);
 
+  throw new Error(response.result?.message || 'Không thể xóa bệnh viện');
+});
 
 const hospitalSlice = createSlice({
   name: 'hospital',
@@ -97,7 +87,7 @@ const hospitalSlice = createSlice({
         state.loading = false;
         if (state.hospitalData?.data) {
           state.hospitalData.data = state.hospitalData.data.filter(
-            hospital => hospital._id !== action.payload.hospitalId
+            (hospital) => hospital._id !== action.payload.hospitalId,
           );
         }
       })

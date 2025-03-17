@@ -126,8 +126,6 @@ const Calendar = () => {
     fetchDoctor();
   }, [dispatch]);
 
-  
-
   return (
     <div className="mx-6">
       <Header title="Lịch làm việc" subtitle="Làm việc hiệu quả" />
@@ -141,13 +139,13 @@ const Calendar = () => {
           </button>
         </div>
       )}
-      <div display="flex" justifyContent="space-between">
+      <div display="flex" justifycontent="space-between">
         {/* CALENDAR SIDEBAR */}
-        <div flex="1 1 20%" backgroundColor={colors.primary[400]} p="15px" borderRadius="4px">
+        <div flex="1 1 20%" backgroundcolor={colors.primary[400]} p="15px" borderradius="4px">
           <div>
-            {currentEvents.map((event) => (
+            {currentEvents.map((event, index) => (
               <div
-                key={event.id}
+                key={index}
                 sx={{
                   backgroundColor: colors.greenAccent[500],
                   margin: '10px 0',

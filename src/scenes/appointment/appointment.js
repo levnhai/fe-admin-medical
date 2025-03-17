@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Buffer } from 'buffer';
 import { useDispatch, useSelector } from 'react-redux';
 import Cookies from 'js-cookie';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { jwtDecode } from 'jwt-decode';
+import { toast } from 'react-toastify';
+import Select from 'react-select';
 
 //icon
 import { CiEdit } from 'react-icons/ci';
@@ -11,8 +12,10 @@ import { AiOutlineDelete } from 'react-icons/ai';
 
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
-import { fetchAllAppointmentByhospital } from '~/redux/appointment/appointmentSlice';
+import { fetchAllAppointmentByhospital, fetchUpdateStatus } from '~/redux/appointment/appointmentSlice';
 import { formatDate, extractTime } from '~/utils/time';
+import Modal from '~/components/Modal';
+import Button from '~/components/Button';
 
 const Appointment = () => {
   const dispatch = useDispatch();
@@ -21,6 +24,11 @@ const Appointment = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [appointmentData, setAppointmentData] = useState([]);
+  const [showModalDelete, setShowModalDelete] = useState(false);
+  const [showModalEdit, setShowModalEdit] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
+  const [statusAppointmentt, setStatusAppointment] = useState(null);
+
   console.log('check appointment', appointmentData);
 
   const isLoading = useSelector((state) => state.appointment.loading);
@@ -59,6 +67,33 @@ const Appointment = () => {
     }
   };
 
+  const handleDeleteAppointment = async () => {
+    // const res = await dispatch(fetchDeleteUser(selectedAppointmentId));
+    // const userDelete = unwrapResult(res);
+    // setShowModalDelete(false);
+    // if (userDelete?.status) {
+    //   toast.success(userDelete?.message);
+    //   fetchPatientData();
+    // } else {
+    //   toast.warning(userDelete?.message);
+    // }
+  };
+
+  const updateStatusAppointment = async (id, status) => {
+    try {
+      const res = await dispatch(fetchUpdateStatus({ id, status }));
+      const result = unwrapResult(res);
+
+      if (result.status) {
+        // Cập nhật lại danh sách sau khi thay đổi
+        setAppointmentData((prev) => prev.map((item) => (item._id === id ? { ...item, status } : item)));
+        toast.success(result.message);
+      }
+
+      console.log('check res', result);
+    } catch (error) {}
+  };
+
   // Handle individual checkbox
   const handleSelectUser = (userId) => {
     setSelectedUsers((prev) => {
@@ -87,6 +122,7 @@ const Appointment = () => {
       const scheduleSort = result?.data?.sort((a, b) => new Date(b.date) - new Date(a.date));
       console.log('check result', scheduleSort);
       setAppointmentData(scheduleSort);
+      setStatusAppointment(scheduleSort);
     };
     fetchAppointment();
   }, []);
@@ -97,75 +133,11 @@ const Appointment = () => {
 
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
-          <div>
-            <button
-              id="dropdownActionButton"
-              data-dropdown-toggle="dropdownAction"
-              className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-              type="button"
-            >
-              <span className="sr-only">Action button</span>
-              Action
-              <svg
-                className="w-2.5 h-2.5 ms-2.5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 10 6"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m1 1 4 4 4-4"
-                />
-              </svg>
-            </button>
-            <div
-              id="dropdownAction"
-              className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
-            >
-              <ul className="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownActionButton">
-                <li>
-                  <a
-                    href="/#"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Reward
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/#"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Promote
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/#"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Activate account
-                  </a>
-                </li>
-              </ul>
-              <div className="py-1">
-                <a
-                  href="/#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                >
-                  Delete User
-                </a>
-              </div>
-            </div>
-          </div>
+          <div></div>
           <label htmlFor="table-search" className="sr-only">
             Search
           </label>
-          <div class="relative">
+          <div className="relative">
             <div className="w-full sm:w-auto relative">
               <input
                 type="text"
@@ -234,6 +206,9 @@ const Appointment = () => {
                   Bác sĩ phụ trách
                 </th>
                 <th scope="col" className="px-6 py-3">
+                  Thanh tóan
+                </th>
+                <th scope="col" className="px-6 py-3">
                   trạng thái
                 </th>
                 <th scope="col" className="px-6 py-3">
@@ -245,14 +220,10 @@ const Appointment = () => {
               </tr>
             </thead>
             {isLoading === true ? (
-              <LoadingSkeleton columns={10} />
+              <LoadingSkeleton columns={11} />
             ) : appointmentData && appointmentData?.length > 0 ? (
               <tbody>
                 {filteredUsers.map((item, index) => {
-                  let image = '';
-                  if (item.image) {
-                    image = Buffer.from(item?.image, 'base64').toString('binary');
-                  }
                   return (
                     <tr
                       key={index}
@@ -287,27 +258,54 @@ const Appointment = () => {
                       <td className="px-6 py-4">
                         {extractTime(item?.hours[0].start)} - {extractTime(item?.hours[0].end)}
                       </td>
-                      <td className="px-6 py-4">{item?.price}</td>
+                      <td className="px-6 py-4">{Number(item?.price?.toLocaleString('vi-VN'))}</td>
                       <td className="px-6 py-4">{item?.doctor?.fullName}</td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center">{item?.status}</div>
+                        <div className="flex items-center">
+                          {item?.status === 'pending' ? 'Chờ thanh toán' : 'Đã thanh toán'}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        <a href="/#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
-                          {item.createdAt}
-                        </a>
+                        <div className="flex items-center">
+                          <select
+                            value={item?.status}
+                            onChange={(e) => updateStatusAppointment(item?._id, e.target.value)}
+                            style={{
+                              padding: '8px 12px',
+                              fontSize: '16px',
+                              borderRadius: '5px',
+                              border: '1px solid #ccc',
+                              backgroundColor: '#fff',
+                              cursor: 'pointer',
+                            }}
+                            disabled={item?.status === 'Completed' || item?.status === 'Cancelled'}
+                          >
+                            <option value="Booked">Đã đặt</option>
+                            <option value="Completed">Đã khám</option>
+                            <option value="Cancelled">Đã hủy</option>
+                          </select>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">{item.createdAt}</div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center space-x-3">
                           <button
                             className="text-blue-600 hover:text-blue-800"
-                            onClick={() => alert('tính năng đang phát triển, vui lòng thử lại sau')}
+                            onClick={() => {
+                              setShowModalEdit(true);
+                              // setSelectedAppointmentId(item?._id);
+                            }}
                           >
                             <CiEdit size={20} />
                           </button>
                           <button
                             className="text-red-600 hover:text-red-800"
-                            onClick={() => alert('tính năng đang phát triển, vui lòng thử lại sau')}
+                            onClick={() => {
+                              setShowModalDelete(true);
+                              setSelectedAppointmentId(item?._id);
+                            }}
                           >
                             <AiOutlineDelete size={20} />
                           </button>
@@ -326,6 +324,34 @@ const Appointment = () => {
             )}
           </table>
         </div>
+
+        <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa lịch hẹn">
+          <div>
+            <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa lịch hẹn này không ?</p>
+            <div className="flex justify-end border-t py-2 pr-6 gap-4">
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+                Đóng
+              </Button>
+              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment}>
+                Đồng ý
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal isOpen={showModalEdit} onClose={() => setShowModalEdit(false)} title="Sửa lịch hẹn">
+          <div>
+            <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa lịch hẹn này không ?</p>
+            <div className="flex justify-end border-t py-2 pr-6 gap-4">
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+                Đóng
+              </Button>
+              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment}>
+                Đồng ý
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </div>
   );

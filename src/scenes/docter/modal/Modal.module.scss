@@ -1,37 +1,37 @@
 .darkBG {
   background-color: transparent;
- width: 100vw;
- height: 100vh;
- z-index: 9999;
- top: 50%;
- left: 50%;
- transform: translate(-50%, -50%);
- position: fixed;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: fixed;
 }
 
 .centered {
- position: fixed;
- top: 52%;
- left: 50%;
- transform: translate(-50%, -50%);
- z-index: 10000;
+  position: fixed;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
 }
 
 .modal {
- width: 100%; // Make modal width responsive
- min-width: 300px; // Minimum width for very small screens
- background: white;
- color: white;
- z-index: 10;
- border-radius: 16px;
- padding: 10px 15px; // Reduce padding on smaller screens
- box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
- z-index: 10001;
- position: relative;
+  width: 100%; // Make modal width responsive
+  min-width: 300px; // Minimum width for very small screens
+  background: white;
+  color: white;
+  z-index: 10;
+  border-radius: 16px;
+  padding: 10px 15px; // Reduce padding on smaller screens
+  box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
+  z-index: 10001;
+  position: relative;
 
- @media (min-width: 768px) {
-   padding: 10px 30px; // Restore original padding on larger screens
- }
+  @media (min-width: 768px) {
+    padding: 10px 30px; // Restore original padding on larger screens
+  }
 }
 
 .modalHeader {
@@ -137,6 +137,7 @@
 .upload-image {
   width: 213px !important;
   height: 100px;
+  margin-top: 20px;
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -202,7 +203,6 @@
     justify-content: space-around;
     gap: 20px;
   }
-
 }
 
 .closeBtn {

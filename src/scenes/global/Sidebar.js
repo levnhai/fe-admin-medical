@@ -26,7 +26,7 @@ const rolePermissions = {
     { title: 'Trang chủ', to: '/', icon: <HomeOutlinedIcon /> },
     // { title: 'Admin', to: '/system-admin', icon: <HomeOutlinedIcon /> },
     { title: 'Bệnh viện', to: '/hospital', icon: <PeopleOutlinedIcon /> },
-    { title: 'Bác sĩ', to: '/doctor', icon: <FaUserDoctor /> },
+    // { title: 'Bác sĩ', to: '/doctor', icon: <FaUserDoctor /> },
     { title: 'Người dùng', to: '/user', icon: <PeopleOutlinedIcon /> },
     { title: 'Tin tức', to: '/news', icon: <ReceiptOutlinedIcon /> },
     { title: 'Thể loại', to: '/categorynews', icon: <ReceiptOutlinedIcon /> },

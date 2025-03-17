@@ -37,6 +37,7 @@ function Login() {
         path: '/',
         sameSite: 'Lax',
       });
+      console.log('checkk result', result);
 
       if (result.status) {
         dispatch(loginUser(response));

@@ -31,33 +31,9 @@ const Dashboard = () => {
   const userRole = token ? jwtDecode(token).role : 'guest';
 
   const [statsData, setStatsData] = useState();
-
-  // useEffect(() => {
-  //   switch (userRole) {
-  //     case 'system_admin':
-  //       let fetchStats = async () => {
-  //         const res = await dispatch(fetchAllDashboardStats());
-  //         const result = unwrapResult(res);
-  //         setStatsData(result);
-  //       };
-  //       fetchStats();
-  //       break;
-  //     case 'hospital_admin':
-  //       let fetchStatsByhospital = async () => {
-  //         const res = await dispatch(fetchStatsByHospital({ hospitalId: userId }));
-  //         const result = unwrapResult(res);
-  //         setStatsData(result);
-  //       };
-  //       fetchStatsByhospital();
-  //       break;
-
-  //     case 'doctor':
-  //       console.log('user role doctor');
-  //       break;
-  //     default:
-  //       console.log('user role default');
-  //   }
-  // }, []);
+  const [revenueChartData, setRevenueChartData] = useState();
+  console.log('check revenueChartData', revenueChartData);
+  console.log('check statsData', statsData);
 
   useEffect(() => {
     let fetchStats = async () => {
@@ -67,6 +43,65 @@ const Dashboard = () => {
     };
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    if (statsData?.data?.revenueByMonth?.length && statsData?.data?.appointmentByMonth?.length) {
+      setRevenueChartData([
+        {
+          id: 'Doanh thu',
+          color: tokens('dark').redAccent[200],
+          data: statsData?.data?.revenueByMonth?.map((item) => ({
+            x: item.month,
+            y: item.total,
+          })),
+        },
+        {
+          id: 'Doanh số',
+          color: tokens('dark').blueAccent[300],
+          data: statsData?.data?.appointmentByMonth?.map((item) => ({
+            x: item.month,
+            y: item.count,
+          })),
+        },
+      ]);
+    }
+    if (userRole === 'system_admin') {
+      if (statsData?.data?.revenueByMonth?.length) {
+        setRevenueChartData([
+          {
+            id: 'Doanh thu',
+            color: tokens('dark').redAccent[200],
+            data: statsData?.data?.revenueByMonth?.map((item) => ({
+              x: item.month,
+              y: item.total,
+            })),
+          },
+        ]);
+      }
+    }
+    if (userRole === 'hospital_admin') {
+      if (statsData?.data?.revenueByMonth?.length && statsData?.data?.appointmentByMonth?.length) {
+        setRevenueChartData([
+          {
+            id: 'Doanh thu',
+            color: tokens('dark').redAccent[200],
+            data: statsData?.data?.revenueByMonth?.map((item) => ({
+              x: item.month,
+              y: item.total,
+            })),
+          },
+          {
+            id: 'Doanh số',
+            color: tokens('dark').blueAccent[300],
+            data: statsData?.data?.appointmentByMonth?.map((item) => ({
+              x: item.month,
+              y: item.count,
+            })),
+          },
+        ]);
+      }
+    }
+  }, [statsData]);
 
   return (
     <Box m="20px">
@@ -93,23 +128,25 @@ const Dashboard = () => {
 
       {/* GRID & CHARTS */}
       <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gridAutoRows="140px" gap="20px">
-        {/* <h1>Hoàn thiện sau khi đã đủ chức năng</h1> */}
         {/* ROW 1 */}
-        {/* <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title={statsData?.data?.hospitalCount}
-            subtitle="Bệnh viện"
-            progress="0.75"
-            increase="+14%"
-            icon={<FaHospitalAlt className="text-green-300 text-xl" />}
-          />
-        </Box> */}
+
+        {(userRole === 'system_admin' || userRole === 'hospital_admin' || userRole === 'doctor') && (
+          <Box
+            gridColumn="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <StatBox
+              title={`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `}
+              subtitle="Doanh thu"
+              progress="0.75"
+              increase="+14%"
+              icon={<MdPriceChange className="text-green-300 text-xl" />}
+            />
+          </Box>
+        )}
         {userRole === 'system_admin' && (
           <Box
             gridColumn="span 3"
@@ -127,8 +164,7 @@ const Dashboard = () => {
             />
           </Box>
         )}
-
-        {(userRole === 'hospital_admin' || userRole === 'doctor') && (
+        {userRole === 'system_admin' && (
           <Box
             gridColumn="span 3"
             backgroundColor={colors.primary[400]}
@@ -137,15 +173,31 @@ const Dashboard = () => {
             justifyContent="center"
           >
             <StatBox
-              title={`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `}
-              subtitle="Doanh thu"
+              title={statsData?.data?.hospitalsRenewe}
+              subtitle="Gia hạn"
               progress="0.75"
               increase="+14%"
-              icon={<MdPriceChange className="text-green-300 text-xl" />}
+              icon={<FaHospitalAlt className="text-green-300 text-xl" />}
             />
           </Box>
         )}
-
+        {userRole === 'system_admin' && (
+          <Box
+            gridColumn="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <StatBox
+              title={statsData?.data?.hospitalsNotRenewed}
+              subtitle="Chưa gia hạn"
+              progress="0.75"
+              increase="+14%"
+              icon={<FaHospitalAlt className="text-green-300 text-xl" />}
+            />
+          </Box>
+        )}
         {userRole === 'doctor' && (
           <Box
             gridColumn="span 3"
@@ -266,27 +318,30 @@ const Dashboard = () => {
           </Box>
         )}
         {/* ROW 2 */}
-        <Box gridColumn="span 8" gridRow="span 2" backgroundColor={colors.primary[400]}>
-          <Box mt="25px" p="0 30px" display="flex " justifyContent="space-between" alignItems="center">
-            <Box>
-              <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
-                Doanh thu, doanh số
-              </Typography>
-              <Typography variant="h3" fontWeight="bold" color={colors.greenAccent[500]}>
-                {`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `},
-                {`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Lượt  `}
-              </Typography>
+        {userRole === 'hospital_admin' && (
+          <Box gridColumn="span 8" gridRow="span 2" backgroundColor={colors.primary[400]}>
+            <Box mt="25px" p="0 30px" display="flex " justifyContent="space-between" alignItems="center">
+              <Box>
+                <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
+                  Doanh thu, doanh số
+                </Typography>
+                <Typography variant="h3" fontWeight="bold" color={colors.greenAccent[500]}>
+                  {`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `},
+                  {`${statsData?.data?.appointmentCount?.toLocaleString('en-US')} Lượt`}
+                </Typography>
+              </Box>
+              <Box>
+                <IconButton>
+                  <DownloadOutlinedIcon sx={{ fontSize: '26px', color: colors.greenAccent[500] }} />
+                </IconButton>
+              </Box>
             </Box>
-            <Box>
-              <IconButton>
-                <DownloadOutlinedIcon sx={{ fontSize: '26px', color: colors.greenAccent[500] }} />
-              </IconButton>
+            <Box height="250px" m="-20px 0 0 0">
+              {/* <LineChart isDashboard={true} data={revenueChartData} /> */}
+              {revenueChartData?.length > 0 && <LineChart isDashboard={true} data={revenueChartData} />}
             </Box>
           </Box>
-          <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDashboard={true} />
-          </Box>
-        </Box>
+        )}
         {userRole === 'hospital_admin' && (
           <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]} overflow="auto">
             <Box
@@ -303,7 +358,7 @@ const Dashboard = () => {
             </Box>
             {statsData?.data?.appointment.map((item, index) => (
               <Box
-                // key={`${transaction.txId}-${i}`}
+                key={index}
                 display="flex"
                 justifyContent="space-between"
                 alignItems="center"
@@ -331,6 +386,29 @@ const Dashboard = () => {
           </Box>
         )}
 
+        {userRole === 'system_admin' && (
+          <Box gridColumn="span 8" gridRow="span 2" backgroundColor={colors.primary[400]}>
+            <Box mt="25px" mb="25px" p="0 30px" display="flex " justifyContent="space-between" alignItems="center">
+              <Box>
+                <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
+                  Doanh thu
+                </Typography>
+                <Typography variant="h3" fontWeight="bold" color={colors.greenAccent[500]}>
+                  {`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `}
+                </Typography>
+              </Box>
+              <Box>
+                <IconButton>
+                  <DownloadOutlinedIcon sx={{ fontSize: '26px', color: colors.greenAccent[500] }} />
+                </IconButton>
+              </Box>
+            </Box>
+            <Box height="250px" m="-20px 0 0 0">
+              {/* <LineChart isDashboard={true} data={revenueChartData} /> */}
+              {revenueChartData?.length > 0 && <LineChart isDashboard={true} data={revenueChartData} />}
+            </Box>
+          </Box>
+        )}
         {userRole === 'system_admin' && (
           <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]} overflow="auto">
             <Box
@@ -386,8 +464,8 @@ const Dashboard = () => {
             </Typography>
             <Typography>Includes extra misc expenditures and costs</Typography>
           </Box>
-        </Box>
-        <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]}>
+        </Box> */}
+        {/*<Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]}>
           <Typography variant="h5" fontWeight="600" sx={{ padding: '30px 30px 0 30px' }}>
             Sales Quantity
           </Typography>
@@ -402,7 +480,8 @@ const Dashboard = () => {
           <Box height="200px">
             <GeographyChart isDashboard={true} />
           </Box>
-        </Box> */}
+        </Box>{' '}
+        */}
       </Box>
     </Box>
   );
