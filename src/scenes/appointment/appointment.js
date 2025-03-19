@@ -31,7 +31,11 @@ const Appointment = () => {
 
   console.log('check appointment', appointmentData);
 
-  const isLoading = useSelector((state) => state.appointment.loading);
+  const [localLoading, setLocalLoading] = useState(true);
+
+  const reduxLoading = useSelector((state) => state.appointment.loading);
+
+  //const isLoading = useSelector((state) => state.appointment.loading);
   const userLogin = useSelector((state) => state.auth.user?.payload);
   const userRole = token ? jwtDecode(token).role : 'guest';
   const hospitalId = userLogin?.userData?._id;
@@ -115,17 +119,38 @@ const Appointment = () => {
     setSelectedUsers([]);
   };
 
+  // useEffect(() => {
+  //   const fetchAppointment = async () => {
+  //     const res = await dispatch(fetchAllAppointmentByhospital());
+  //     const result = unwrapResult(res);
+  //     const scheduleSort = result?.data?.sort((a, b) => new Date(b.date) - new Date(a.date));
+  //     console.log('check result', scheduleSort);
+  //     setAppointmentData(scheduleSort);
+  //     setStatusAppointment(scheduleSort);
+  //   };
+  //   fetchAppointment();
+  // }, []);
   useEffect(() => {
     const fetchAppointment = async () => {
-      const res = await dispatch(fetchAllAppointmentByhospital());
-      const result = unwrapResult(res);
-      const scheduleSort = result?.data?.sort((a, b) => new Date(b.date) - new Date(a.date));
-      console.log('check result', scheduleSort);
-      setAppointmentData(scheduleSort);
-      setStatusAppointment(scheduleSort);
+      setLocalLoading(true);
+      try {
+        const res = await dispatch(fetchAllAppointmentByhospital());
+        const result = unwrapResult(res);
+        const scheduleSort = result?.data?.sort((a, b) => new Date(b.date) - new Date(a.date)) || [];
+        console.log('check result', scheduleSort);
+        setAppointmentData(scheduleSort);
+        setStatusAppointment(scheduleSort);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+        toast.error("Không thể tải dữ liệu lịch hẹn");
+      } finally {
+        setLocalLoading(false);
+      }
     };
     fetchAppointment();
   }, []);
+
+  const isLoading = localLoading || reduxLoading;
 
   return (
     <div className="p-2 sm:p-4 md:p-6">
@@ -219,12 +244,24 @@ const Appointment = () => {
                 </th>
               </tr>
             </thead>
-            {isLoading === true ? (
+            {isLoading ? (
               <LoadingSkeleton columns={11} />
-            ) : appointmentData && appointmentData?.length > 0 ? (
+            ) : (
               <tbody>
-                {filteredUsers.map((item, index) => {
-                  return (
+                {appointmentData.length === 0 ? (
+                  <tr>
+                    <td colSpan="12" className="px-6 py-4 text-center">
+                      Hiện tại không có dữ liệu nào
+                    </td>
+                  </tr>
+                ) : filteredUsers.length === 0 && searchTerm !== "" ? (
+                  <tr>
+                    <td colSpan="12" className="px-6 py-4 text-center">
+                      Không tìm thấy kết quả cho "{searchTerm}"
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((item, index) => (
                     <tr
                       key={index}
                       className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -232,13 +269,13 @@ const Appointment = () => {
                       <td className="w-4 p-4">
                         <div className="flex items-center">
                           <input
-                            id="checkbox-table-search-1"
+                            id={`checkbox-table-search-${index}`}
                             type="checkbox"
                             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                             checked={selectedUsers.includes(item._id)}
                             onChange={() => handleSelectUser(item._id)}
                           />
-                          <label htmlFor="checkbox-table-search-1" className="sr-only">
+                          <label htmlFor={`checkbox-table-search-${index}`} className="sr-only">
                             checkbox
                           </label>
                         </div>
@@ -258,7 +295,7 @@ const Appointment = () => {
                       <td className="px-6 py-4">
                         {extractTime(item?.hours[0].start)} - {extractTime(item?.hours[0].end)}
                       </td>
-                      <td className="px-6 py-4">{Number(item?.price?.toLocaleString('vi-VN'))}</td>
+                      <td className="px-6 py-4">{Number(item?.price).toLocaleString('vi-VN')}</td>
                       <td className="px-6 py-4">{item?.doctor?.fullName}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center">
@@ -312,15 +349,9 @@ const Appointment = () => {
                         </div>
                       </td>
                     </tr>
-                  );
-                })}
+                  ))
+                )}
               </tbody>
-            ) : (
-              <div>
-                <span className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                  Hiện tại không có dữ liệu nào
-                </span>
-              </div>
             )}
           </table>
         </div>

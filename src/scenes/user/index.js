@@ -31,7 +31,12 @@ const User = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userData, setUserData] = useState([]);
 
-  const isLoading = useSelector((state) => state.user.loading);
+  const [localLoading, setLocalLoading] = useState(true);
+
+  const reduxLoading = useSelector((state) => state.appointment.loading);
+  
+  // Combined loading state
+  const isLoading = localLoading || reduxLoading;
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
@@ -83,9 +88,15 @@ const User = () => {
   };
 
   const fetchPatientData = async () => {
-    const res = await dispatch(fetchAllUsers());
-    const result = unwrapResult(res);
-    setUserData(result?.user);
+    try {
+      const res = await dispatch(fetchAllUsers());
+      const result = unwrapResult(res);
+      setUserData(result?.user);
+    } catch (error) {
+      toast.error("Không thể tải dữ liệu người dùng");
+    } finally {
+      setLocalLoading(false);
+    }
   };
 
   const handleDeleteUser = async () => {
@@ -101,6 +112,7 @@ const User = () => {
   };
 
   useEffect(() => {
+    setLocalLoading(true);
     fetchPatientData();
   }, []);
 
@@ -255,82 +267,90 @@ const User = () => {
             </thead>
             {isLoading ? (
               <LoadingSkeleton columns={5} />
-            ) : userData && userData?.length > 0 ? (
-              <tbody>
-                {filteredUsers.map((item, index) => {
-                  return (
-                    <tr
-                      key={item._id}
-                      className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    >
-                      <td className="w-4 p-4">
-                        <div className="flex items-center">
-                          <input
-                            id="checkbox-table-search-1"
-                            type="checkbox"
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                            checked={selectedUsers.includes(item._id)}
-                            onChange={() => handleSelectUser(item._id)}
-                          />
-                          <label htmlFor="checkbox-table-search-1" className="sr-only">
-                            checkbox
-                          </label>
-                        </div>
-                      </td>
-                      <th
-                        scope="row"
-                        className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
-                      >
-                        <img
-                          className="w-10 h-10 rounded-full"
-                          src={require('~/assets/images/empty.png')}
-                          alt="Jese anh"
-                        />
-                        <div className="ps-3">
-                          <div className="text-base font-semibold">{item.fullName}</div>
-                          <div className="font-normal text-gray-500">{item?.email}</div>
-                        </div>
-                      </th>
-                      <td className="px-6 py-4">{item?.accountId?.phoneNumber}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <a href="/#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
-                          {item.createdAt}
-                        </a>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center space-x-3">
-                          <button
-                            className="text-blue-600 hover:text-blue-800"
-                            onClick={() => handleEditUser(item._id)}
-                          >
-                            <CiEdit size={20} />
-                          </button>
-                          <button
-                            className="text-red-600 hover:text-red-800"
-                            onClick={() => {
-                              setShowModalDelete(true);
-                              setSelectedUserId(item?._id);
-                            }}
-                          >
-                            <AiOutlineDelete size={20} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
             ) : (
-              <div>
-                <span className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                  Hiện tại không có dữ liệu nào
-                </span>
-              </div>
+              <tbody>
+                {userData.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-4 text-center">
+                      Hiện tại không có dữ liệu nào
+                    </td>
+                  </tr>
+                ) : filteredUsers.length === 0 && searchTerm !== "" ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-4 text-center">
+                      Không tìm thấy người dùng nào phù hợp với từ khóa "{searchTerm}"
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((item, index) => {
+                    return (
+                      <tr
+                        key={item._id}
+                        className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                      >
+                        <td className="w-4 p-4">
+                          <div className="flex items-center">
+                            <input
+                              id="checkbox-table-search-1"
+                              type="checkbox"
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                              checked={selectedUsers.includes(item._id)}
+                              onChange={() => handleSelectUser(item._id)}
+                            />
+                            <label htmlFor="checkbox-table-search-1" className="sr-only">
+                              checkbox
+                            </label>
+                          </div>
+                        </td>
+                        <th
+                          scope="row"
+                          className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
+                        >
+                          <img
+                            className="w-10 h-10 rounded-full"
+                            src={require('~/assets/images/empty.png')}
+                            alt="Jese anh"
+                          />
+                          <div className="ps-3">
+                            <div className="text-base font-semibold">{item.fullName}</div>
+                            <div className="font-normal text-gray-500">{item?.email}</div>
+                          </div>
+                        </th>
+                        <td className="px-6 py-4">{item?.accountId?.phoneNumber}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <a href="/#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
+                            {item.createdAt}
+                          </a>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center space-x-3">
+                            <button
+                              className="text-blue-600 hover:text-blue-800"
+                              onClick={() => handleEditUser(item._id)}
+                            >
+                              <CiEdit size={20} />
+                            </button>
+                            <button
+                              className="text-red-600 hover:text-red-800"
+                              onClick={() => {
+                                setShowModalDelete(true);
+                                setSelectedUserId(item?._id);
+                              }}
+                            >
+                              <AiOutlineDelete size={20} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
             )}
           </table>
         </div>

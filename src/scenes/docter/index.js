@@ -64,8 +64,11 @@ const Doctor = () => {
   const [showHidePassword, setShowHidePassword] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState(true);
 
+  const [localLoading, setLocalLoading] = useState(true);
+
+  const reduxLoading = useSelector((state) => state.appointment.loading);
   // const doctorData = useSelector((state) => state.doctor.doctorByHospitalData);
-  const isLoading = useSelector((state) => state.doctor.loading);
+  //const isLoading = useSelector((state) => state.doctor.loading);
   const userLogin = useSelector((state) => state.auth.user?.payload);
   const userId = userLogin?.userData?._id;
 
@@ -158,12 +161,30 @@ const Doctor = () => {
     setSelectedDistrict(selectedOption);
   };
 
+  // const fetchDoctorData = async () => {
+  //   const res = await dispatch(fetchDoctorByHospital(userId));
+  //   const result = unwrapResult(res);
+  //   setDoctorData(result?.data);
+  // };
   const fetchDoctorData = async () => {
-    const res = await dispatch(fetchDoctorByHospital(userId));
-    const result = unwrapResult(res);
-    setDoctorData(result?.data);
+    setLocalLoading(true);
+    try {
+      const res = await dispatch(fetchDoctorByHospital(userId));
+      const result = unwrapResult(res);
+      console.log("check result", result?.data);
+      setDoctorData(result?.data);
+    } catch (error) {
+      console.error("Error fetching doctor data:", error);
+      toast.error("Không thể tải dữ liệu bác sĩ");
+    } finally {
+      setLocalLoading(false);
+    }
   };
-
+  
+  useEffect(() => {
+    fetchDoctorData();
+  }, []);
+  const isLoading = localLoading || reduxLoading;
   const submitForm = async (data) => {
     console.log('check data', data);
     console.log('check imge', urlImage);
@@ -441,87 +462,95 @@ const Doctor = () => {
                 </th>
               </tr>
             </thead>
-            {isLoading === true ? (
+            {isLoading ? (
               <LoadingSkeleton columns={9} />
-            ) : doctorData && doctorData?.length > 0 ? (
-              <tbody>
-                {filteredUsers.map((item, index) => {
-                  let image = '';
-                  if (item.image) {
-                    image = Buffer.from(item?.image, 'base64').toString('binary');
-                  }
-                  return (
-                    <tr
-                      key={index}
-                      className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    >
-                      <td className="px-6 py-4">{index + 1}</td>
-                      <th
-                        scope="row"
-                        className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
-                      >
-                        <div
-                          className="w-10 h-10 rounded-full bg-contain bg-no-repeat"
-                          style={{
-                            backgroundImage: image
-                              ? `url(${image})`
-                              : `url(${require('../../assets/images/empty.png')})`,
-                          }}
-                        ></div>
-                        <div className="ps-3">
-                          <div className="text-base font-semibold">{item.fullName}</div>
-                          <div className="font-normal text-gray-500">{item?.email}</div>
-                        </div>
-                      </th>
-                      <td className="px-6 py-4">{item?.phoneNumber}</td>
-                      <td className="px-6 py-4">{item?.gender === 'male' ? 'Nam' : 'Nữ'}</td>
-                      <td className="px-6 py-4">{item?.positionId}</td>
-                      <td className="px-6 py-4">{item?.specialty?.fullName}</td>
-                      <td className="px-6 py-4">{item?.rating}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-normal text-gray-500">{item.createdAt}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center space-x-3">
-                          <button
-                            className="text-blue-600 hover:text-blue-800"
-                            onClick={() => {
-                              reset();
-                              setEditDoctor(item);
-                              setShowModalEdit(true);
-                            }}
-                          >
-                            <CiEdit size={20} />
-                          </button>
-                          <button
-                            className="text-red-600 hover:text-red-800"
-                            onClick={() => {
-                              setShowModalDelete(true);
-                              setSelectedDoctorId(item?._id);
-                            }}
-                          >
-                            <AiOutlineDelete size={20} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
             ) : (
-              <div>
-                <span className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                  Hiện tại không có dữ liệu nào
-                </span>
-              </div>
+              <tbody>
+                {doctorData?.length === 0 ? (
+                  <tr>
+                    <td colSpan="12" className="px-6 py-4 text-center">
+                      Hiện tại không có dữ liệu nào
+                    </td>
+                  </tr>
+                ) : filteredUsers.length === 0 && searchTerm !== "" ? (
+                  <tr>
+                    <td colSpan="12" className="px-6 py-4 text-center">
+                      Không tìm thấy kết quả cho "{searchTerm}"
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((item, index) => {
+                    let image = '';
+                    if (item.image) {
+                      image = Buffer.from(item?.image, 'base64').toString('binary');
+                    }
+                    return (
+                      <tr
+                        key={index}
+                        className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                      >
+                        <td className="px-6 py-4">{index + 1}</td>
+                        <th
+                          scope="row"
+                          className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
+                        >
+                          <div
+                            className="w-10 h-10 rounded-full bg-contain bg-no-repeat"
+                            style={{
+                              backgroundImage: image
+                                ? `url(${image})`
+                                : `url(${require('../../assets/images/empty.png')})`,
+                            }}
+                          ></div>
+                          <div className="ps-3">
+                            <div className="text-base font-semibold">{item.fullName}</div>
+                            <div className="font-normal text-gray-500">{item?.email}</div>
+                          </div>
+                        </th>
+                        <td className="px-6 py-4">{item?.phoneNumber}</td>
+                        <td className="px-6 py-4">{item?.gender === 'male' ? 'Nam' : 'Nữ'}</td>
+                        <td className="px-6 py-4">{item?.positionId}</td>
+                        <td className="px-6 py-4">{item?.specialty?.fullName}</td>
+                        <td className="px-6 py-4">{item?.rating}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-normal text-gray-500">{item.createdAt}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-3">
+                            <button
+                              className="text-blue-600 hover:text-blue-800"
+                              onClick={() => {
+                                reset();
+                                setEditDoctor(item);
+                                setShowModalEdit(true);
+                              }}
+                            >
+                              <CiEdit size={20} />
+                            </button>
+                            <button
+                              className="text-red-600 hover:text-red-800"
+                              onClick={() => {
+                                setShowModalDelete(true);
+                                setSelectedDoctorId(item?._id);
+                              }}
+                            >
+                              <AiOutlineDelete size={20} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
             )}
-          </table>
-        </div>
+            </table>
+            </div>
         {/*  modal delete */}
         <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa bác sĩ">
           <div>
