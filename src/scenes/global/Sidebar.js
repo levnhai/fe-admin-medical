@@ -169,20 +169,19 @@ const Sidebar = () => {
               </Box>
             )}
           </MenuItem>
-
           {!isCollapsed && (
             <Box mb="25px">
               <Box display="flex" justifyContent="center" alignItems="center">
                 <img
                   alt="profile-user"
-                  width="100px"
-                  height="100px"
                   src={base64UrlImage}
-                  // src={imageUrl}
                   style={{
                     cursor: 'pointer',
                     borderRadius: '50%',
-                    // backgroundImage: `url(${require('../../assets/images/empty.png')})`,
+                    objectFit: 'contain',
+                    width: '100px',
+                    height: '100px',
+                    backgroundColor: '#f0f0f0'
                   }}
                 />
               </Box>
