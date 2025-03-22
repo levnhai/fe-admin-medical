@@ -25,7 +25,9 @@ export const fetchCreateHospital = createAsyncThunk('hospital/fetchCreateHospita
 export const fetchEditHospital = createAsyncThunk('hospital/fetchEditHospital', async ({ hospitalId, formData }) => {
   try {
     const response = await axios.post(`/hospital/edit-hospital/${hospitalId}`, formData);
-    return response.data;
+
+    console.log('check response 1', response);
+    return response.result;
   } catch (error) {
     throw error;
   }

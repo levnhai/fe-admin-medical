@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
+import { useForm } from 'react-hook-form';
+import classNames from 'classnames/bind';
 
 //icon
 import { CiEdit } from 'react-icons/ci';
-import { AiOutlineDelete } from 'react-icons/ai';
+import { AiOutlineDelete, AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 //import { tokens } from '../../theme';
 import Header from '../../components/Header';
@@ -13,29 +15,42 @@ import LoadingSkeleton from '../loading/loading_skeleton';
 import Modal from '~/components/Modal';
 import Button from '~/components/Button';
 
-import { fetchAllUsers, fetchDeleteUser } from '~/redux/user/userSlice';
+import { fetchAllUsers, fetchDeleteUser, fetchEditUser } from '~/redux/user/userSlice';
 import CreateUser from './modal/createUser';
 import EditUser from './modal/editUser';
 import { removeAccents } from '~/utils/string';
 
+import styles from './user.module.scss';
+const cx = classNames.bind(styles);
+
 const User = () => {
   const dispatch = useDispatch();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm();
 
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
   const [editUser, setEditUser] = useState(null);
+
+  const [showHidePassword, setShowHidePassword] = useState(true);
+  const [confirmPassword, setConfirmPassword] = useState(true);
+
+  console.log('edi user data', editUser);
+
   //const [createUser, setCreateUser] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userData, setUserData] = useState([]);
-
   const [localLoading, setLocalLoading] = useState(true);
 
   const reduxLoading = useSelector((state) => state.appointment.loading);
-  
-  // Combined loading state
+
   const isLoading = localLoading || reduxLoading;
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
@@ -72,13 +87,13 @@ const User = () => {
   // Check if all filtered users are selected
   const isAllSelected = filteredUsers?.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
-  const handleEditUser = (userId) => {
-    const userToEdit = userData?.find((user) => user._id === userId);
-    if (userToEdit) {
-      setEditUser(userToEdit);
-      setShowModalEdit(true);
-    }
-  };
+  // const handleEditUser = (userId) => {
+  //   const userToEdit = userData?.find((user) => user._id === userId);
+  //   if (userToEdit) {
+  //     setEditUser(userToEdit);
+  //     setShowModalEdit(true);
+  //   }
+  // };
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -93,7 +108,7 @@ const User = () => {
       const result = unwrapResult(res);
       setUserData(result?.user);
     } catch (error) {
-      toast.error("Không thể tải dữ liệu người dùng");
+      toast.error('Không thể tải dữ liệu người dùng');
     } finally {
       setLocalLoading(false);
     }
@@ -109,6 +124,29 @@ const User = () => {
     } else {
       toast.warning(userDelete?.message);
     }
+  };
+
+  const handleEditUser = async (userData) => {
+    try {
+      console.log('check data hai le', userData);
+      const res = await dispatch(
+        fetchEditUser({
+          userId: editUser?._id,
+          userData,
+        }),
+      ).unwrap();
+      if (res?.status) {
+        console.log('hải dz');
+        setShowModalEdit(false);
+        toast.success(res?.message);
+        fetchPatientData();
+      } else {
+        setShowModalEdit(true);
+
+        toast.warning(res?.message);
+      }
+      console.log('check result', res);
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -249,19 +287,19 @@ const User = () => {
                   </div>
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Name
+                  Họ và tên
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Phone number
+                  Số điện thoại
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Status
+                  Trạng thái
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  CreatedAt
+                  Ngày tạo
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Action
+                  Hành động
                 </th>
               </tr>
             </thead>
@@ -275,7 +313,7 @@ const User = () => {
                       Hiện tại không có dữ liệu nào
                     </td>
                   </tr>
-                ) : filteredUsers.length === 0 && searchTerm !== "" ? (
+                ) : filteredUsers.length === 0 && searchTerm !== '' ? (
                   <tr>
                     <td colSpan="6" className="px-6 py-4 text-center">
                       Không tìm thấy người dùng nào phù hợp với từ khóa "{searchTerm}"
@@ -331,7 +369,11 @@ const User = () => {
                           <div className="flex items-center space-x-3">
                             <button
                               className="text-blue-600 hover:text-blue-800"
-                              onClick={() => handleEditUser(item._id)}
+                              onClick={() => {
+                                reset();
+                                setEditUser(item);
+                                setShowModalEdit(true);
+                              }}
                             >
                               <CiEdit size={20} />
                             </button>
@@ -367,6 +409,180 @@ const User = () => {
             </div>
           </div>
         </Modal>
+
+        {/* modal edit \ */}
+        <Modal isOpen={showModalEdit} onClose={() => setShowModalEdit(false)} title="Sửa thông tin bệnh nhân">
+          <div>
+            <div className="max-h-80 overflow-auto">
+              <form onSubmit={handleSubmit(handleEditUser)}>
+                <div className="my-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 px-8 mt-4">
+                    <div className="col-span-2">
+                      <div className="flex">
+                        <h2 className="font-semibold text-black">Mã bệnh nhân</h2>
+                        <span className="text-rose-600 font-bold">*</span>
+                      </div>
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          name="userId"
+                          id="userId"
+                          disabled
+                          value={editUser?._id}
+                          className={cx('customInput', 'text-black')}
+                          placeholder="Mã bệnh nhân ..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 px-8 mt-4">
+                    <div className="col-span-1">
+                      <div className="flex">
+                        <h2 className="font-semibold text-black">Họ và tên (Có dấu)</h2>
+                        <span className="text-rose-600 font-bold">*</span>
+                      </div>
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          name="fullName"
+                          id="fullName"
+                          defaultValue={editUser?.fullName}
+                          className={cx('customInput', 'text-black')}
+                          placeholder="Họ và tên ..."
+                          {...register('fullName', { required: 'Vui lòng nhập họ và tên!' })}
+                        />
+
+                        {errors.fullName && (
+                          <div>
+                            <span className="text-danger text-red-500 text-sm">{errors.fullName.message}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-span-1">
+                      <div className="flex">
+                        <h2 className="font-semibold text-black">Địa chỉ email</h2>
+                      </div>
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          name="email"
+                          id="email"
+                          className={cx('customInput', 'text-black')}
+                          placeholder="Email ..."
+                          {...register('email', {
+                            pattern: {
+                              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                              message: 'Email không hợp lệ!',
+                            },
+                          })}
+                        />
+
+                        {errors.email && (
+                          <div>
+                            <span className="text-danger text-red-500 text-sm">{errors.email.message}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 px-8 mt-4">
+                    <div className="col-span-1">
+                      <div className="flex">
+                        <h2 className="font-semibold text-black">Mật khẩu</h2>
+                        <span className="text-rose-600 font-bold">*</span>
+                      </div>
+                      <div className="relative mt-2">
+                        <input
+                          type={showHidePassword ? 'password' : 'text'}
+                          name="password"
+                          id="password"
+                          className={cx('customInput', 'text-black')}
+                          placeholder="Nhập mật khẩu..."
+                          {...register('password', {
+                            required: 'Vui lòng nhập mật khẩu',
+                            minLength: { value: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+                          })}
+                        />
+
+                        <span
+                          onMouseDown={() => setShowHidePassword(!showHidePassword)}
+                          onMouseUp={() => setShowHidePassword(true)}
+                          onMouseLeave={() => setShowHidePassword(true)}
+                          className="absolute cursor-pointer text-xl top-1/2 right-3 transform -translate-y-1/2 text-black"
+                        >
+                          {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                        </span>
+
+                        {errors.password && (
+                          <div>
+                            <span className="text-danger text-red-500 text-sm">{errors.password.message}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-span-1">
+                      <div className="flex">
+                        <h2 className="font-semibold text-black">Nhập lại mật khẩu</h2>
+                        <span className="text-rose-600 font-bold">*</span>
+                      </div>
+                      <div className="relative mt-2">
+                        <input
+                          type={confirmPassword ? 'password' : 'text'}
+                          name="reEnterPassword"
+                          id="reEnterPassword"
+                          className={cx('customInput', 'text-black')}
+                          placeholder="xác thực mật khẩu ..."
+                          {...register('reEnterPassword', {
+                            required: 'Vui lòng nhập lại mật khẩu',
+                            minLength: { value: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+                          })}
+                        />
+                        <span
+                          onMouseDown={() => setConfirmPassword(!confirmPassword)}
+                          onMouseUp={() => setConfirmPassword(true)}
+                          onMouseLeave={() => setConfirmPassword(true)}
+                          className="absolute cursor-pointer text-xl top-1/2 right-3 transform -translate-y-1/2 text-black"
+                        >
+                          {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                        </span>
+
+                        {errors.reEnterPassword && (
+                          <div>
+                            <span className="text-danger text-red-500 text-sm">{errors.reEnterPassword.message}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <p className={cx('customFont')}>
+                    Bằng việc đăng ký, bạn đã đồng ý với <b>Medical</b> về
+                    <br />
+                    <a href="#/" target="_blank" rel="noreferrer">
+                      Quy định sử dụng
+                    </a>
+                    &nbsp; và &nbsp;
+                    <a href="#/" target="_blank" rel="noreferrer">
+                      chính sách bảo mật
+                    </a>
+                  </p>
+                </div>
+              </form>
+            </div>
+            <div className="flex justify-end border-t py-2 pr-6 gap-4 pt-2">
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalEdit(false)}>
+                Đóng
+              </Button>
+              <Button
+                className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
+                onClick={() => handleSubmit(handleEditUser)()}
+              >
+                Sửa hồ sơ
+              </Button>
+            </div>
+          </div>
+        </Modal>
         <div>
           {/* {showModalDelete && (
             <DeleteUser
@@ -378,13 +594,13 @@ const User = () => {
           {showModalCreate && (
             <CreateUser setShowModalCreate={setShowModalCreate} handleGetAllUser={() => dispatch(fetchAllUsers())} />
           )}
-          {showModalEdit && (
+          {/* {showModalEdit && (
             <EditUser
               setShowModalEdit={setShowModalEdit}
               handleGetAllUser={() => dispatch(fetchAllUsers())}
               user={editUser}
             />
-          )}
+          )} */}
         </div>
       </div>
     </div>

@@ -14,7 +14,11 @@ import className from 'classnames/bind';
 const cx = className.bind(styles);
 
 function CreateUser({ setShowModalCreate, handleGetAllUser }) {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
   const dispatch = useDispatch();
   const [showHidePassword, setShowHidePassword] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState(true);
@@ -22,16 +26,19 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
   const submitForm = async (formData) => {
     // Validate passwords match
     if (formData.password !== formData.reEnterPassword) {
-      toast.error("Mật khẩu không khớp!");
+      toast.error('Mật khẩu không khớp!');
       return;
     }
 
     try {
       const response = await dispatch(fetchCreateUser(formData)).unwrap();
-      if (response) {
+      console.log('check response', response);
+      if (response?.status) {
         toast.success('Tạo người dùng thành công!');
         handleGetAllUser();
         setShowModalCreate(false);
+      } else {
+        toast.warning(response?.message);
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Số điện thoại đã tồn tại' || 'Không thể tạo người dùng';
@@ -174,12 +181,22 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
           <div className="mt-6">
             <p className="text-xs text-gray-600">
               Bằng việc đăng ký, bạn đã đồng ý với Medpro về
-              <a href="https://medpro.vn/quy-dinh-su-dung" target="_blank" rel="noreferrer" className="text-blue-500 mx-1">
-              Quy định sử dụng
+              <a
+                href="https://medpro.vn/quy-dinh-su-dung"
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-500 mx-1"
+              >
+                Quy định sử dụng
               </a>
               và
-              <a href="https://medpro.vn/chinh-sach-bao-mat" target="_blank" rel="noreferrer" className="text-blue-500 mx-1">
-              Chính sách bảo mật
+              <a
+                href="https://medpro.vn/chinh-sach-bao-mat"
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-500 mx-1"
+              >
+                Chính sách bảo mật
               </a>
             </p>
           </div>
@@ -188,7 +205,7 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
 
       {/* Footer buttons */}
       <div className="flex justify-end border-t py-3 px-6 gap-3 mt-4">
-        <button 
+        <button
           className="text-[#2c3e50] border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm"
           onClick={() => setShowModalCreate(false)}
         >

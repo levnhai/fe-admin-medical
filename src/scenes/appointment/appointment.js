@@ -141,8 +141,8 @@ const Appointment = () => {
         setAppointmentData(scheduleSort);
         setStatusAppointment(scheduleSort);
       } catch (error) {
-        console.error("Error fetching appointments:", error);
-        toast.error("Không thể tải dữ liệu lịch hẹn");
+        console.error('Error fetching appointments:', error);
+        toast.error('Không thể tải dữ liệu lịch hẹn');
       } finally {
         setLocalLoading(false);
       }
@@ -195,19 +195,8 @@ const Appointment = () => {
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                <th scope="col" className="p-4">
-                  <div className="flex items-center">
-                    <input
-                      id="checkbox-all-search"
-                      type="checkbox"
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                      checked={isAllSelected}
-                      onChange={handleSelectAll}
-                    />
-                    <label htmlFor="checkbox-all-search" className="sr-only">
-                      checkbox
-                    </label>
-                  </div>
+                <th scope="col" className="px-6 py-3">
+                  STT
                 </th>
                 <th scope="col" className="px-6 py-3">
                   Tên bệnh nhân
@@ -254,7 +243,7 @@ const Appointment = () => {
                       Hiện tại không có dữ liệu nào
                     </td>
                   </tr>
-                ) : filteredUsers.length === 0 && searchTerm !== "" ? (
+                ) : filteredUsers.length === 0 && searchTerm !== '' ? (
                   <tr>
                     <td colSpan="12" className="px-6 py-4 text-center">
                       Không tìm thấy kết quả cho "{searchTerm}"
@@ -266,20 +255,7 @@ const Appointment = () => {
                       key={index}
                       className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
-                      <td className="w-4 p-4">
-                        <div className="flex items-center">
-                          <input
-                            id={`checkbox-table-search-${index}`}
-                            type="checkbox"
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                            checked={selectedUsers.includes(item._id)}
-                            onChange={() => handleSelectUser(item._id)}
-                          />
-                          <label htmlFor={`checkbox-table-search-${index}`} className="sr-only">
-                            checkbox
-                          </label>
-                        </div>
-                      </td>
+                      <td className="px-6 py-4">{index + 1}</td>
                       <th
                         scope="row"
                         className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
@@ -299,7 +275,7 @@ const Appointment = () => {
                       <td className="px-6 py-4">{item?.doctor?.fullName}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          {item?.status === 'pending' ? 'Chờ thanh toán' : 'Đã thanh toán'}
+                          {item?.paymentStatus === 'pending' ? 'Chờ thanh toán' : 'Đã thanh toán'}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -319,7 +295,7 @@ const Appointment = () => {
                           >
                             <option value="Booked">Đã đặt</option>
                             <option value="Completed">Đã khám</option>
-                            <option value="Cancelled">Đã hủy</option>
+                            <option value="canceled">Đã hủy</option>
                           </select>
                         </div>
                       </td>

@@ -1,7 +1,5 @@
-import { useTheme } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
-import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { useForm, Controller } from 'react-hook-form';
@@ -10,26 +8,25 @@ import Lightbox from 'react-image-lightbox';
 import Select from 'react-select';
 import { toast } from 'react-toastify';
 
-import styles from './doctor.module.scss';
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete, AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
-import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
-import { fetchDoctorByHospital, fetchDeleteDoctor } from '~/redux/doctor/doctorSlice';
-import EditDocter from './modal/editDocter';
 import Modal from '~/components/Modal';
 import Button from '~/components/Button';
 import { ConvertBase64 } from '~/utils/common';
+import EditDoctor from './modal/editdoctor';
+import { removeAccents } from '~/utils/string';
 
-import { fetchCreateDoctor } from '~/redux/doctor/doctorSlice';
+import { fetchDoctorByHospital, fetchDeleteDoctor, fetchCreateDoctor } from '~/redux/doctor/doctorSlice';
 import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
 import { fetchAllSpecialty } from '~/redux/specialty/specialtySlice';
+
+import styles from './doctor.module.scss';
 const cx = classNames.bind(styles);
 
 const Doctor = () => {
-  const theme = useTheme();
   const dispatch = useDispatch();
   const {
     register,
@@ -38,64 +35,56 @@ const Doctor = () => {
     formState: { errors },
     reset,
   } = useForm();
-  const { t } = useTranslation();
-  const colors = tokens(theme.palette.mode);
 
   const [doctorData, setDoctorData] = useState(false);
+  const [editDoctor, setEditDoctor] = useState(null);
+
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
+
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
   const [previewImageURL, setpreViewImageURL] = useState();
   const [isOpenImage, setIsOpenImage] = useState();
-  const [urlImage, setUrlImage] = useState(null);
+  const [urlImage, setUrlImage] = useState();
 
-  const [editDoctor, setEditDoctor] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState([]);
-
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [wardOptions, setWardOptions] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [specialtyOptions, setSpecialtyOptions] = useState([]);
-
   const [showHidePassword, setShowHidePassword] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState(true);
 
   const [localLoading, setLocalLoading] = useState(true);
 
   const reduxLoading = useSelector((state) => state.appointment.loading);
-  // const doctorData = useSelector((state) => state.doctor.doctorByHospitalData);
-  //const isLoading = useSelector((state) => state.doctor.loading);
   const userLogin = useSelector((state) => state.auth.user?.payload);
   const userId = userLogin?.userData?._id;
-
-  console.log('check doctorData', editDoctor);
+  const isLoading = localLoading || reduxLoading;
 
   const handleOnChangeImage = async (e) => {
     if (!e.target.files || e.target.files.length === 0) {
       return;
     }
     let file = e.target.files[0];
+    console.log('check file ', file);
     if (file) {
       const objectURL = URL.createObjectURL(file);
+      console.log('check objectURL', objectURL);
       setpreViewImageURL(objectURL);
     }
 
     const urlBase64 = await ConvertBase64(file);
+    console.log('check url base64', urlBase64);
     setUrlImage(urlBase64);
   };
 
   const handleOpenImage = () => {
     if (!previewImageURL) return;
     setIsOpenImage(true);
-  };
-
-  // Hàm chuyển đổi chuỗi thành không dấu
-  const removeAccents = (str) => {
-    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   };
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
@@ -114,21 +103,9 @@ const Doctor = () => {
       })) ||
     [];
 
-  const handleEditDoctor = (doctor) => {
-    // const doctorEdit = doctorData?.find((doctor) => doctor._id === doctorId);
-    // if (doctorEdit) {
-    //   setEditDoctor(doctorEdit);
-    //   setShowModalEdit(true);
-    // }
-    setEditDoctor(doctor);
-    console.log('check doctor', doctor);
-  };
-
   // Handle search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    // Reset selected users when search term changes
-    setSelectedUsers([]);
   };
 
   const handleDeleteDoctor = async () => {
@@ -161,33 +138,22 @@ const Doctor = () => {
     setSelectedDistrict(selectedOption);
   };
 
-  // const fetchDoctorData = async () => {
-  //   const res = await dispatch(fetchDoctorByHospital(userId));
-  //   const result = unwrapResult(res);
-  //   setDoctorData(result?.data);
-  // };
   const fetchDoctorData = async () => {
     setLocalLoading(true);
     try {
       const res = await dispatch(fetchDoctorByHospital(userId));
       const result = unwrapResult(res);
-      console.log("check result", result?.data);
+      console.log('check result', result?.data);
       setDoctorData(result?.data);
     } catch (error) {
-      console.error("Error fetching doctor data:", error);
-      toast.error("Không thể tải dữ liệu bác sĩ");
+      console.error('Error fetching doctor data:', error);
+      toast.error('Không thể tải dữ liệu bác sĩ');
     } finally {
       setLocalLoading(false);
     }
   };
-  
-  useEffect(() => {
-    fetchDoctorData();
-  }, []);
-  const isLoading = localLoading || reduxLoading;
+
   const submitForm = async (data) => {
-    console.log('check data', data);
-    console.log('check imge', urlImage);
     const {
       email,
       fullName,
@@ -221,6 +187,7 @@ const Doctor = () => {
       hospitalId: userId,
       specialtyId: specialtyId?.value,
     };
+
     try {
       const response = await dispatch(fetchCreateDoctor(formData));
       const result = await unwrapResult(response);
@@ -238,34 +205,48 @@ const Doctor = () => {
   };
 
   useEffect(() => {
-    const fetchSpecialty = async () => {
-      const res = await dispatch(fetchAllSpecialty());
-      const result = unwrapResult(res);
-      const specialtyData = result.data.map((specialty) => ({
-        value: specialty._id,
-        label: specialty.fullName,
-      }));
-      setSpecialtyOptions(specialtyData);
-    };
-    fetchSpecialty();
+    fetchDoctorData();
   }, []);
+
+  useEffect(() => {
+    if (editDoctor) {
+      setpreViewImageURL(editDoctor?.image);
+    }
+  }, [editDoctor]);
+
+  useEffect(() => {
+    if (showModalCreate || showModalEdit) {
+      const fetchSpecialty = async () => {
+        const res = await dispatch(fetchAllSpecialty());
+        const result = unwrapResult(res);
+        const specialtyData = result.data.map((specialty) => ({
+          value: specialty._id,
+          label: specialty.fullName,
+        }));
+        setSpecialtyOptions(specialtyData);
+      };
+      fetchSpecialty();
+    }
+  }, [showModalCreate, showModalEdit]);
 
   useEffect(() => {
     fetchDoctorData();
   }, []);
 
   useEffect(() => {
-    const fetchProvinces = async () => {
-      const res = await dispatch(fetchAllProvinces());
-      const result = unwrapResult(res);
-      const provincesData = result.data.map((provinces) => ({
-        value: provinces.id,
-        label: provinces.name,
-      }));
-      setProvinceOptions(provincesData);
-    };
-    fetchProvinces();
-  }, []);
+    if (showModalCreate) {
+      const fetchProvinces = async () => {
+        const res = await dispatch(fetchAllProvinces());
+        const result = unwrapResult(res);
+        const provincesData = result.data.map((provinces) => ({
+          value: provinces.id,
+          label: provinces.name,
+        }));
+        setProvinceOptions(provincesData);
+      };
+      fetchProvinces();
+    }
+  }, [showModalCreate]);
 
   useEffect(() => {
     if (selectedProvince) {
@@ -307,6 +288,8 @@ const Doctor = () => {
           className=" text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
           onClick={() => {
             reset();
+            // setUrlImage();
+            setpreViewImageURL(null);
             setShowModalCreate(true);
           }}
         >
@@ -315,121 +298,45 @@ const Doctor = () => {
       </div>
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
+          <div></div>
           <div>
-            {/* <button
-              id="dropdownActionButton"
-              data-dropdown-toggle="dropdownAction"
-              className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-              type="button"
-            >
-              <span className="sr-only">Action button</span>
-              Action
-              <svg
-                className="w-2.5 h-2.5 ms-2.5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 10 6"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m1 1 4 4 4-4"
+            <label htmlFor="table-search" className="sr-only">
+              Search
+            </label>
+            <div className="relative">
+              <div className="w-full sm:w-auto relative">
+                <input
+                  type="text"
+                  className="w-full sm:w-80 p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  placeholder="Tìm kiếm bác sĩ..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
                 />
-              </svg>
-            </button>
-            <div
-              id="dropdownAction"
-              className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
-            >
-              <ul className="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownActionButton">
-                <li>
-                  <a
-                    href="/#"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg
+                    className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 20 20"
                   >
-                    Reward
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/#"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Promote
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/#"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Activate account
-                  </a>
-                </li>
-              </ul>
-              <div className="py-1">
-                <a
-                  href="/#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                >
-                  Delete User
-                </a>
-              </div>
-            </div> */}
-          </div>
-          <label htmlFor="table-search" className="sr-only">
-            Search
-          </label>
-          <div className="relative">
-            <div className="w-full sm:w-auto relative">
-              <input
-                type="text"
-                className="w-full sm:w-80 p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                placeholder="Tìm kiếm bác sĩ..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                  />
-                </svg>
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="overflow-x-auto relative shadow-md">
+        <div className="overflow-y-auto relative shadow-md">
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                {/* <th scope="col" className="p-4">
-                  <div className="flex items-center">
-                    <input
-                      id="checkbox-all-search"
-                      type="checkbox"
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                      checked={isAllSelected}
-                      onChange={handleSelectAll}
-                    />
-                    <label htmlFor="checkbox-all-search" className="sr-only">
-                      checkbox
-                    </label>
-                  </div>
-                </th> */}
                 <th scope="col" className="px-6 py-3">
                   STT
                 </th>
@@ -472,7 +379,7 @@ const Doctor = () => {
                       Hiện tại không có dữ liệu nào
                     </td>
                   </tr>
-                ) : filteredUsers.length === 0 && searchTerm !== "" ? (
+                ) : filteredUsers.length === 0 && searchTerm !== '' ? (
                   <tr>
                     <td colSpan="12" className="px-6 py-4 text-center">
                       Không tìm thấy kết quả cho "{searchTerm}"
@@ -549,8 +456,8 @@ const Doctor = () => {
                 )}
               </tbody>
             )}
-            </table>
-            </div>
+          </table>
+        </div>
         {/*  modal delete */}
         <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa bác sĩ">
           <div>
@@ -1065,528 +972,6 @@ const Doctor = () => {
             </div>
           </div>
         </Modal>
-
-        {/*  modal edit */}
-        <Modal isOpen={showModalEdit} onClose={() => setShowModalEdit(false)} title="Sửa thông tin bác sĩ">
-          <div>
-            <div className="max-h-80 overflow-auto">
-              <form onSubmit={handleSubmit(submitForm)}>
-                <div className="my-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Họ và tên (Có dấu)</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <input
-                          type="text"
-                          name="fullName"
-                          id="fullName"
-                          value={editDoctor?.fullName}
-                          className={cx('customInput', 'text-black')}
-                          placeholder="Họ và tên ..."
-                          {...register('fullName', { required: 'Vui lòng nhập họ và tên!' })}
-                        />
-
-                        {errors.fullName && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.fullName.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Địa chỉ email</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <input
-                          type="text"
-                          name="email"
-                          id="email"
-                          className={cx('customInput', 'text-black')}
-                          placeholder="Email ..."
-                          {...register('email', { required: 'Vui lòng nhập email' })}
-                        />
-
-                        {errors.email && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.email.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Số điện thoại</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <input
-                          type="text"
-                          name="phoneNumber"
-                          id="phoneNumber"
-                          value={editDoctor?.phoneNumber}
-                          className={cx('customInput', 'text-black')}
-                          placeholder="Số điện thoại ..."
-                          {...register('phoneNumber', { required: 'Vui lòng nhập số điện thoại' })}
-                        />
-
-                        {errors.phoneNumber && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.phoneNumber.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Giới tính</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      {/* <div className="mt-2">
-                        <Controller
-                          name="gender"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              // value={editDoctor?.gender}
-                              // onChange={(selectedOption) => field.onChange(selectedOption)}
-                              options={[
-                                { value: 'male', label: 'Nam' },
-                                { value: 'female', label: 'Nữ' },
-                                { value: 'other', label: 'Khác' },
-                              ]}
-                              value={editDoctor?.gender} // Cập nhật giá trị từ editDoctor
-                              onChange={(selectedOption) => field.onChange(selectedOption)}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  color: 'red',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              placeholder="Giới tính ..."
-                            />
-                          )}
-                        />
-
-                        {errors.gender && errors.gender.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn giới tính'}</span>
-                          </div>
-                        ) : null}
-                         */}
-
-                      <Controller
-                        name="gender"
-                        control={control}
-                        rules={{ required: 'Vui lòng chọn giới tính' }}
-                        render={({ field }) => (
-                          <Select
-                            {...field}
-                            value={
-                              [
-                                { value: 'male', label: 'Nam' },
-                                { value: 'female', label: 'Nữ' },
-                                { value: 'other', label: 'Khác' },
-                              ].find((option) => option.value === field.value) ||
-                              [
-                                { value: 'male', label: 'Nam' },
-                                { value: 'female', label: 'Nữ' },
-                                { value: 'other', label: 'Khác' },
-                              ].find((option) => option.value === editDoctor?.gender)
-                            }
-                            onChange={(selectedOption) => field.onChange(selectedOption.value)}
-                            options={[
-                              { value: 'male', label: 'Nam' },
-                              { value: 'female', label: 'Nữ' },
-                              { value: 'other', label: 'Khác' },
-                            ]}
-                            styles={{
-                              control: (baseStyles, state) => ({
-                                ...baseStyles,
-                                borderColor: state.isFocused ? '#999' : '#999',
-                                height: '48px',
-                                color: 'red',
-                                boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                              }),
-                              option: (base, { isFocused, isSelected }) => ({
-                                ...base,
-                                backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                color: isSelected ? 'white' : 'black',
-                                padding: '10px',
-                                cursor: 'pointer',
-                              }),
-                            }}
-                            placeholder="Giới tính ..."
-                          />
-                        )}
-                      />
-
-                      {errors.gender && (
-                        <div>
-                          <span className="text-danger text-red-500 text-sm">{errors.gender.message}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Trình độ</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <Controller
-                          name="positionId"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              value={
-                                [
-                                  { value: 'doctor', label: 'Bác sĩ' },
-                                  { value: 'mater', label: 'Thạc sĩ' },
-                                  { value: 'associate professor', label: 'Phó giáo sư' },
-                                  { value: 'professor', label: 'Giáo sư' },
-                                ].find((option) => option.value === field.value) ||
-                                [
-                                  { value: 'doctor', label: 'Bác sĩ' },
-                                  { value: 'mater', label: 'Thạc sĩ' },
-                                  { value: 'associate professor', label: 'Phó giáo sư' },
-                                  { value: 'professor', label: 'Giáo sư' },
-                                ].find((option) => option.value === editDoctor?.positionId)
-                              }
-                              onChange={(selectedOption) => field.onChange(selectedOption.value)}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  color: 'red',
-
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              options={[
-                                { value: 'doctor', label: 'Bác sĩ' },
-                                { value: 'mater', label: 'Thạc sĩ' },
-                                { value: 'associate professor', label: 'Phó giáo sư' },
-                                { value: 'professor', label: 'Giáo sư' },
-                              ]}
-                              placeholder="Trình độ ..."
-                            />
-                          )}
-                        />
-
-                        {errors.positionId && errors.positionId.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn trình độ'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Chuyên khoa</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <Controller
-                          name="specialtyId"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              value={
-                                specialtyOptions.find((option) => option.value === field.value) ||
-                                specialtyOptions.find((option) => option.value === editDoctor?.specialtyId)
-                              }
-                              onChange={(selectedOption) => field.onChange(selectedOption)}
-                              options={[{ value: '', label: 'Chuyên khoa', isDisabled: true }, ...specialtyOptions]}
-                              placeholder="Chuyên khoa ..."
-                            />
-                          )}
-                        />
-
-                        {errors.specialtyId && errors.specialtyId.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn chuyên khoa'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Tỉnh / Thành</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <Controller
-                          name="province"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              value={
-                                provinceOptions.find((option) => option.value === field.value) ||
-                                provinceOptions.find((option) => option.value === editDoctor?.address[0]?.provinceId)
-                              }
-                              onChange={(selectedOption) => field.onChange(selectedOption.value)}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  color: 'black',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              placeholder="Chọn tỉnh / thành...."
-                              options={[{ value: '', label: 'Tỉnh / thành', isDisabled: true }, ...provinceOptions]}
-                            />
-                          )}
-                        />
-
-                        {errors.province && errors.province.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn tỉnh / thành'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Quận / Huyện</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <Controller
-                          name="district"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              value={
-                                districtOptions.find((option) => option.value === field.value) ||
-                                districtOptions.find((option) => option.value === editDoctor?.address[0]?.districtId)
-                              }
-                              onChange={(selectedOption) => field.onChange(selectedOption.value)}
-                              placeholder="Chọn quận / huyện ...."
-                              options={[{ value: '', label: 'Quận / huyện', isDisabled: true }, ...districtOptions]}
-                            />
-                          )}
-                        />
-
-                        {errors.district && errors.district.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn quận / huyện'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Phường/ Xã</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <Controller
-                          name="ward"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              value={
-                                wardOptions.find((option) => option.value === field.value) ||
-                                wardOptions.find((option) => option.value === editDoctor?.address[0]?.districtId)
-                              }
-                              onChange={(selectedOption) => field.onChange(selectedOption.value)}
-                              placeholder="Chọn phường / xã ...."
-                              options={[{ value: '', label: 'Phường / xã', isDisabled: true }, ...wardOptions]}
-                            />
-                          )}
-                        />
-
-                        {errors.ward && errors.ward.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn phường / xã'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Địa chỉ (đường, số nhà)</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <input
-                          type="text"
-                          name="street"
-                          id="street"
-                          value={editDoctor?.address[0]?.street}
-                          className={cx('customInput', 'text-black')}
-                          placeholder="Địa chỉ ..."
-                          {...register('street', { required: 'Vui lòng nhập địa chỉ!' })}
-                        />
-
-                        {errors.address && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.address.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 mb-10 px-8">
-                  <div>
-                    <label className={cx('label-uploadImage')} htmlFor="upload-image">
-                      Upload image
-                    </label>
-                    <input
-                      className={cx('customInput', 'text-black')}
-                      id="upload-image"
-                      accept="image/*"
-                      onChange={handleOnChangeImage}
-                      type="file"
-                      name="image"
-                      hidden
-                    ></input>
-                    {previewImageURL ? (
-                      <div
-                        className={cx('upload-image')}
-                        onClick={handleOpenImage}
-                        style={{ backgroundImage: `url(${previewImageURL})` }}
-                      ></div>
-                    ) : (
-                      ''
-                    )}
-                    {isOpenImage && (
-                      <Lightbox
-                        className="mb-10"
-                        mainSrc={previewImageURL}
-                        onCloseRequest={() => setIsOpenImage(false)}
-                      />
-                    )}
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="flex justify-end border-t py-2 pr-6 gap-4 pt-2">
-              <Button className="text-[#2c3e50]" onClick={() => setShowModalEdit(false)}>
-                Đóng
-              </Button>
-              <Button
-                className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
-                onClick={() => handleSubmit(submitForm)()}
-              >
-                Sửa hồ sơ
-              </Button>
-            </div>
-          </div>
-        </Modal>
-
         <div>
           {/* {showModalCreate && (
             <CreateDocter
@@ -1594,13 +979,15 @@ const Doctor = () => {
               handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userId))}
             />
           )} */}
-          {/* {showModalEdit && (
-            <EditDocter
+          {showModalEdit && (
+            <EditDoctor
               setShowModalEdit={setShowModalEdit}
-              handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userId))}
-              docter={editDocter}
+              editDoctor={editDoctor}
+              specialtyOptions={specialtyOptions}
+              fetchDoctorData={fetchDoctorData}
+              provincesData={provinceOptions}
             />
-          )} */}
+          )}
         </div>
       </div>
     </div>

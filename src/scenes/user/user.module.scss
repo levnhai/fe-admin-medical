@@ -1,12 +1,12 @@
 .darkBG {
-  background-color: transparent;
+  background-color: rgba(0, 0, 0, 0.2);
   width: 100vw;
   height: 100vh;
-  z-index: 9999;
+  z-index: 0;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  position: fixed;
+  position: absolute;
 }
 
 .centered {
@@ -14,24 +14,16 @@
   top: 52%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10000;
 }
 
 .modal {
-  width: 100%; // Make modal width responsive
-  min-width: 300px; // Minimum width for very small screens
+  min-width: 500px;
   background: white;
   color: white;
   z-index: 10;
   border-radius: 16px;
-  padding: 10px 15px; // Reduce padding on smaller screens
+  padding: 10px 30px;
   box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
-  z-index: 10001;
-  position: relative;
-
-  @media (min-width: 768px) {
-    padding: 10px 30px; // Restore original padding on larger screens
-  }
 }
 
 .modalHeader {
@@ -58,25 +50,12 @@
   color: #2c3e50;
   text-align: center;
 }
-.input--item--create {
-  margin-top: -20px;
-  margin-bottom: -20px;
-}
 
 .input--item {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   gap: 30px;
-  margin-top: 40px;
-  margin-bottom: 40px;
-
-  @media (min-width: 768px) {
-    flex-direction: row; // Return to row layout on larger screens
-    justify-content: space-between;
-    gap: 30px;
-    margin: 40px 0;
-  }
 
   div {
     width: 100%;
@@ -86,10 +65,6 @@
     margin-top: 20px;
     gap: 30px;
     position: relative;
-
-    @media (min-width: 768px) {
-      gap: 30px;
-    }
   }
 }
 
@@ -101,10 +76,6 @@
   text-align: left;
   cursor: pointer;
 
-  @media (min-width: 768px) {
-    padding: 10px 20px;
-    font-size: inherit;
-  }
   &:hover {
     opacity: 0.9;
   }
@@ -116,14 +87,7 @@
   border-radius: 6px;
   padding: 0px 20px;
   width: 100%;
-  min-width: 250px;
   border: 1px solid #999;
-
-  @media (min-width: 768px) {
-    height: 50px;
-    padding: 0 20px;
-    min-width: 250px;
-  }
 
   &:focus {
     color: #495057;
@@ -137,7 +101,6 @@
 .upload-image {
   width: 213px !important;
   height: 100px;
-  margin-top: 20px;
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -150,18 +113,21 @@
   top: 52px;
   left: 6px;
   color: red;
-
-  @media (min-width: 768px) {
-    font-size: 14px;
-  }
 }
 
 .react--tel__input > .customInput {
   font-weight: 700;
+}
 
-  @media (min-width: 768px) {
-    font-size: 15px;
-  }
+.upload-image {
+  width: 213px !important;
+  height: 100px;
+  margin-top: 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  cursor: pointer;
+  box-shadow: 10px 10px 5px #ccc;
 }
 
 .showHideIcon {
@@ -180,7 +146,6 @@
   margin: 10px 0px 10px;
   padding-top: 10px;
   color: rgb(140, 138, 138);
-  border-top: 1px solid rgb(213, 213, 215);
 }
 
 .customFont a {
@@ -197,12 +162,6 @@
   justify-content: space-around;
   align-items: center;
   margin-bottom: 20px;
-
-  @media (min-width: 768px) {
-    flex-direction: row; // Return to row layout on larger screens
-    justify-content: space-around;
-    gap: 20px;
-  }
 }
 
 .closeBtn {
@@ -222,51 +181,45 @@
   align-self: flex-end;
   margin-top: 3px;
   margin-right: 5px;
-  z-index: 11;
-
-  &:hover {
-    box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
-    transform: translate(-4px, 4px);
-  }
 }
 
-.deleteBtn,
-.cancelBtn {
-  cursor: pointer;
-  font-weight: 600;
-  padding: 8px 24px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  border: none;
-  width: 100%;
-  max-width: 200px;
-  transition: all 0.25s ease;
-
-  @media (min-width: 768px) {
-    padding: 10px 32px;
-    font-size: 1rem;
-    width: auto;
-  }
+.closeBtn:hover {
+  box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
+  transform: translate(-4px, 4px);
 }
 
 .deleteBtn {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 15px 52px;
+  border-radius: 12px;
+  font-size: 1.4rem;
+  border: none;
   color: #fff;
   background: #ff3e4e;
+  transition: all 0.25s ease;
+}
 
-  &:hover {
-    box-shadow: 0 10px 20px -10px rgba(255, 62, 78, 0.6);
-    transform: translateY(-5px);
-    background: #ff3e4e;
-  }
+.deleteBtn:hover {
+  box-shadow: 0 10px 20px -10px rgba(255, 62, 78, 0.6);
+  transform: translateY(-5px);
+  background: #ff3e4e;
 }
 
 .cancelBtn {
+  cursor: pointer;
+  font-weight: 500;
+  padding: 15px 52px;
+  border-radius: 12px;
+  font-size: 1.4rem;
+  border: none;
   color: #2c3e50;
   background: #fcfcfc;
+  transition: all 0.25s ease;
+}
 
-  &:hover {
-    box-shadow: none;
-    transform: none;
-    background: whitesmoke;
-  }
+.cancelBtn:hover {
+  box-shadow: none;
+  transform: none;
+  background: whitesmoke;
 }

@@ -1,7 +1,5 @@
-import { useTheme } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
-import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
@@ -9,29 +7,27 @@ import { useForm, Controller } from 'react-hook-form';
 import Lightbox from 'react-image-lightbox';
 import Select from 'react-select';
 import classNames from 'classnames/bind';
-import styles from './hospital.module.scss';
 
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete, AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
-import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
 import Modal from '~/components/Modal';
 import Button from '~/components/Button';
 import { removeAccents } from '~/utils/string';
+// import EditHospital from './modal/editHospital';
 import EditHospital from './modal/editHospital';
 import { ConvertBase64 } from '~/utils/common';
 
 import { fetchAllHospital, fetchDeleteHospital, fetchCreateHospital } from '~/redux/hospital/hospitalSlice';
 import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
+
+import styles from './hospital.module.scss';
 const cx = classNames.bind(styles);
 
 const Hospital = () => {
-  const theme = useTheme();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
-  const colors = tokens(theme.palette.mode);
   const [showHidePassword, setShowHidePassword] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState(true);
   const [provinceOptions, setProvinceOptions] = useState([]);
@@ -53,8 +49,6 @@ const Hospital = () => {
   const hospitalData = useSelector((state) => state.hospital.hospitalData);
   const isLoading = useSelector((state) => state.hospital.loading);
 
-  console.log('check hospitalData', hospitalData);
-
   const {
     register,
     handleSubmit,
@@ -70,6 +64,7 @@ const Hospital = () => {
     let file = e.target.files[0];
     if (file) {
       const objectURL = URL.createObjectURL(file);
+      console.log('check objectURL', objectURL);
       setpreViewImageURL(objectURL);
     }
 
@@ -139,15 +134,14 @@ const Hospital = () => {
     }
   };
 
-  const handleEditHospital = (hospitalId) => {
-    const hospitalEdit = hospitalData?.data?.find((hospital) => hospital._id === hospitalId);
-    if (hospitalEdit) {
-      setEditHospital(hospitalEdit);
-      setShowModalEdit(true);
-    }
-  };
+  // const handleEditHospital = (hospitalId) => {
+  //   const hospitalEdit = hospitalData?.data?.find((hospital) => hospital._id === hospitalId);
+  //   if (hospitalEdit) {
+  //     setEditHospital(hospitalEdit);
+  //     setShowModalEdit(true);
+  //   }
+  // };
 
-  // Handle search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setSelectedUsers([]);
@@ -188,7 +182,6 @@ const Hospital = () => {
       wardName: ward?.label,
       image: urlImage,
     };
-    console.log('check formData', formData);
     try {
       const response = await dispatch(fetchCreateHospital(formData));
       const result = await unwrapResult(response);
@@ -219,17 +212,19 @@ const Hospital = () => {
   }, []);
 
   useEffect(() => {
-    const fetchProvinces = async () => {
-      const res = await dispatch(fetchAllProvinces());
-      const result = unwrapResult(res);
-      const provincesData = result.data.map((provinces) => ({
-        value: provinces.id,
-        label: provinces.name,
-      }));
-      setProvinceOptions(provincesData);
-    };
-    fetchProvinces();
-  }, []);
+    if (showModalCreate || showModalEdit) {
+      const fetchProvinces = async () => {
+        const res = await dispatch(fetchAllProvinces());
+        const result = unwrapResult(res);
+        const provincesData = result.data.map((provinces) => ({
+          value: provinces.id,
+          label: provinces.name,
+        }));
+        setProvinceOptions(provincesData);
+      };
+      fetchProvinces();
+    }
+  }, [showModalCreate, showModalEdit, dispatch]);
 
   useEffect(() => {
     if (selectedProvince) {
@@ -248,7 +243,6 @@ const Hospital = () => {
 
   useEffect(() => {
     if (selectedDistrict) {
-      console.log('check quận huyện', selectedDistrict);
       const fetchWards = async () => {
         const res = await dispatch(fetchWardsByDistricts(selectedDistrict.value));
         const result = unwrapResult(res);
@@ -271,6 +265,7 @@ const Hospital = () => {
           className=" text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
           onClick={() => {
             reset();
+            setpreViewImageURL(null);
             setShowModalCreate(true);
           }}
         >
@@ -392,16 +387,15 @@ const Hospital = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <a href="/#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
-                          {item.createdAt}
-                        </a>
+                        <div className="font-normal text-gray-500">{item.createdAt}</div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center space-x-3">
                           <button
                             className="text-blue-600 hover:text-blue-800"
                             onClick={() => {
-                              handleEditHospital(item?._id);
+                              setShowModalEdit(true);
+                              setEditHospital(item);
                             }}
                           >
                             <CiEdit size={20} />
@@ -933,7 +927,7 @@ const Hospital = () => {
               </form>
             </div>
             <div className="flex justify-end border-t py-2 pr-6 gap-4 pt-2">
-              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalCreate(false)}>
                 Đóng
               </Button>
               <Button
@@ -945,6 +939,7 @@ const Hospital = () => {
             </div>
           </div>
         </Modal>
+
         <div>
           {/* {showModalCreate && (
             <CreateHospital
@@ -955,8 +950,9 @@ const Hospital = () => {
           {showModalEdit && (
             <EditHospital
               setShowModalEdit={setShowModalEdit}
-              handleGetAllHospital={() => dispatch(fetchAllHospital())}
-              hospital={editHospital}
+              fetchHospitalData={fetchHospitalData}
+              editHospital={editHospital}
+              provincesData={provinceOptions}
             />
           )}
         </div>

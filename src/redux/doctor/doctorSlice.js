@@ -44,7 +44,8 @@ export const fetchCreateAdmin = createAsyncThunk('doctor/fetchCreateAdmin', asyn
 export const fetchUpdateDoctor = createAsyncThunk('doctor/fetchUpdateDoctor', async ({ doctorId, formData }) => {
   try {
     const response = await axios.put(`/doctor/update-doctor/${doctorId}`, formData);
-    return response.data;
+    console.log('check resp slice', response);
+    return response.result;
   } catch (error) {
     throw new Error(error.message);
   }
