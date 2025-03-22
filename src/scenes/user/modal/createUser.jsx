@@ -8,10 +8,11 @@ import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 import { fetchCreateUser } from '~/redux/user/userSlice';
 import Modal from '~/components/Modal';
-
+import { BiLoaderAlt } from 'react-icons/bi';
 import styles from './Modal.module.scss';
 import className from 'classnames/bind';
 const cx = className.bind(styles);
+
 
 function CreateUser({ setShowModalCreate, handleGetAllUser }) {
   const {
@@ -22,8 +23,9 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
   const dispatch = useDispatch();
   const [showHidePassword, setShowHidePassword] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState(true);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const submitForm = async (formData) => {
+    if (isSubmitting) return;
     // Validate passwords match
     if (formData.password !== formData.reEnterPassword) {
       toast.error('Mật khẩu không khớp!');
@@ -31,6 +33,7 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
     }
 
     try {
+      setIsSubmitting(true);
       const response = await dispatch(fetchCreateUser(formData)).unwrap();
       console.log('check response', response);
       if (response?.status) {
@@ -43,6 +46,9 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Số điện thoại đã tồn tại' || 'Không thể tạo người dùng';
       toast.error(errorMessage);
+    }
+    finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -214,8 +220,16 @@ function CreateUser({ setShowModalCreate, handleGetAllUser }) {
         <button
           className="text-white bg-gradient-to-r from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-6 py-2 text-center transition-all"
           onClick={handleSubmit(submitForm)}
+          disabled={isSubmitting}
         >
-          Thêm mới
+          {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+          'Thêm mới'
+            )}
         </button>
       </div>
     </Modal>

@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
 import LoadingSkeleton from '~/scenes/loading/loading_skeleton2';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -41,6 +42,7 @@ const News = () => {
   const [modalMode, setModalMode] = useState('create');
   const [selectedData, setSelectedData] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   const token = Cookies.get('login');
@@ -211,7 +213,7 @@ const News = () => {
                { setShowModalDelete(true)
                 setSelectedUserId(params.row.id)}
               }
-              // disabled={!canDelete}
+              disabled={isSubmitting}
             >
               <DeleteIcon />
             </Button>
@@ -222,14 +224,22 @@ const News = () => {
   ];
 
   const handleDeleteNews = async () => {
-    const res = await dispatch(fetchDeleteNews(selectedUserId));
-    const result = unwrapResult(res);
-    setShowModalDelete(false);
-    if (result?.status) {
-      toast.success(result?.message);
-      fetchNewsData();
-    } else {
-      toast.warning(result?.message);
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const res = await dispatch(fetchDeleteNews(selectedUserId));
+      const result = unwrapResult(res);
+      if (result?.status) {
+        toast.success(result?.message);
+        fetchNewsData();
+      } else {
+        toast.warning(result?.message);
+      }
+    } catch (error) {
+      toast.error("Đã có lỗi xảy ra khi xóa tin tức");
+    } finally {
+      setIsSubmitting(false);
+      setShowModalDelete(false);
     }
   };
 
@@ -462,8 +472,19 @@ const News = () => {
               <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 px-6 py-2 text-white" onClick={handleDeleteNews}>
-                Đồng ý
+              <Button 
+                className="bg-red-400 px-6 py-2 text-white" 
+                onClick={handleDeleteNews}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <BiLoaderAlt className="animate-spin mr-2" />
+                    Đang xử lý...
+                  </div>
+                ) : (
+                  "Đồng ý"
+                )}
               </Button>
             </div>
           </div>

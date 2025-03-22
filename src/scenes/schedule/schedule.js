@@ -11,6 +11,7 @@ import Select from 'react-select';
 import classNames from 'classnames/bind';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 import Header from '../../components/Header';
 import { tokens } from '../../theme';
@@ -33,6 +34,7 @@ const Calendar = () => {
   const [isModalCreate, setIsModalCreate] = useState(false);
   const [isModalDetail, setIsModalDetail] = useState(false);
   const [doctorOption, setDoctorOption] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const {
     register,
@@ -78,7 +80,9 @@ const Calendar = () => {
   };
 
   const submitForm = async (data) => {
+    if (isSubmitting) return;
     try {
+      setIsSubmitting(true);
       let hours = [{ start: data.start, end: data.end, price: data.price }];
       const formData = {
         date: data.date,
@@ -98,6 +102,8 @@ const Calendar = () => {
       }
     } catch (error) {
       toast.error(error);
+    }finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -420,8 +426,16 @@ const Calendar = () => {
                     ? 'bg-cyan-600 hover:bg-cyan-700' 
                     : 'bg-cyan-400 hover:bg-cyan-500'
                 } text-white`}
+                disabled={isSubmitting}
               >
-                Tạo mới
+                {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+                'Tạo mới'
+            )}
               </button>
             </Box>
           </Box>

@@ -5,6 +5,7 @@ import Select from 'react-select';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 import Button from '~/components/Button';
 import Modal from '~/components/Modal';
@@ -24,10 +25,12 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
     setValue,
   } = useForm();
   const dispatch = useDispatch();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [wardOptions, setWardOptions] = useState([]);
+
 
   const [selectedProvince, setSelectedProvince] = useState(editDoctor?.address[0]?.provinceId || null);
   const [selectedDistrict, setSelectedDistrict] = useState(editDoctor?.address[0]?.districtId || null);
@@ -49,9 +52,11 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
   };
 
   const handleEditDoctor = async (doctor) => {
+    if (isSubmitting) return; 
     console.log('thah công', doctor);
 
     try {
+      setIsSubmitting(true);
       const response = await dispatch(
         fetchUpdateDoctor({
           doctorId: editDoctor?._id,
@@ -69,6 +74,8 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
     } catch (error) {
       console.error('Submit error:', error);
       toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
+    }finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -620,8 +627,16 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
               console.log('Submit clicked!');
               handleSubmit(handleEditDoctor)();
             }}
+            disabled={isSubmitting}
           >
-            Sửa hồ sơ
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+            'Sửa hồ sơ'
+          )}
           </Button>
         </div>
       </div>

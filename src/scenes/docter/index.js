@@ -7,6 +7,7 @@ import classNames from 'classnames/bind';
 import Lightbox from 'react-image-lightbox';
 import Select from 'react-select';
 import { toast } from 'react-toastify';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete, AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
@@ -66,6 +67,7 @@ const Doctor = () => {
   const userLogin = useSelector((state) => state.auth.user?.payload);
   const userId = userLogin?.userData?._id;
   const isLoading = localLoading || reduxLoading;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOnChangeImage = async (e) => {
     if (!e.target.files || e.target.files.length === 0) {
@@ -111,6 +113,8 @@ const Doctor = () => {
   };
 
   const handleDeleteDoctor = async () => {
+    if (isSubmitting) return; 
+    setIsSubmitting(true);
     const res = await dispatch(fetchDeleteDoctor(selectedDoctorId));
     const result = unwrapResult(res);
     setShowModalDelete(false);
@@ -126,6 +130,7 @@ const Doctor = () => {
     } else {
       toast.warning(result.message);
     }
+    setIsSubmitting(false);
   };
 
   // Khi chọn tỉnh/thành phố
@@ -189,8 +194,9 @@ const Doctor = () => {
       hospitalId: userId,
       specialtyId: specialtyId?.value,
     };
-
+    if (isSubmitting) return; 
     try {
+      setIsSubmitting(true);
       const response = await dispatch(fetchCreateDoctor(formData));
       const result = await unwrapResult(response);
       if (result?.status) {
@@ -203,6 +209,8 @@ const Doctor = () => {
       }
     } catch (error) {
       return error;
+    }finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -476,8 +484,17 @@ const Doctor = () => {
               <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 text-white" onClick={handleDeleteDoctor}>
-                Đồng ý
+              <Button className="bg-red-400 text-white" onClick={handleDeleteDoctor}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+                'Đồng ý'
+            )}
               </Button>
             </div>
           </div>
@@ -976,8 +993,16 @@ const Doctor = () => {
               <Button
                 className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
                 onClick={() => handleSubmit(submitForm)()}
+                disabled={isSubmitting}
               >
-                Thêm mới
+                {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+                'Thêm mới'
+            )}
               </Button>
             </div>
           </div>

@@ -10,6 +10,7 @@ import classNames from 'classnames/bind';
 
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete, AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
@@ -48,6 +49,7 @@ const Hospital = () => {
 
   const hospitalData = useSelector((state) => state.hospital.hospitalData);
   const isLoading = useSelector((state) => state.hospital.loading);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -104,17 +106,18 @@ const Hospital = () => {
     }) || [];
 
   const confirmDeleteHospital = (hospitalId) => {
-    setSelectedUserId(hospitalId); // Set the ID to be deleted
+    setSelectedUserId(hospitalId);
     setShowModalDelete(true);
   };
 
   const handleDeleteHospital = async () => {
+    if (isSubmitting) return; 
     try {
       if (!selectedUserId) {
         toast.error('Không tìm thấy ID bệnh viện để xóa');
         return;
       }
-
+      setIsSubmitting(true);
       const res = await dispatch(fetchDeleteHospital(selectedUserId));
       const result = unwrapResult(res);
 
@@ -131,6 +134,7 @@ const Hospital = () => {
     } finally {
       setShowModalDelete(false);
       setSelectedUserId(null);
+      setIsSubmitting(false);
     }
   };
 
@@ -182,7 +186,9 @@ const Hospital = () => {
       wardName: ward?.label,
       image: urlImage,
     };
+    if (isSubmitting) return; 
     try {
+      setIsSubmitting(true);
       const response = await dispatch(fetchCreateHospital(formData));
       const result = await unwrapResult(response);
       console.log('check result', result);
@@ -196,6 +202,8 @@ const Hospital = () => {
       }
     } catch (error) {
       return error;
+    }finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -432,8 +440,17 @@ const Hospital = () => {
               <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 text-white" onClick={handleDeleteHospital}>
-                Đồng ý
+              <Button className="bg-red-400 text-white" onClick={handleDeleteHospital}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+                'Đồng ý'
+              )}
               </Button>
             </div>
           </div>
@@ -933,8 +950,16 @@ const Hospital = () => {
               <Button
                 className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
                 onClick={() => handleSubmit(submitForm)()}
+                disabled={isSubmitting}
               >
-                Thêm mới
+                {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+                'Thêm mới'
+              )}
               </Button>
             </div>
           </div>

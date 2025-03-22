@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { useForm } from 'react-hook-form';
 import classNames from 'classnames/bind';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 //icon
 import { CiEdit } from 'react-icons/ci';
@@ -52,6 +53,7 @@ const User = () => {
   const reduxLoading = useSelector((state) => state.appointment.loading);
 
   const isLoading = localLoading || reduxLoading;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
@@ -115,6 +117,8 @@ const User = () => {
   };
 
   const handleDeleteUser = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     const res = await dispatch(fetchDeleteUser(selectedUserId));
     const userDelete = unwrapResult(res);
     setShowModalDelete(false);
@@ -124,10 +128,13 @@ const User = () => {
     } else {
       toast.warning(userDelete?.message);
     }
+    setIsSubmitting(false);
   };
 
   const handleEditUser = async (userData) => {
+    if (isSubmitting) return;
     try {
+      setIsSubmitting(true);
       console.log('check data hai le', userData);
       const res = await dispatch(
         fetchEditUser({
@@ -147,6 +154,9 @@ const User = () => {
       }
       console.log('check result', res);
     } catch (error) {}
+    finally {
+      setIsSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -403,8 +413,17 @@ const User = () => {
               <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 text-white" onClick={handleDeleteUser}>
-                Đồng ý
+              <Button className="bg-red-400 text-white" onClick={handleDeleteUser}
+                disabled={isSubmitting}
+              >
+              {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+               'Đồng ý'
+            )}
               </Button>
             </div>
           </div>
@@ -577,8 +596,16 @@ const User = () => {
               <Button
                 className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
                 onClick={() => handleSubmit(handleEditUser)()}
+                disabled={isSubmitting}
               >
-                Sửa hồ sơ
+                {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+                'Sửa hồ sơ'
+            )}
               </Button>
             </div>
           </div>

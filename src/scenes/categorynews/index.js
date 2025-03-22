@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
 import LoadingSkeleton from '~/scenes/loading/loading_skeleton2';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -46,6 +47,7 @@ const CategoryNews = () => {
   const [modalMode, setModalMode] = useState('create');
   const [selectedData, setSelectedData] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const token = Cookies.get('login');
   const decodedToken = token ? jwtDecode(token) : null;
@@ -150,6 +152,8 @@ const CategoryNews = () => {
   ];
 
   const handleDeleteCategory = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     const res = await dispatch(fetchDeleteCategoryNews(selectedCategoryId));
     const result = unwrapResult(res);
     setShowModalDelete(false);
@@ -159,6 +163,7 @@ const CategoryNews = () => {
     } else {
       toast.warning(result?.message || "Xóa thể loại thất bại");
     }
+      setIsSubmitting(false);
   };
 
   const handleOpenCreate = () => {
@@ -318,8 +323,17 @@ const CategoryNews = () => {
               <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 px-6 py-2 text-white" onClick={handleDeleteCategory}>
-                Đồng ý
+              <Button className="bg-red-400 px-6 py-2 text-white" onClick={handleDeleteCategory}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+                'Đồng ý'
+            )}
               </Button>
             </div>
           </div>

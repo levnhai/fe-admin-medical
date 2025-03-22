@@ -5,6 +5,7 @@ import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 import LoadingSkeleton from '../loading/loading_skeleton';
 import Header from '../../components/Header';
@@ -22,6 +23,7 @@ const ContactCooperate = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [editContact, setEditContact] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get data from Redux store
   const contacts = useSelector((state) => state.contact.contactData) || [];
@@ -72,6 +74,8 @@ const ContactCooperate = () => {
   };
 
   const handleDeleteContact = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     const res = await dispatch(fetchDeleteContact(selectedUserId));
         const userDelete = unwrapResult(res);
         setShowModalDelete(false);
@@ -81,6 +85,7 @@ const ContactCooperate = () => {
         } else {
           toast.warning(userDelete?.message);
         }
+          setIsSubmitting(false);
   };
 
   const handleEditContact = (id) => {
@@ -295,8 +300,17 @@ const ContactCooperate = () => {
             <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
               Đóng
             </Button>
-            <Button className="bg-red-400 text-white" onClick={handleDeleteContact}>
-              Đồng ý
+            <Button className="bg-red-400 text-white" onClick={handleDeleteContact}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+              'Đồng ý'
+            )}
             </Button>
           </div>
         </div>

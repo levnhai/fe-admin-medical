@@ -5,6 +5,7 @@ import Select from 'react-select';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 import Button from '~/components/Button';
 import Modal from '~/components/Modal';
@@ -24,6 +25,8 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
     setValue,
   } = useForm();
   const dispatch = useDispatch();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
@@ -46,7 +49,9 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
   };
 
   const handleEditHospital = async (hospital) => {
+    if (isSubmitting) return; 
     try {
+      setIsSubmitting(true);
       console.log('check hospital', hospital);
       const response = await dispatch(
         fetchEditHospital({
@@ -65,6 +70,8 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
     } catch (error) {
       console.error('Submit error:', error);
       toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
+    }finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -614,8 +621,16 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
               console.log('Submit clicked!');
               handleSubmit(handleEditHospital)();
             }}
+            disabled={isSubmitting}
           >
-            Sửa hồ sơ
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+            'Sửa hồ sơ'
+          )}
           </Button>
         </div>
       </div>
