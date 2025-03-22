@@ -592,12 +592,12 @@ const User = () => {
             />
           )} */}
           {showModalCreate && (
-            <CreateUser setShowModalCreate={setShowModalCreate} handleGetAllUser={() => dispatch(fetchAllUsers())} />
+            <CreateUser setShowModalCreate={setShowModalCreate} handleGetAllUser={fetchPatientData} />
           )}
           {/* {showModalEdit && (
             <EditUser
               setShowModalEdit={setShowModalEdit}
-              handleGetAllUser={() => dispatch(fetchAllUsers())}
+              handleGetAllUser={fetchPatientData}
               user={editUser}
             />
           )} */}
