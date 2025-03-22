@@ -5,18 +5,16 @@ import Select from 'react-select';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
-import Lightbox from 'react-image-lightbox';
 
 import Button from '~/components/Button';
 import Modal from '~/components/Modal';
-import { ConvertBase64 } from '~/utils/common';
 import { fetchEditHospital } from '~/redux/hospital/hospitalSlice';
-import { fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
+import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
 
 import styles from '../hospital.module.scss';
 const cx = classNames.bind(styles);
 
-function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData, provincesData }) {
+function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
   const {
     register,
     control,
@@ -27,6 +25,7 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData, provi
   } = useForm();
   const dispatch = useDispatch();
 
+  const [provinceOptions, setProvinceOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [wardOptions, setWardOptions] = useState([]);
 
@@ -48,6 +47,7 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData, provi
 
   const handleEditHospital = async (hospital) => {
     try {
+      console.log('check hospital', hospital);
       const response = await dispatch(
         fetchEditHospital({
           hospitalId: editHospital?._id,
@@ -67,6 +67,19 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData, provi
       toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
     }
   };
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const res = await dispatch(fetchAllProvinces());
+      const result = unwrapResult(res);
+      const provinceOptions = result.data.map((provinces) => ({
+        value: provinces.id,
+        label: provinces.name,
+      }));
+      setProvinceOptions(provinceOptions);
+    };
+    fetchProvinces();
+  }, []);
 
   useEffect(() => {
     if (selectedProvince) {
@@ -369,10 +382,10 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData, provi
                         <Select
                           {...field}
                           value={
-                            (provincesData?.length > 0 &&
-                              provincesData.find((option) => option.value === field.value)) ||
-                            (provincesData?.length > 0 &&
-                              provincesData.find((option) => option.value === editHospital?.address[0]?.provinceId))
+                            (provinceOptions?.length > 0 &&
+                              provinceOptions.find((option) => option.value === field.value)) ||
+                            (provinceOptions?.length > 0 &&
+                              provinceOptions.find((option) => option.value === editHospital?.address[0]?.provinceId))
                           }
                           onChange={(selectedOption) => {
                             field.onChange(selectedOption);
@@ -395,7 +408,7 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData, provi
                               cursor: 'pointer',
                             }),
                           }}
-                          options={[{ value: '', label: 'Tỉnh thành', isDisabled: true }, ...provincesData]}
+                          options={[{ value: '', label: 'Tỉnh thành', isDisabled: true }, ...provinceOptions]}
                           placeholder="Tỉnh thành..."
                         />
                       )}
@@ -554,6 +567,7 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData, provi
                       className={cx('customInput', 'text-black')}
                       defaultValue={editHospital?.description}
                       placeholder="mô tả ..."
+                      {...register('description')}
                     />
                   </div>
                 </div>

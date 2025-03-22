@@ -60,6 +60,8 @@ const Doctor = () => {
 
   const [localLoading, setLocalLoading] = useState(true);
 
+  console.log('check provinceOptions', provinceOptions);
+
   const reduxLoading = useSelector((state) => state.appointment.loading);
   const userLogin = useSelector((state) => state.auth.user?.payload);
   const userId = userLogin?.userData?._id;
@@ -416,7 +418,15 @@ const Doctor = () => {
                         </th>
                         <td className="px-6 py-4">{item?.phoneNumber}</td>
                         <td className="px-6 py-4">{item?.gender === 'male' ? 'Nam' : 'Nữ'}</td>
-                        <td className="px-6 py-4">{item?.positionId}</td>
+                        <td className="px-6 py-4">
+                          {item.positionId === 'doctor'
+                            ? 'Bác sĩ'
+                            : item.positionId === 'mater'
+                            ? 'Thạc sĩ'
+                            : item.positionId === 'associate professor'
+                            ? 'Phó giáo sư'
+                            : 'Giáo sư'}
+                        </td>
                         <td className="px-6 py-4">{item?.specialty?.fullName}</td>
                         <td className="px-6 py-4">{item?.rating}</td>
                         <td className="px-6 py-4">

@@ -9,12 +9,12 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import Button from '~/components/Button';
 import Modal from '~/components/Modal';
 import { fetchUpdateDoctor } from '~/redux/doctor/doctorSlice';
-import { fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
+import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
 
 import styles from '../doctor.module.scss';
 const cx = classNames.bind(styles);
 
-function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDoctorData, provincesData }) {
+function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDoctorData }) {
   const {
     register,
     control,
@@ -25,6 +25,7 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
   } = useForm();
   const dispatch = useDispatch();
 
+  const [provinceOptions, setProvinceOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [wardOptions, setWardOptions] = useState([]);
 
@@ -32,6 +33,7 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
   const [selectedDistrict, setSelectedDistrict] = useState(editDoctor?.address[0]?.districtId || null);
 
   console.log('check editDoctor', editDoctor);
+  console.log('check provinceOptions', provinceOptions);
 
   // Khi chọn tỉnh/thành phố
   const handleProvinceChange = (selectedOption) => {
@@ -69,6 +71,19 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
       toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
     }
   };
+
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const res = await dispatch(fetchAllProvinces());
+      const result = unwrapResult(res);
+      const provinceOptions = result.data.map((provinces) => ({
+        value: provinces.id,
+        label: provinces.name,
+      }));
+      setProvinceOptions(provinceOptions);
+    };
+    fetchProvinces();
+  }, []);
 
   useEffect(() => {
     if (selectedProvince) {
@@ -389,10 +404,10 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
                         <Select
                           {...field}
                           value={
-                            (provincesData?.length > 0 &&
-                              provincesData.find((option) => option.value === field.value)) ||
-                            (provincesData?.length > 0 &&
-                              provincesData.find((option) => option.value === editDoctor?.address[0]?.provinceId))
+                            (provinceOptions?.length > 0 &&
+                              provinceOptions.find((option) => option.value === field.value)) ||
+                            (provinceOptions?.length > 0 &&
+                              provinceOptions.find((option) => option.value === editDoctor?.address[0]?.provinceId))
                           }
                           onChange={(selectedOption) => {
                             field.onChange(selectedOption);
@@ -415,7 +430,7 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
                               cursor: 'pointer',
                             }),
                           }}
-                          options={[{ value: '', label: 'Tỉnh thành', isDisabled: true }, ...provincesData]}
+                          options={[{ value: '', label: 'Tỉnh thành', isDisabled: true }, ...provinceOptions]}
                           placeholder="Tỉnh thành..."
                         />
                       )}
