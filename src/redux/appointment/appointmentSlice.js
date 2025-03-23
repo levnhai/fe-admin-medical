@@ -19,6 +19,17 @@ export const fetchUpdateStatus = createAsyncThunk('appointment/fetchUpdateStatus
   }
 });
 
+export const fetchDeleteAppointment = createAsyncThunk('appointment/fetchDeleteAppointment', async (id) => {
+    try {
+      const response = await axios.delete(`/appointment/delete-appointment/${id}`);
+      return response.result;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+);
+
+
 const appointment = createSlice({
   name: 'appointment',
   initialState: {
@@ -38,6 +49,18 @@ const appointment = createSlice({
         state.loading = false;
       })
       .addCase(fetchAllAppointmentByhospital.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      //delete
+      .addCase(fetchDeleteAppointment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDeleteAppointment.fulfilled, (state, action) => {
+        state.loading = false;
+      })
+      .addCase(fetchDeleteAppointment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

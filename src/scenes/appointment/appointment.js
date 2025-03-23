@@ -4,7 +4,8 @@ import Cookies from 'js-cookie';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { jwtDecode } from 'jwt-decode';
 import { toast } from 'react-toastify';
-import Select from 'react-select';
+//import Select from 'react-select';
+import { BiLoaderAlt } from 'react-icons/bi';
 
 //icon
 import { CiEdit } from 'react-icons/ci';
@@ -12,7 +13,7 @@ import { AiOutlineDelete } from 'react-icons/ai';
 
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
-import { fetchAllAppointmentByhospital, fetchUpdateStatus } from '~/redux/appointment/appointmentSlice';
+import { fetchAllAppointmentByhospital, fetchUpdateStatus, fetchDeleteAppointment } from '~/redux/appointment/appointmentSlice';
 import { formatDate, extractTime } from '~/utils/time';
 import Modal from '~/components/Modal';
 import Button from '~/components/Button';
@@ -28,6 +29,7 @@ const Appointment = () => {
   const [showModalEdit, setShowModalEdit] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [statusAppointmentt, setStatusAppointment] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   console.log('check appointment', appointmentData);
 
@@ -72,15 +74,37 @@ const Appointment = () => {
   };
 
   const handleDeleteAppointment = async () => {
-    // const res = await dispatch(fetchDeleteUser(selectedAppointmentId));
-    // const userDelete = unwrapResult(res);
-    // setShowModalDelete(false);
-    // if (userDelete?.status) {
-    //   toast.success(userDelete?.message);
-    //   fetchPatientData();
-    // } else {
-    //   toast.warning(userDelete?.message);
-    // }
+    if (isSubmitting) return;
+    try {
+      setIsSubmitting(true);
+      const res = await dispatch(fetchDeleteAppointment(selectedAppointmentId));
+      const result = unwrapResult(res);
+      setShowModalDelete(false);
+      
+      if (result?.status) {
+        toast.success(result?.message || 'Xóa lịch khám thành công');
+        setSelectedUsers((prev) => prev.filter((id) => id !== selectedAppointmentId));
+        
+        // Cập nhật lại danh sách lịch hẹn
+        try {
+          const appointmentRes = await dispatch(fetchAllAppointmentByhospital());
+          const appointmentResult = unwrapResult(appointmentRes);
+          const scheduleSort = appointmentResult?.data?.sort((a, b) => new Date(b.date) - new Date(a.date)) || [];
+          setAppointmentData(scheduleSort);
+          setStatusAppointment(scheduleSort);
+        } catch (error) {
+          console.error('Error refreshing appointments:', error);
+          toast.error('Đã xóa lịch hẹn, nhưng không thể tải lại danh sách');
+        }
+      } else {
+        toast.warning(result?.message);
+      }
+    } catch (error) {
+      toast.error('Xóa lịch hẹn thất bại');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const updateStatusAppointment = async (id, status) => {
@@ -156,7 +180,7 @@ const Appointment = () => {
     <div className="p-2 sm:p-4 md:p-6">
       <Header title="Quản lý lịch khám bệnh" subtitle="Bác sĩ người tận tâm vì nghề nghiệp" />
 
-      <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+      <div className="relative overflow-x-auto shadow-md sm:rounded-lg mr-4">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
           <div></div>
           <label htmlFor="table-search" className="sr-only">
@@ -336,11 +360,20 @@ const Appointment = () => {
           <div>
             <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa lịch hẹn này không ?</p>
             <div className="flex justify-end border-t py-2 pr-6 gap-4">
-              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+            <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment}>
-                Đồng ý
+              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+                'Đồng ý'
+            )}
               </Button>
             </div>
           </div>
@@ -350,11 +383,20 @@ const Appointment = () => {
           <div>
             <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa lịch hẹn này không ?</p>
             <div className="flex justify-end border-t py-2 pr-6 gap-4">
-              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+            <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment}>
-                Đồng ý
+              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+                'Đồng ý'
+            )}
               </Button>
             </div>
           </div>
