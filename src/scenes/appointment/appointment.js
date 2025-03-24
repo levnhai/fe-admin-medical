@@ -30,6 +30,8 @@ const Appointment = () => {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [statusAppointmentt, setStatusAppointment] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   console.log('check appointment', appointmentData);
 
@@ -49,19 +51,59 @@ const Appointment = () => {
   };
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
+  // const filteredUsers =
+  //   appointmentData?.filter((user) => {
+  //     if (!searchTerm) return true;
+
+  //     const searchValue = removeAccents(searchTerm.toLowerCase().trim());
+
+  //     // Xử lý trường hợp giá trị null/undefined
+  //     const patientName = removeAccents(user?.record?.fullName?.toLowerCase() || '');
+  //     const doctorName = removeAccents(user?.doctor?.fullName?.toLowerCase() || '');
+  //     const phoneNumber = removeAccents(user?.record?.phoneNumber?.toLowerCase() || '');
+
+  //     return patientName.includes(searchValue) || phoneNumber.includes(searchValue) || doctorName.includes(searchValue);
+
+  //   }) || [];
   const filteredUsers =
     appointmentData?.filter((user) => {
-      if (!searchTerm) return true;
+      // Filter by search term
+      const searchMatch = !searchTerm
+        ? true
+        : (() => {
+            const searchValue = removeAccents(searchTerm.toLowerCase().trim());
+            const patientName = removeAccents(user?.record?.fullName?.toLowerCase() || '');
+            const doctorName = removeAccents(user?.doctor?.fullName?.toLowerCase() || '');
+            const phoneNumber = removeAccents(user?.record?.phoneNumber?.toLowerCase() || '');
+            return patientName.includes(searchValue) || phoneNumber.includes(searchValue) || doctorName.includes(searchValue);
+          })();
 
-      const searchValue = removeAccents(searchTerm.toLowerCase().trim());
+      // Filter by status
+      const statusMatch =
+        statusFilter === 'all'
+          ? true
+          : statusFilter === 'Booked'
+          ? user.status === 'Booked'
+          : statusFilter === 'Completed'
+          ? user.status === 'Completed'
+          : statusFilter === 'canceled'
+          ? user.status === 'canceled'
+          : true;
 
-      // Xử lý trường hợp giá trị null/undefined
-      const patientName = removeAccents(user?.record?.fullName?.toLowerCase() || '');
-      const doctorName = removeAccents(user?.doctor?.fullName?.toLowerCase() || '');
-      const phoneNumber = removeAccents(user?.record?.phoneNumber?.toLowerCase() || '');
-
-      return patientName.includes(searchValue) || phoneNumber.includes(searchValue) || doctorName.includes(searchValue);
+      return searchMatch && statusMatch;
     }) || [];
+
+
+ // Toggle the dropdown visibility
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
+  // Handle filter selection
+  const handleFilterChange = (status) => {
+    setStatusFilter(status);
+    setShowDropdown(false);
+  };
 
   // Handle select all checkbox
   const handleSelectAll = (e) => {
@@ -176,13 +218,111 @@ const Appointment = () => {
 
   const isLoading = localLoading || reduxLoading;
 
+  // Get status filter label
+  const getStatusFilterLabel = () => {
+    switch (statusFilter) {
+      case 'Booked':
+        return 'Đã đặt';
+      case 'Completed':
+        return 'Đã khám';
+      case 'canceled':
+        return 'Đã hủy';
+      default:
+        return 'Tất cả trạng thái';
+    }
+  };
+
   return (
     <div className="p-2 sm:p-4 md:p-6">
       <Header title="Quản lý lịch khám bệnh" subtitle="Bác sĩ người tận tâm vì nghề nghiệp" />
 
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg mr-4">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
-          <div></div>
+          <div>
+          <button
+              id="dropdownActionButton"
+              data-dropdown-toggle="dropdownAction"
+              className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+              type="button"
+              onClick={toggleDropdown}
+            >
+              <span className="sr-only">Action button</span>
+              {getStatusFilterLabel()}
+              <svg
+                className="w-2.5 h-2.5 ms-2.5"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 10 6"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m1 1 4 4 4-4"
+                />
+              </svg>
+            </button>
+            {/* Dropdown menu */}
+            {showDropdown && (
+              <div
+                id="dropdownAction"
+                className="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600 mt-1"
+              >
+                <ul className="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownActionButton">
+                  <li>
+                    <a
+                      href="#"
+                      className="block px-4 py-2 text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleFilterChange('all');
+                      }}
+                    >
+                      Tất cả trạng thái
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="block px-4 py-2 text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleFilterChange('Booked');
+                      }}
+                    >
+                      Đã đặt
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="block px-4 py-2 text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleFilterChange('Completed');
+                      }}
+                    >
+                      Đã khám
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="block px-4 py-2 text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleFilterChange('canceled');
+                      }}
+                    >
+                      Đã hủy
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
           <label htmlFor="table-search" className="sr-only">
             Search
           </label>
@@ -214,13 +354,28 @@ const Appointment = () => {
               </div>
             </div>
           </div>
+          
         </div>
         <div className="overflow-x-auto relative shadow-md">
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                <th scope="col" className="px-6 py-3">
+                {/* <th scope="col" className="px-6 py-3">
                   STT
+                </th> */}
+                <th scope="col" className="p-4">
+                  <div className="flex items-center">
+                    <input
+                      id="checkbox-all-search"
+                      type="checkbox"
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      checked={isAllSelected}
+                      onChange={handleSelectAll}
+                    />
+                    <label htmlFor="checkbox-all-search" className="sr-only">
+                      checkbox
+                    </label>
+                  </div>
                 </th>
                 <th scope="col" className="px-6 py-3">
                   Tên bệnh nhân
@@ -279,13 +434,27 @@ const Appointment = () => {
                       key={index}
                       className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
-                      <td className="px-6 py-4">{index + 1}</td>
+                      {/* <td className="px-6 py-4">{index + 1}</td> */}
+                      <td className="w-4 p-4">
+                          <div className="flex items-center">
+                            <input
+                              id="checkbox-table-search-1"
+                              type="checkbox"
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                              checked={selectedUsers.includes(item._id)}
+                              onChange={() => handleSelectUser(item._id)}
+                            />
+                            <label htmlFor="checkbox-table-search-1" className="sr-only">
+                              checkbox
+                            </label>
+                          </div>
+                        </td>
                       <th
                         scope="row"
                         className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
                       >
                         <div className="ps-3">
-                          <div className="text-base font-semibold">{item?.record?.fullName}</div>
+                          <div className="text-base font-semibold mt-4">{item?.record?.fullName}</div>
                           <div className="font-normal text-gray-500">{item?.email}</div>
                         </div>
                       </th>
