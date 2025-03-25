@@ -233,7 +233,7 @@ const Appointment = () => {
   };
 
   return (
-    <div className="p-2 sm:p-4 md:p-6">
+    <div className="p-2 -mr-8 sm:p-4 md:p-6">
       <Header title="Quản lý lịch khám bệnh" subtitle="Bác sĩ người tận tâm vì nghề nghiệp" />
 
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg mr-4">

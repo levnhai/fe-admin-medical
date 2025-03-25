@@ -146,14 +146,13 @@ const Calendar = () => {
     }),
   };
 
-  // Enhanced input class with theme support
+  //Enhanced input class with theme support
   const inputClass = classNames(
     cx('customInput'),
-    isDarkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-black border-gray-300',
-    'focus:ring-2',
-    isDarkMode ? 'focus:ring-blue-500' : 'focus:ring-blue-300'
+    'w-full px-3 py-2 rounded-md bg-white text-black border-gray-300',
+    'focus:outline-none focus:ring-2',
+    isDarkMode ? 'focus:ring-blue-500' : 'focus:ring-cyan-500'
   );
-
   return (
     <Box className="mx-6">
       <Header title="Lịch làm việc" subtitle="Làm việc hiệu quả" />
@@ -276,7 +275,18 @@ const Calendar = () => {
                       render={({ field }) => (
                         <Select
                           {...field}
-                          styles={selectStyles}
+                          styles={{
+                            ...selectStyles,
+                            control: (provided) => ({
+                              ...provided,
+                              backgroundColor: 'white',
+                              color: 'black'
+                            }),
+                            singleValue: (provided) => ({
+                              ...provided,
+                              color: 'black'
+                            })
+                          }}
                           options={[{ value: '', label: '--- Bác sĩ', isDisabled: true }, ...doctorOption]}
                           placeholder="Chọn bác sĩ ..."
                         />
@@ -308,7 +318,7 @@ const Calendar = () => {
                       id="date"
                       data-date=""
                       data-date-format="DD MMMM YYYY"
-                      className={inputClass}
+                      className={`${inputClass} text-black`}
                       {...register('date', { required: 'Vui lòng Chọn ngày' })}
                     />
 
@@ -338,7 +348,7 @@ const Calendar = () => {
                       type="time"
                       name="start"
                       id="start"
-                      className={inputClass}
+                      className={`${inputClass} text-black`}
                       {...register('start', { required: 'Vui lòng Chọn giờ' })}
                     />
 
@@ -366,7 +376,7 @@ const Calendar = () => {
                       type="time"
                       name="end"
                       id="end"
-                      className={inputClass}
+                      className={`${inputClass} text-black`}
                       {...register('end', { required: 'Vui lòng Chọn giờ' })}
                     />
 
@@ -393,7 +403,7 @@ const Calendar = () => {
                       type="text"
                       name="price"
                       id="price"
-                      className={inputClass}
+                      className={`${inputClass} text-black`}
                       placeholder="Giá khám ..."
                       {...register('price', { required: 'Vui lòng nhập giá' })}
                     />
@@ -429,13 +439,13 @@ const Calendar = () => {
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <BiLoaderAlt className="animate-spin mr-2" />
-                Đang xử lý...
-              </div>
-            ) : (
-                'Tạo mới'
-            )}
+                  <div className="flex items-center justify-center">
+                    <BiLoaderAlt className="animate-spin mr-2" />
+                    Đang xử lý...
+                  </div>
+                ) : (
+                  'Tạo mới'
+                )}
               </button>
             </Box>
           </Box>
