@@ -24,6 +24,8 @@ const ContactCooperate = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [editContact, setEditContact] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
   // Get data from Redux store
   const contacts = useSelector((state) => state.contact.contactData) || [];
@@ -37,6 +39,10 @@ const ContactCooperate = () => {
 
   // Filter users based on search term
   const filteredUsers = contacts.filter((user) => {
+    // Status filter
+    if (statusFilter !== 'all' && user.status !== statusFilter) return false;
+
+    // Search filter
     if (!searchTerm) return true;
 
     const searchValue = removeAccents(searchTerm.toLowerCase().trim());
@@ -45,6 +51,9 @@ const ContactCooperate = () => {
 
     return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
   });
+
+  // Get unique status values
+  const uniqueStatuses = ['all', ...new Set(contacts.map(contact => contact.status))];
 
   // Check if all users are selected
   const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
@@ -195,13 +204,14 @@ const ContactCooperate = () => {
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         {/* Table header with actions and search */}
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
-          <div>
+          <div className="relative">
             <button
               id="dropdownActionButton"
+              onClick={() => setShowStatusDropdown(!showStatusDropdown)}
               className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
               type="button"
             >
-              Action
+                {statusFilter === 'all' ? 'Tất cả' : statusFilter}
               <svg
                 className="w-2.5 h-2.5 ms-2.5"
                 aria-hidden="true"
@@ -218,6 +228,27 @@ const ContactCooperate = () => {
                 />
               </svg>
             </button>
+             {/* Status Dropdown */}
+             {showStatusDropdown && (
+              <div className="absolute z-10 mt-1 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                <ul className="py-1 text-sm text-gray-700 dark:text-gray-200">
+                  {uniqueStatuses.map((status) => (
+                    <li key={status}>
+                      <button
+                        onClick={() => {
+                          setStatusFilter(status);
+                          setShowStatusDropdown(false);
+                          setSelectedUsers([]); // Reset selected users when changing filter
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                      >
+                        {status === 'all' ? 'Tất cả' : status}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Search input */}
