@@ -65,38 +65,6 @@ const User = () => {
       return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
     }) || [];
 
-  // chọn tất cả
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      const allUserIds = filteredUsers.map((user) => user._id);
-      setSelectedUsers(allUserIds);
-    } else {
-      setSelectedUsers([]);
-    }
-  };
-
-  // Handle individual checkbox
-  const handleSelectUser = (userId) => {
-    setSelectedUsers((prev) => {
-      if (prev.includes(userId)) {
-        return prev.filter((id) => id !== userId);
-      } else {
-        return [...prev, userId];
-      }
-    });
-  };
-
-  // Check if all filtered users are selected
-  const isAllSelected = filteredUsers?.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
-
-  // const handleEditUser = (userId) => {
-  //   const userToEdit = userData?.find((user) => user._id === userId);
-  //   if (userToEdit) {
-  //     setEditUser(userToEdit);
-  //     setShowModalEdit(true);
-  //   }
-  // };
-
   // Handle search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -135,7 +103,6 @@ const User = () => {
     if (isSubmitting) return;
     try {
       setIsSubmitting(true);
-      console.log('check data hai le', userData);
       const res = await dispatch(
         fetchEditUser({
           userId: editUser?._id,
@@ -143,7 +110,6 @@ const User = () => {
         }),
       ).unwrap();
       if (res?.status) {
-        console.log('hải dz');
         setShowModalEdit(false);
         toast.success(res?.message);
         fetchPatientData();
@@ -153,8 +119,8 @@ const User = () => {
         toast.warning(res?.message);
       }
       console.log('check result', res);
-    } catch (error) {}
-    finally {
+    } catch (error) {
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -178,71 +144,7 @@ const User = () => {
       </div>
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
-          <div>
-            <button
-              id="dropdownActionButton"
-              data-dropdown-toggle="dropdownAction"
-              className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-              type="button"
-            >
-              <span className="sr-only">Action button</span>
-              Action
-              <svg
-                className="w-2.5 h-2.5 ms-2.5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 10 6"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m1 1 4 4 4-4"
-                />
-              </svg>
-            </button>
-            <div
-              id="dropdownActionButton"
-              className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600"
-            >
-              <ul className="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownActionButton">
-                <li>
-                  <a
-                    href="/#"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Reward
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/#"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Promote
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/#"
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >
-                    Activate account
-                  </a>
-                </li>
-              </ul>
-              <div className="py-1">
-                <a
-                  href="/#"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                >
-                  Delete User
-                </a>
-              </div>
-            </div>
-          </div>
+          <div></div>
           <label htmlFor="table-search" className="sr-only">
             Search
           </label>
@@ -417,17 +319,15 @@ const User = () => {
               <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 text-white" onClick={handleDeleteUser}
-                disabled={isSubmitting}
-              >
-              {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <BiLoaderAlt className="animate-spin mr-2" />
-                Đang xử lý...
-              </div>
-            ) : (
-               'Đồng ý'
-            )}
+              <Button className="bg-red-400 text-white" onClick={handleDeleteUser} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <BiLoaderAlt className="animate-spin mr-2" />
+                    Đang xử lý...
+                  </div>
+                ) : (
+                  'Đồng ý'
+                )}
               </Button>
             </div>
           </div>
@@ -603,13 +503,13 @@ const User = () => {
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <BiLoaderAlt className="animate-spin mr-2" />
-                Đang xử lý...
-              </div>
-            ) : (
-                'Sửa hồ sơ'
-            )}
+                  <div className="flex items-center justify-center">
+                    <BiLoaderAlt className="animate-spin mr-2" />
+                    Đang xử lý...
+                  </div>
+                ) : (
+                  'Sửa hồ sơ'
+                )}
               </Button>
             </div>
           </div>

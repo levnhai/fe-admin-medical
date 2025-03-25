@@ -224,7 +224,7 @@ const Dashboard = () => {
             justifyContent="center"
           >
             <StatBox
-              title={statsData?.data?.appointmentCount}
+              title={statsData?.data?.appointmentSuccess}
               subtitle="Thành công"
               progress="0.75"
               increase="+14%"
@@ -241,7 +241,7 @@ const Dashboard = () => {
             justifyContent="center"
           >
             <StatBox
-              title={statsData?.data?.appointmentCount}
+              title={statsData?.data?.appointmentFailed}
               subtitle="Thất bại"
               progress="0.75"
               increase="+14%"
@@ -318,7 +318,7 @@ const Dashboard = () => {
           </Box>
         )}
         {/* ROW 2 */}
-        {userRole === 'hospital_admin' && (
+        {(userRole === 'hospital_admin' || userRole === 'doctor') && (
           <Box gridColumn="span 8" gridRow="span 2" backgroundColor={colors.primary[400]}>
             <Box mt="25px" p="0 30px" display="flex " justifyContent="space-between" alignItems="center">
               <Box>
@@ -342,7 +342,7 @@ const Dashboard = () => {
             </Box>
           </Box>
         )}
-        {userRole === 'hospital_admin' && (
+        {(userRole === 'hospital_admin' || userRole === 'doctor') && (
           <Box gridColumn="span 4" gridRow="span 2" backgroundColor={colors.primary[400]} overflow="auto">
             <Box
               display="flex"

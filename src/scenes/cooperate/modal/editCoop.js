@@ -117,7 +117,7 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
                     <h2 className="font-semibold text-black">Họ và tên (Có dấu)</h2>
                     <span className="text-rose-600 font-bold">*</span>
                   </div>
-                  <div className="mt-2">
+                  <div className="-mt-5">
                     <Input {...name_validation} className="text-black" />
                   </div>
                 </div>
@@ -126,12 +126,12 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
                     <h2 className="font-semibold text-black">Địa chỉ email</h2>
                     <span className="text-rose-600 font-bold">*</span>
                   </div>
-                  <div className="mt-2">
+                  <div className="-mt-5">
                     <Input {...email_validation} className="text-black" />
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
                 <div className="col-span-1">
                   <div className="flex">
@@ -153,8 +153,8 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
                       control={methods.control}
                       render={({ field }) => (
                         <Select
-                          value={statusOptions.find(option => option.value === form.status) || null}
-                          onChange={(selectedOption) => 
+                          value={statusOptions.find((option) => option.value === form.status) || null}
+                          onChange={(selectedOption) =>
                             setForm((prev) => ({
                               ...prev,
                               status: selectedOption.value,
@@ -197,7 +197,7 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-1 gap-10 mt-4 px-8">
                 <div className="col-span-1">
                   <div className="flex">
@@ -208,7 +208,7 @@ function EditCoop({ setShowModalEdit, handleGetAllContact, contact }) {
                       name="note"
                       className="bg-gray-50 border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                       placeholder="Ghi chú..."
-                      {...methods.register("note")}
+                      {...methods.register('note')}
                     />
                   </div>
                 </div>

@@ -8,7 +8,7 @@ import Cookies from 'js-cookie';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { useForm, Controller } from 'react-hook-form';
 import classNames from 'classnames/bind';
-import styles from './doctor.module.scss';
+import styles from './admin.module.scss';
 import Select from 'react-select';
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
