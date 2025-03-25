@@ -5,12 +5,14 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import { FaRightFromBracket } from 'react-icons/fa6';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import classNames from 'classnames/bind';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useSelector } from 'react-redux';
+import { Buffer } from 'buffer';
 
 // icon
 import { IoPersonSharp } from 'react-icons/io5';
@@ -29,6 +31,11 @@ const Topbar = () => {
   const colorMode = useContext(ColorModeContext);
   const userLogin = useSelector((state) => state.auth.user?.payload);
   console.log('check user login', userLogin);
+
+  // Convert base64 image to binary for avatar
+  let base64UrlImage = userLogin?.userData?.image?.data 
+    ? Buffer.from(userLogin.userData.image.data, 'base64').toString('binary')
+    : null;
 
   const handleClickOusideModal = (e) => {
     if (modalRef.current && !modalRef.current.contains(e.target) && !btnLoginRef.current.contains(e.target)) {
@@ -67,55 +74,90 @@ const Topbar = () => {
               setShowModal(!showModal);
             }}
             ref={btnLoginRef}
+            className="flex items-center"
           >
-            <PersonOutlinedIcon />
+            {base64UrlImage ? (
+              <img
+                alt="profile-user"
+                src={base64UrlImage}
+                style={{
+                  cursor: 'pointer',
+                  borderRadius: '50%',
+                  objectFit: 'contain',
+                  width: '30px',
+                  height: '30px',
+                  backgroundColor: '#f0f0f0'
+                }}
+              />
+            ) : (
+              <PersonOutlinedIcon />
+            )}
           </div>
         </IconButton>
       </div>
       {showModal && (
-        <div ref={modalRef} className={cx('modal', 'absolute right-0 top-12')}>
-          <div className={cx('modal-profile')}>
-            <div className={cx('profile-header')}>
-              <div className={cx('profile-avata')}></div>
-              <div className={cx('profile-info')}>
-                <span className="text-blue-700">Xin chào</span>
-                <h5>{userLogin?.userData?.fullName}</h5>
+        <div 
+          ref={modalRef} 
+          className="absolute right-0 top-12 z-50"
+        >
+          <div className="w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+            <div className="p-4 bg-gray-700">
+              <div className="flex items-center space-x-3">
+                {base64UrlImage && (
+                  <div className={cx('profile-avata')}>
+                  {base64UrlImage && (
+                    <img
+                      alt="profile-user"
+                      src={base64UrlImage}
+                      style={{
+                        borderRadius: '50%',
+                        objectFit: 'contain',
+                        width: '50px',
+                        height: '50px',
+                        backgroundColor: '#f0f0f0'
+                      }}
+                    />
+                  )}
+                </div>
+                )}
+                <div className="min-w-0">
+                  <span className="block text-sm text-blue-400 truncate">Xin chào</span>
+                  <h5 className="font-semibold text-white truncate">
+                    {userLogin?.userData?.fullName}
+                  </h5>
+                </div>
               </div>
             </div>
-            <ul className={cx('information-list')}>
-              <li
-                className={cx('information-item')}
+            <ul className="divide-y divide-gray-700">
+              <li 
+                className="px-4 py-3 hover:bg-gray-700 cursor-pointer transition-colors"
                 onClick={() => {
                   // navigate('/user?key=records');
                 }}
               >
-                <div>
-                  <span className={cx('icon')}>
-                    <IoPersonSharp style={{ width: '1.7rem', height: '1.7rem' }} />
-                  </span>
-                  <span className={cx('title')}>Hồ sơ</span>
+                <div className="flex items-center">
+                  <IoPersonSharp className="w-5 h-5 text-gray-300 mr-3 flex-shrink-0" />
+                  <span className="text-gray-200">Hồ sơ</span>
                 </div>
               </li>
-
-              <li className={cx('information-item')}>
-                <div
+              
+              <li className="px-4 py-3 hover:bg-gray-700 cursor-pointer transition-colors">
+                <div 
+                  className="flex items-center"
                   onClick={() => {
-                    // dispatch(logoutUser());
                     Cookies.remove('login');
                     setShowModal(false);
                     navigate('/login');
-                    // toast.success(t('header.logout_success'));
                   }}
                 >
-                  <span className={cx('icon')}>
-                    <i className="fa-solid fa-right-from-bracket"></i>
-                  </span>
-                  <span className="text-red-500">Đăng xuất</span>
+                  <FaRightFromBracket className="w-5 h-5 text-red-400 mr-3 flex-shrink-0" />
+                  <span className="text-red-400">Đăng xuất</span>
                 </div>
               </li>
-              <li className={cx('information-item')} disabled>
-                <div>
-                  <span>Cập nhật mới nhất: 29/12/2023</span>
+
+              <li className="px-4 py-3 bg-gray-750 text-xs text-gray-400">
+                <div className="truncate">
+                  Cập nhật mới nhất: 29/12/2023
                 </div>
               </li>
             </ul>
