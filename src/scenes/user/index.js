@@ -10,7 +10,6 @@ import { BiLoaderAlt } from 'react-icons/bi';
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete, AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
-//import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
 import Modal from '~/components/Modal';
@@ -18,7 +17,6 @@ import Button from '~/components/Button';
 
 import { fetchAllUsers, fetchDeleteUser, fetchEditUser } from '~/redux/user/userSlice';
 import CreateUser from './modal/createUser';
-import EditUser from './modal/editUser';
 import { removeAccents } from '~/utils/string';
 
 import styles from './user.module.scss';
@@ -41,11 +39,7 @@ const User = () => {
   const [showHidePassword, setShowHidePassword] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState(true);
 
-  console.log('edi user data', editUser);
-
-  //const [createUser, setCreateUser] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userData, setUserData] = useState([]);
   const [localLoading, setLocalLoading] = useState(true);
@@ -68,8 +62,6 @@ const User = () => {
   // Handle search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    // Reset selected users when search term changes
-    setSelectedUsers([]);
   };
 
   const fetchPatientData = async () => {
@@ -515,23 +507,9 @@ const User = () => {
           </div>
         </Modal>
         <div>
-          {/* {showModalDelete && (
-            <DeleteUser
-              setShowModalDelete={setShowModalDelete}
-              handleGetAllUser={() => dispatch(fetchAllUsers())}
-              deleteUserId={deleteUserId}
-            />
-          )} */}
           {showModalCreate && (
             <CreateUser setShowModalCreate={setShowModalCreate} handleGetAllUser={fetchPatientData} />
           )}
-          {/* {showModalEdit && (
-            <EditUser
-              setShowModalEdit={setShowModalEdit}
-              handleGetAllUser={fetchPatientData}
-              user={editUser}
-            />
-          )} */}
         </div>
       </div>
     </div>
