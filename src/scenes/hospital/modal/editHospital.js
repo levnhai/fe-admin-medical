@@ -27,7 +27,6 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
   const dispatch = useDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [wardOptions, setWardOptions] = useState([]);
@@ -49,10 +48,9 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
   };
 
   const handleEditHospital = async (hospital) => {
-    if (isSubmitting) return; 
+    if (isSubmitting) return;
     try {
       setIsSubmitting(true);
-      console.log('check hospital', hospital);
       const response = await dispatch(
         fetchEditHospital({
           hospitalId: editHospital?._id,
@@ -70,7 +68,7 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
     } catch (error) {
       console.error('Submit error:', error);
       toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
-    }finally {
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -124,7 +122,7 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
         hospitalType: editHospital?.hospitalType || '',
         image: editHospital?.image || '',
         specialtyId: editHospital.specialty?._id || '',
-        renewalStatus: editHospital?.renewalStatus || '',
+        renewalStatus: editHospital?.renewalStatus || false,
         province: {
           id: editHospital?.address?.[0]?.provinceId || '',
           name: editHospital?.address?.[0]?.provinceName || '',
@@ -335,7 +333,7 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                             [
                               { value: 'true', label: 'Đã gia hạn' },
                               { value: 'false', label: 'Chưa gia hạn' },
-                            ].find((option) => option.value === editHospital?.renewalStatus)
+                            ].find((option) => option.value === String(editHospital?.renewalStatus))
                           }
                           onChange={(selectedOption) => field.onChange(selectedOption.value)}
                           styles={{
@@ -629,8 +627,8 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                 Đang xử lý...
               </div>
             ) : (
-            'Sửa hồ sơ'
-          )}
+              'Sửa hồ sơ'
+            )}
           </Button>
         </div>
       </div>

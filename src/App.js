@@ -9,6 +9,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import ProtectedRoute from './utils/protectedRoute';
 import { io } from 'socket.io-client';
 import { formatDate } from './utils/time';
+import 'react-toastify/dist/ReactToastify.css';
 
 const socket = io('http://localhost:8080', { transports: ['websocket'] });
 socket.on('connect', () => console.log(' Kết nối thành công với Server'));
