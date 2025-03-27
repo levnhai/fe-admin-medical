@@ -335,7 +335,7 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                             [
                               { value: 'true', label: 'Đã gia hạn' },
                               { value: 'false', label: 'Chưa gia hạn' },
-                            ].find((option) => option.value === editHospital?.renewalStatus)
+                            ].find((option) => option.value === String(editHospital?.renewalStatus))
                           }
                           onChange={(selectedOption) => field.onChange(selectedOption.value)}
                           styles={{

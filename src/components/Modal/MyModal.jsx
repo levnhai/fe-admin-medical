@@ -104,9 +104,7 @@ const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, ti
             display: 'flex',
             alignItems: 'center',
             mb: 2,
-            '&:hover': {
-              bgcolor: 'primary.dark',
-            },
+            
           }}
         >
           <Typography

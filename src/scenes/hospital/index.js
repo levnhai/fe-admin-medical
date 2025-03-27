@@ -152,6 +152,7 @@ const Hospital = () => {
   };
 
   const submitForm = async (data) => {
+    console.log('check data',data)
     const {
       email,
       fullName,
@@ -166,6 +167,8 @@ const Hospital = () => {
       ward,
       monthlyFee,
       renewalStatus,
+      description
+
     } = data;
     const formData = {
       email,
@@ -176,6 +179,7 @@ const Hospital = () => {
       reEnterPassword,
       monthlyFee,
       street,
+      description,
       renewalStatus: renewalStatus?.value,
       districtId: district?.value,
       districtName: district?.label,
@@ -465,7 +469,7 @@ const Hospital = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 px-8">
                     <div className="col-span-1">
                       <div className="flex">
-                        <h2 className="font-semibold text-black">Họ và tên (Có dấu)</h2>
+                        <h2 className="font-semibold text-black">Tên bệnh viện (Có dấu)</h2>
                         <span className="text-rose-600 font-bold">*</span>
                       </div>
                       <div className="mt-2">
@@ -474,8 +478,8 @@ const Hospital = () => {
                           name="fullName"
                           id="fullName"
                           className={cx('customInput', 'text-black')}
-                          placeholder="Họ và tên ..."
-                          {...register('fullName', { required: 'Vui lòng nhập họ và tên!' })}
+                          placeholder="Tên bệnh viện ..."
+                          {...register('fullName', { required: 'Vui lòng nhập Tên bệnh viện!' })}
                         />
 
                         {errors.fullName && (
