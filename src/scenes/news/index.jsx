@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, ThemeProvider, createTheme } from '@mui/material';
 import { useTheme, Button, ButtonGroup} from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
@@ -35,6 +35,12 @@ const News = () => {
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
+
+  const lightTheme = createTheme({
+    palette: {
+      mode: 'light',
+    },
+  });
  
   const [openModal, setOpenModal] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
@@ -91,20 +97,20 @@ const News = () => {
   };
 
   const newsFields = [
-    { name: 'title', label: 'title', type: 'text', grid: 6 },
-    { name: 'subtitle', label: 'subtitle', type: 'text', grid: 6 },
+    { name: 'title', label: 'Tiêu đề', type: 'text', grid: 6 },
+    { name: 'subtitle', label: 'Tiêu đề phụ', type: 'text', grid: 6 },
     {
       name: 'status',
-      label: 'Status',
+      label: 'Trạng thái',
       type: 'option',
       grid: 2,
       options: getStatusOptions(),
       required: true,
     },
-    { name: 'tags', label: 'tags', type: 'text', grid: 4 },
+    { name: 'tags', label: 'Tags', type: 'text', grid: 4 },
     {
       name: 'category',
-      label: 'category',
+      label: 'Thể loại',
       type: 'option',
       options:
       categories
@@ -115,7 +121,7 @@ const News = () => {
         })) || [],
     grid: 3,
     },
-    { name: 'views', label: 'views', type: 'number', grid: 3 },
+    { name: 'views', label: 'Lượt xem', type: 'number', grid: 3 },
     { name: 'imageUrl', label: 'imageUrl', type: 'file', grid: 4 },
     { name: 'content', label: 'content', type: 'textarea', grid: 12 },
   ];
@@ -451,15 +457,17 @@ const News = () => {
         {isLoading ? (
           <LoadingSkeleton columns={5} />
         ) : (
-          <MyModal
-            open={openModal}
-            handleClose={handleClose}
-            mode={modalMode}
-            onSubmit={handleSubmit}
-            data={selectedData}
-            title={title}
-            fields={newsFields}
-          />
+          <ThemeProvider theme={lightTheme}>
+            <MyModal
+              open={openModal}
+              handleClose={handleClose}
+              mode={modalMode}
+              onSubmit={handleSubmit}
+              data={selectedData}
+              title={title}
+              fields={newsFields}
+            />
+          </ThemeProvider>
         )}
         <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa tin tức">
           <div>

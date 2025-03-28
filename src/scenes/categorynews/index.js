@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, ThemeProvider, createTheme } from '@mui/material';
 import { useTheme, Button, ButtonGroup } from '@mui/material';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
@@ -40,6 +40,12 @@ const CategoryNews = () => {
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
+
+  const lightTheme = createTheme({
+    palette: {
+      mode: 'light',
+    },
+  });
 
   const [openModal, setOpenModal] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
@@ -300,18 +306,21 @@ const CategoryNews = () => {
                 components={{ Toolbar: GridToolbar }}
               />
             )}
-        
-
-          <MyModal
-            open={openModal}
-            handleClose={handleClose}
-            mode={modalMode}
-            onSubmit={handleSubmit}
-            data={selectedData}
-            title={title}
-            fields={categoryNewsFields}
-          />
-
+          {isLoading ? (
+              <LoadingSkeleton columns={5} />
+            ) : (
+              <ThemeProvider theme={lightTheme}>
+                <MyModal
+                  open={openModal}
+                  handleClose={handleClose}
+                  mode={modalMode}
+                  onSubmit={handleSubmit}
+                  data={selectedData}
+                  title={title}
+                  fields={categoryNewsFields}
+                />
+              </ThemeProvider>
+            )}
         <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa thể loại">
           <div>
             <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa thể loại này không ?</p>

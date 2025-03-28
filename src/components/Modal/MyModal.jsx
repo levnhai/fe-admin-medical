@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Button, Typography, Grid } from '@mui/material';
 import renderField from './renderField';
+import { BiLoaderAlt } from 'react-icons/bi';
+import classNames from 'classnames/bind';
+import styles from './modal.module.scss';
 
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '90%',
-  maxWidth: 900,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 4,
-};
+const cx = classNames.bind(styles);
 
-const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, title }) => {
+const MyModal = ({ 
+  open, 
+  handleClose, 
+  mode, 
+  fields, 
+  onSubmit, 
+  data, 
+  title,
+  isSubmitting = false 
+}) => {
   const [formData, setFormData] = useState({});
   const [imagePreview, setImagePreview] = useState(null);
-  //const [imageModalOpen, setImageModalOpen] = useState(false);
 
   // Reset form data whenever the modal opens or data changes
   useEffect(() => {
@@ -58,55 +58,44 @@ const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, ti
 
   const handleSubmit = () => {
     onSubmit(formData);
-    handleClose();
-  };
-  // const handleDelete = () => {
-  //   onDelete();
-  //   handleClose();
-  // };
-  const handleModalClose = () => {
-    // Reset form data when closing
-    setFormData({});
-    handleClose();
   };
 
-  // const handleImageClick = () => {
-  //   setImageModalOpen(true);
-  // };
-
-  // const handleCloseImageModal = () => {
-  //   setImageModalOpen(false);
-  // };
-
-  // const handleImagePreview = (previewUrl) => {
-  //   setImagePreview(previewUrl);
-  //   setImageModalOpen(true); 
-  // };
-  
-  // useEffect(() => {
-  //   console.log('Modal open?', imageModalOpen);
-  // }, [imageModalOpen]); // Theo dõi sự thay đổi của imageModalOpen
   return (
-    <>
     <Modal 
       open={open} 
-      onClose={handleModalClose} 
+      onClose={handleClose} 
       aria-labelledby="modal-title" 
       aria-describedby="modal-description"
+      sx={{
+        '& .MuiModal-backdrop': {
+          backgroundColor: 'rgba(0, 0, 0, 0.5)'
+        }
+      }}
     >
-      <Box sx={style}>
+      <Box 
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90%',
+          maxWidth: 800, // Increased from 500 to 800
+          bgcolor: 'white',
+          borderRadius: 2,
+          overflow: 'hidden',
+          boxShadow: 'none',
+          outline: 'none'
+        }}
+        className={cx('content')}
+      >
         <Box
+          className={cx('header')}
           sx={{
             width: '100%',
-            height: '60px',
-            borderRadius: 1,
-            bgcolor: 'primary.main',
             display: 'flex',
             alignItems: 'center',
-            mb: 2,
-            '&:hover': {
-              bgcolor: 'primary.dark',
-            },
+            justifyContent: 'space-between',
+            p: 2
           }}
         >
           <Typography
@@ -114,92 +103,94 @@ const MyModal = ({ open, handleClose, mode, fields, onSubmit, onDelete, data, ti
             variant="h6"
             component="h1"
             sx={{
-              fontWeight: 'bold',
-              pl: 2,
+              fontWeight: 600,
               color: 'white',
+              fontSize: 24
             }}
           >
             {title}
           </Typography>
+          <button 
+            onClick={handleClose} 
+            className={cx('closeBtn')}
+          >
+            &times;
+          </button>
         </Box>
 
-        <Grid container spacing={2}>
-          {fields.map((field) => (
-            <Grid item xs={12} sm={field.grid || 6} key={field.name}>
-              {renderField(
-                field, 
-                formData, 
-                handleChange, 
-                false, 
-                [imagePreview, setImagePreview],
-                {
-                  //onImagePreview: handleImagePreview
-                  onImagePreview: setImagePreview
-                }
-              )}
-            </Grid>
-          ))}
-        </Grid>
+        <Box 
+          sx={{ 
+            maxHeight: '70vh', 
+            overflowY: 'auto', 
+            px: 3, 
+            py: 2 
+          }}
+        >
+          <Grid container spacing={2}>
+            {fields.map((field) => (
+              <Grid item xs={12} sm={field.grid || 6} key={field.name}>
+                {renderField(
+                  field, 
+                  formData, 
+                  handleChange, 
+                  false, 
+                  [imagePreview, setImagePreview],
+                  {
+                    onImagePreview: setImagePreview
+                  }
+                )}
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
 
-        <Box mt={2} display="flex" justifyContent="flex-end">
+        <Box 
+          sx={{ 
+            borderTop: '1px solid #e0e0e0', 
+            p: 2, 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            gap: 2 
+          }}
+        >
           <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleSubmit} 
-            sx={{ mr: 1 }}
-          >
-            {mode === 'create' ? 'Create' : 'Save'}
-          </Button>
-          {mode === 'edit' && (
-            <Button 
-            variant="contained" 
-            color="error" 
+            variant="outlined"
+            color="secondary"
             onClick={handleClose}
+            sx={{ 
+              color: '#2c3e50', 
+              borderColor: 'gray', 
+              '&:hover': { 
+                backgroundColor: 'rgba(0,0,0,0.05)' 
+              } 
+            }}
           >
-            CLOSE
+            Đóng
           </Button>
-          )}
+          <Button 
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            sx={{ 
+              background: 'linear-gradient(36deg, var(--blue-color)', 
+              '&:hover': { 
+                background: 'linear-gradient(36deg, var(--blue-color), #00e0ff)' 
+              } 
+            }}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <BiLoaderAlt className="animate-spin mr-2" />
+                Đang xử lý...
+              </div>
+            ) : (
+              mode === 'create' ? 'Thêm mới' : 'Lưu'
+            )}
+          </Button>
         </Box>
       </Box>
     </Modal>
-    {/* <Dialog open={imageModalOpen} onClose={handleCloseImageModal} maxWidth="md" fullWidth>
-  <DialogTitle>
-    Image Preview
-    <IconButton
-      aria-label="close"
-      onClick={handleCloseImageModal}
-      sx={{
-        position: 'absolute',
-        right: 8,
-        top: 8,
-        color: (theme) => theme.palette.grey[500],
-      }}
-    >
-      <CloseIcon />
-    </IconButton>
-  </DialogTitle>
-  <DialogContent sx={{ position: 'relative', paddingTop: '20px' }}>
-    {imagePreview && (
-      console.log('hinh ne', imagePreview), // Kiểm tra giá trị của imagePreview
-      <img
-        src={imagePreview}
-        alt="Preview"
-        style={{
-          position: 'relative',
-          top: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          maxWidth: '100%',
-          maxHeight: '70vh',
-          objectFit: 'contain',
-          zIndex: 10,
-          display: 'block',
-        }}
-      />
-    )}
-  </DialogContent>
-</Dialog> */}
-  </>
   );
 };
 
