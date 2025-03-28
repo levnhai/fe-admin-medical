@@ -6,9 +6,12 @@ import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { BiLoaderAlt } from 'react-icons/bi';
+import Lightbox from 'react-image-lightbox';
+import { Buffer } from 'buffer';
 
 import Button from '~/components/Button';
 import Modal from '~/components/Modal';
+import { ConvertBase64 } from '~/utils/common';
 import { fetchUpdateDoctor } from '~/redux/doctor/doctorSlice';
 import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
 
@@ -26,17 +29,36 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
   } = useForm();
   const dispatch = useDispatch();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewImageURL, setpreViewImageURL] = useState(Buffer.from(editDoctor.image, 'base64').toString('binary'));
+  const [urlImage, setUrlImage] = useState();
+  const [isOpenImage, setIsOpenImage] = useState();
 
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [wardOptions, setWardOptions] = useState([]);
 
-
   const [selectedProvince, setSelectedProvince] = useState(editDoctor?.address[0]?.provinceId || null);
   const [selectedDistrict, setSelectedDistrict] = useState(editDoctor?.address[0]?.districtId || null);
 
-  console.log('check editDoctor', editDoctor);
-  console.log('check provinceOptions', provinceOptions);
+  const handleOnChangeImage = async (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      return;
+    }
+    let file = e.target.files[0];
+    console.log('check file ', file);
+    if (file) {
+      const objectURL = URL.createObjectURL(file);
+      console.log('check objectURL', objectURL);
+      setpreViewImageURL(objectURL);
+    }
+
+    const urlBase64 = await ConvertBase64(file);
+    setUrlImage(urlBase64);
+  };
+  const handleOpenImage = () => {
+    if (!previewImageURL) return;
+    setIsOpenImage(true);
+  };
 
   // Khi chọn tỉnh/thành phố
   const handleProvinceChange = (selectedOption) => {
@@ -52,15 +74,15 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
   };
 
   const handleEditDoctor = async (doctor) => {
-    if (isSubmitting) return; 
-    console.log('thah công', doctor);
+    if (isSubmitting) return;
 
     try {
+      const formData = { ...doctor, image: urlImage };
       setIsSubmitting(true);
       const response = await dispatch(
         fetchUpdateDoctor({
           doctorId: editDoctor?._id,
-          formData: doctor,
+          formData: formData,
         }),
       );
       const result = unwrapResult(response);
@@ -74,7 +96,7 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
     } catch (error) {
       console.error('Submit error:', error);
       toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
-    }finally {
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -583,38 +605,34 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
                 </div>
               </div>
             </div>
-            {/* <div className="mt-4 mb-10 px-8">
-            <div>
-              <label className={cx('label-uploadImage')} htmlFor="upload-image">
-                Upload image
-              </label>
-              <input
-                className={cx('customInput', 'text-black')}
-                id="upload-image"
-                accept="image/*"
-                onChange={handleOnChangeImage}
-                type="file"
-                name="image"
-                hidden
-              ></input>
-              {previewImageURL ? (
-                <div
-                  className={cx('upload-image')}
-                  onClick={handleOpenImage}
-                  style={{ backgroundImage: `url(${previewImageURL})` }}
-                ></div>
-              ) : (
-                ''
-              )}
-              {isOpenImage && (
-                <Lightbox
-                  className="mb-10"
-                  mainSrc={previewImageURL}
-                  onCloseRequest={() => setIsOpenImage(false)}
-                />
-              )}
+            <div className="mt-4 mb-10 px-8">
+              <div>
+                <label className={cx('label-uploadImage')} htmlFor="upload-image">
+                  Upload image
+                </label>
+                <input
+                  className={cx('customInput', 'text-black')}
+                  id="upload-image"
+                  accept="image/*"
+                  onChange={handleOnChangeImage}
+                  type="file"
+                  name="image"
+                  hidden
+                ></input>
+                {previewImageURL ? (
+                  <div
+                    className={cx('upload-image')}
+                    onClick={handleOpenImage}
+                    style={{ backgroundImage: `url(${previewImageURL})` }}
+                  ></div>
+                ) : (
+                  ''
+                )}
+                {isOpenImage && (
+                  <Lightbox className="mb-10" mainSrc={previewImageURL} onCloseRequest={() => setIsOpenImage(false)} />
+                )}
+              </div>
             </div>
-          </div> */}
           </form>
         </div>
         <div className="flex justify-end border-t py-2 pr-6 gap-4 pt-2">
@@ -635,8 +653,8 @@ function EditDoctor({ editDoctor, specialtyOptions, setShowModalEdit, fetchDocto
                 Đang xử lý...
               </div>
             ) : (
-            'Sửa hồ sơ'
-          )}
+              'Sửa hồ sơ'
+            )}
           </Button>
         </div>
       </div>

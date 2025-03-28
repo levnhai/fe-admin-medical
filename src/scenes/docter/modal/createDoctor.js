@@ -2,44 +2,48 @@ import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import classNames from 'classnames/bind';
 import Select from 'react-select';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
 import Lightbox from 'react-image-lightbox';
-import { Buffer } from 'buffer';
 
+//icon
 import { BiLoaderAlt } from 'react-icons/bi';
+import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 import Button from '~/components/Button';
 import Modal from '~/components/Modal';
 import { ConvertBase64 } from '~/utils/common';
-import { fetchEditHospital } from '~/redux/hospital/hospitalSlice';
+import { fetchCreateDoctor } from '~/redux/doctor/doctorSlice';
 import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
 
-import styles from '../hospital.module.scss';
+import styles from '../doctor.module.scss';
 const cx = classNames.bind(styles);
 
-function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
+function CreateDoctor({ editDoctor, specialtyOptions, setShowModalCreate, fetchDoctorData }) {
   const {
     register,
     control,
     reset,
     handleSubmit,
     formState: { errors },
-    setValue,
   } = useForm();
   const dispatch = useDispatch();
+  const userLogin = useSelector((state) => state.auth.user?.payload);
+  const userId = userLogin?.userData?._id;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [previewImageURL, setpreViewImageURL] = useState(Buffer.from(editHospital.image, 'base64').toString('binary'));
+  const [previewImageURL, setpreViewImageURL] = useState();
   const [urlImage, setUrlImage] = useState();
   const [isOpenImage, setIsOpenImage] = useState();
+  const [showHidePassword, setShowHidePassword] = useState(true);
+  const [confirmPassword, setConfirmPassword] = useState(true);
 
   const [provinceOptions, setProvinceOptions] = useState([]);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [wardOptions, setWardOptions] = useState([]);
 
-  const [selectedProvince, setSelectedProvince] = useState(editHospital?.address[0]?.provinceId || null);
-  const [selectedDistrict, setSelectedDistrict] = useState(editHospital?.address[0]?.districtId || null);
+  const [selectedProvince, setSelectedProvince] = useState(editDoctor?.address[0]?.provinceId || null);
+  const [selectedDistrict, setSelectedDistrict] = useState(editDoctor?.address[0]?.districtId || null);
 
   const handleOnChangeImage = async (e) => {
     if (!e.target.files || e.target.files.length === 0) {
@@ -74,28 +78,55 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
     setWardOptions([]);
   };
 
-  const handleEditHospital = async (hospital) => {
+  const submitForm = async (data) => {
+    const {
+      email,
+      fullName,
+      district,
+      gender,
+      password,
+      phoneNumber,
+      positionId,
+      province,
+      reEnterPassword,
+      specialtyId,
+      street,
+      ward,
+    } = data;
+    const formData = {
+      email,
+      fullName,
+      gender: gender?.value,
+      password,
+      phoneNumber,
+      reEnterPassword,
+      street,
+      districtId: district?.value,
+      districtName: district?.label,
+      positionId: positionId?.value,
+      provinceId: province?.value,
+      provinceName: province?.label,
+      wardId: ward?.value,
+      wardName: ward?.label,
+      image: urlImage,
+      hospitalId: userId,
+      specialtyId: specialtyId?.value,
+    };
     if (isSubmitting) return;
     try {
-      const formData = { ...hospital, image: urlImage };
       setIsSubmitting(true);
-      const response = await dispatch(
-        fetchEditHospital({
-          hospitalId: editHospital?._id,
-          formData,
-        }),
-      );
-      const result = unwrapResult(response);
+      const response = await dispatch(fetchCreateDoctor(formData));
+      const result = await unwrapResult(response);
       if (result?.status) {
-        setShowModalEdit(false);
         toast.success(result?.message);
-        fetchHospitalData();
+        setShowModalCreate(false);
+        fetchDoctorData();
       } else {
         toast.warning(result?.message);
+        setShowModalCreate(true);
       }
     } catch (error) {
-      console.error('Submit error:', error);
-      toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật');
+      return error;
     } finally {
       setIsSubmitting(false);
     }
@@ -145,32 +176,31 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
   }, [selectedDistrict, dispatch]);
 
   useEffect(() => {
-    if (editHospital) {
+    if (editDoctor) {
       reset({
-        hospitalType: editHospital?.hospitalType || '',
-        image: editHospital?.image || '',
-        specialtyId: editHospital.specialty?._id || '',
-        renewalStatus: editHospital?.renewalStatus || false,
+        gender: editDoctor.gender || '',
+        specialtyId: editDoctor.specialty?._id || '',
+        positionId: editDoctor.positionId || '',
         province: {
-          id: editHospital?.address?.[0]?.provinceId || '',
-          name: editHospital?.address?.[0]?.provinceName || '',
+          id: editDoctor?.address?.[0]?.provinceId || '',
+          name: editDoctor?.address?.[0]?.provinceName || '',
         },
         district: {
-          id: editHospital?.address?.[0]?.districtId || '',
-          name: editHospital?.address?.[0]?.districtName || '',
+          id: editDoctor?.address?.[0]?.districtId || '',
+          name: editDoctor?.address?.[0]?.districtName || '',
         },
         ward: {
-          id: editHospital?.address?.[0]?.wardId || '',
-          name: editHospital?.address?.[0]?.wardName || '',
+          id: editDoctor?.address?.[0]?.wardId || '',
+          name: editDoctor?.address?.[0]?.wardName || '',
         },
       });
     }
-  }, [editHospital, reset]);
+  }, [editDoctor, reset]);
   return (
-    <Modal isOpen={true} onClose={() => setShowModalEdit(false)} title="Sửa thông tin bệnh viện">
+    <Modal isOpen={true} onClose={() => setShowModalCreate(false)} title="Thêm bác sĩ">
       <div>
         <div className="max-h-80 overflow-auto">
-          <form onSubmit={handleSubmit(handleEditHospital)}>
+          <form onSubmit={handleSubmit(submitForm)}>
             <div className="my-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 px-8">
                 <div className="col-span-1">
@@ -183,7 +213,6 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                       type="text"
                       name="fullName"
                       id="fullName"
-                      defaultValue={editHospital?.fullName}
                       className={cx('customInput', 'text-black')}
                       placeholder="Họ và tên ..."
                       {...register('fullName', { required: 'Vui lòng nhập họ và tên!' })}
@@ -206,12 +235,9 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                       type="text"
                       name="email"
                       id="email"
-                      defaultValue={editHospital?.accountId?.email}
                       className={cx('customInput', 'text-black')}
                       placeholder="Email ..."
-                      {...register('email', {
-                        required: 'Vui lòng nhập email',
-                      })}
+                      {...register('email', { required: 'Vui lòng nhập email' })}
                     />
 
                     {errors.email && (
@@ -233,7 +259,6 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                       type="text"
                       name="phoneNumber"
                       id="phoneNumber"
-                      defaultValue={editHospital?.accountId?.phoneNumber}
                       className={cx('customInput', 'text-black')}
                       placeholder="Số điện thoại ..."
                       {...register('phoneNumber', { required: 'Vui lòng nhập số điện thoại' })}
@@ -248,122 +273,134 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                 </div>
                 <div className="col-span-1">
                   <div className="flex">
-                    <h2 className="font-semibold text-black">Loại bệnh viện</h2>
-                    <span className="text-rose-600 font-bold">*</span>
-                  </div>
-
-                  <Controller
-                    name="hospitalType"
-                    control={control}
-                    rules={{ required: 'Vui lòng chọn loại bệnh viện' }}
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        value={
-                          [
-                            { value: 'benh-vien-cong', label: 'Bệnh viện công' },
-                            { value: 'benh-vien-tu', label: 'Bệnh viện tư' },
-                            { value: 'phong-kham', label: 'Phòng khám' },
-                            { value: 'phong-mach', label: 'Phòng mạch' },
-                            { value: 'xet-nghiem', label: 'Xét nghiệm' },
-                          ].find((option) => option.value === field.value) ||
-                          [
-                            { value: 'benh-vien-cong', label: 'Bệnh viện công' },
-                            { value: 'benh-vien-tu', label: 'Bệnh viện tư' },
-                            { value: 'phong-kham', label: 'Phòng khám' },
-                            { value: 'phong-mach', label: 'Phòng mạch' },
-                            { value: 'xet-nghiem', label: 'Xét nghiệm' },
-                          ].find((option) => option.value === editHospital?.hospitalType)
-                        }
-                        onChange={(selectedOption) => {
-                          field.onChange(selectedOption.value);
-                          setValue('hospitalType', selectedOption.value);
-                        }}
-                        options={[
-                          { value: 'benh-vien-cong', label: 'Bệnh viện công' },
-                          { value: 'benh-vien-tu', label: 'Bệnh viện tư' },
-                          { value: 'phong-kham', label: 'Phòng khám' },
-                          { value: 'phong-mach', label: 'Phòng mạch' },
-                          { value: 'xet-nghiem', label: 'Xét nghiệm' },
-                        ]}
-                        styles={{
-                          control: (baseStyles, state) => ({
-                            ...baseStyles,
-                            borderColor: state.isFocused ? '#999' : '#999',
-                            height: '48px',
-                            boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                          }),
-                          option: (base, { isFocused, isSelected }) => ({
-                            ...base,
-                            backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                            color: isSelected ? 'white' : 'black',
-                            padding: '10px',
-                            cursor: 'pointer',
-                          }),
-                        }}
-                        placeholder="Loại bệnh viện ..."
-                      />
-                    )}
-                  />
-
-                  {errors.hospitalType && (
-                    <div>
-                      <span className="text-danger text-red-500 text-sm">{errors.hospitalType.message}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                <div className="col-span-1">
-                  <div className="flex">
-                    <h2 className="font-semibold text-black">Phí dịch vụ</h2>
-                    <span className="text-rose-600 font-bold">*</span>
-                  </div>
-
-                  <div className="mt-2">
-                    <input
-                      type="text"
-                      name="monthlyFee"
-                      id="monthlyFee"
-                      defaultValue={editHospital?.monthlyFee}
-                      className={cx('customInput', 'text-black')}
-                      placeholder="Phí dịch vụ ..."
-                      {...register('monthlyFee', { required: 'Vui lòng nhập phí dịch vụ' })}
-                    />
-
-                    {errors.monthlyFee && (
-                      <div>
-                        <span className="text-danger text-red-500 text-sm">{errors.monthlyFee.message}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="col-span-1">
-                  <div className="flex">
-                    <h2 className="font-semibold text-black">Trạng thái gia hạn</h2>
+                    <h2 className="font-semibold text-black">Giới tính</h2>
                     <span className="text-rose-600 font-bold">*</span>
                   </div>
 
                   <div className="mt-2">
                     <Controller
-                      name="renewalStatus"
+                      name="gender"
                       as={Select}
                       control={control}
                       rules={{ required: 'required' }}
                       render={({ field }) => (
                         <Select
                           {...field}
-                          value={
-                            [
-                              { value: 'true', label: 'Đã gia hạn' },
-                              { value: 'false', label: 'Chưa gia hạn' },
-                            ].find((option) => option.value === field.value) ||
-                            [
-                              { value: 'true', label: 'Đã gia hạn' },
-                              { value: 'false', label: 'Chưa gia hạn' },
-                            ].find((option) => option.value === String(editHospital?.renewalStatus))
-                          }
-                          onChange={(selectedOption) => field.onChange(selectedOption.value)}
+                          styles={{
+                            control: (baseStyles, state) => ({
+                              ...baseStyles,
+                              borderColor: state.isFocused ? '#999' : '#999',
+                              height: '48px',
+                              color: 'red',
+                              boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
+                            }),
+                            option: (base, { isFocused, isSelected }) => ({
+                              ...base,
+                              backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
+                              color: isSelected ? 'white' : 'black',
+                              padding: '10px',
+                              cursor: 'pointer',
+                            }),
+                          }}
+                          options={[
+                            { value: 'male', label: 'Nam' },
+                            { value: 'female', label: 'Nữ' },
+                            { value: 'other', label: 'Khác' },
+                          ]}
+                          placeholder="Giới tính ..."
+                        />
+                      )}
+                    />
+
+                    {errors.gender && errors.gender.type === 'required' ? (
+                      <div>
+                        <span className="text-danger text-red-500 text-sm">{'Chọn giới tính'}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 px-8 mt-4">
+                <div className="col-span-1">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Mật khẩu</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="relative mt-2">
+                    <input
+                      type={showHidePassword ? 'password' : 'text'}
+                      name="password"
+                      id="password"
+                      className={cx('customInput', 'text-black')}
+                      placeholder="Nhập mật khẩu..."
+                      {...register('password', { required: 'Vui lòng nhập mật khẩu' })}
+                    />
+
+                    <span
+                      onMouseDown={() => setShowHidePassword(!showHidePassword)}
+                      onMouseUp={() => setShowHidePassword(true)}
+                      onMouseLeave={() => setShowHidePassword(true)}
+                      className="absolute cursor-pointer text-xl top-1/2 right-3 transform -translate-y-1/2 text-black"
+                    >
+                      {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                    </span>
+
+                    {errors.password && (
+                      <div>
+                        <span className="text-danger text-red-500 text-sm">{errors.password.message}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="col-span-1">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Nhập lại mật khẩu</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="relative mt-2">
+                    <input
+                      type={confirmPassword ? 'password' : 'text'}
+                      name="reEnterPassword"
+                      id="reEnterPassword"
+                      className={cx('customInput', 'text-black')}
+                      placeholder="xác thực mật khẩu ..."
+                      {...register('reEnterPassword', { required: 'Vui lòng nhập lại mật khẩu' })}
+                    />
+                    <span
+                      onMouseDown={() => setConfirmPassword(!confirmPassword)}
+                      onMouseUp={() => setConfirmPassword(true)}
+                      onMouseLeave={() => setConfirmPassword(true)}
+                      className="absolute cursor-pointer text-xl top-1/2 right-3 transform -translate-y-1/2 text-black"
+                    >
+                      {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+                    </span>
+
+                    {errors.reEnterPassword && (
+                      <div>
+                        <span className="text-danger text-red-500 text-sm">{errors.reEnterPassword.message}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
+                <div className="col-span-1">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Trình độ</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+
+                  <div className="mt-2">
+                    <Controller
+                      name="positionId"
+                      as={Select}
+                      control={control}
+                      rules={{ required: 'required' }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
                           styles={{
                             control: (baseStyles, state) => ({
                               ...baseStyles,
@@ -382,55 +419,43 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                             }),
                           }}
                           options={[
-                            { value: 'true', label: 'Đã gia hạn' },
-                            { value: 'false', label: 'Chưa gia hạn' },
+                            { value: 'doctor', label: 'Bác sĩ' },
+                            { value: 'mater', label: 'Thạc sĩ' },
+                            { value: 'associate professor', label: 'PHó giáo sư' },
+                            { value: 'professor', label: 'Giáo sư' },
                           ]}
-                          placeholder="Trạng thái gia hạn ..."
+                          placeholder="Trình độ ..."
                         />
                       )}
                     />
 
-                    {errors.renewalStatus && errors.renewalStatus.type === 'required' ? (
+                    {errors.positionId && errors.positionId.type === 'required' ? (
                       <div>
-                        <span className="text-danger text-red-500 text-sm">{'Chọn trạng thái gia hạn'}</span>
+                        <span className="text-danger text-red-500 text-sm">{'Chọn trình độ'}</span>
                       </div>
                     ) : null}
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
                 <div className="col-span-1">
                   <div className="flex">
-                    <h2 className="font-semibold text-black">Tỉnh thành</h2>
+                    <h2 className="font-semibold text-black">Chuyên khoa</h2>
                     <span className="text-rose-600 font-bold">*</span>
                   </div>
 
                   <div className="mt-2">
                     <Controller
-                      name="province"
+                      name="specialtyId"
                       as={Select}
                       control={control}
                       rules={{ required: 'required' }}
                       render={({ field }) => (
                         <Select
                           {...field}
-                          value={
-                            (provinceOptions?.length > 0 &&
-                              provinceOptions.find((option) => option.value === field.value)) ||
-                            (provinceOptions?.length > 0 &&
-                              provinceOptions.find((option) => option.value === editHospital?.address[0]?.provinceId))
-                          }
-                          onChange={(selectedOption) => {
-                            field.onChange(selectedOption);
-                            handleProvinceChange(selectedOption);
-                          }}
                           styles={{
                             control: (baseStyles, state) => ({
                               ...baseStyles,
                               borderColor: state.isFocused ? '#999' : '#999',
                               height: '48px',
-                              color: 'red',
-
                               boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
                             }),
                             option: (base, { isFocused, isSelected }) => ({
@@ -441,22 +466,72 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                               cursor: 'pointer',
                             }),
                           }}
-                          options={[{ value: '', label: 'Tỉnh thành', isDisabled: true }, ...provinceOptions]}
-                          placeholder="Tỉnh thành..."
+                          options={[{ value: '', label: 'Chuyên khoa', isDisabled: true }, ...specialtyOptions]}
+                          placeholder="Chuyên khoa ..."
+                        />
+                      )}
+                    />
+
+                    {errors.specialtyId && errors.specialtyId.type === 'required' ? (
+                      <div>
+                        <span className="text-danger text-red-500 text-sm">{'Chọn chuyên khoa'}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
+                <div className="col-span-1">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Tỉnh / Thành</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="mt-2">
+                    <Controller
+                      name="province"
+                      as={Select}
+                      control={control}
+                      rules={{ required: 'required' }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          styles={{
+                            control: (baseStyles, state) => ({
+                              ...baseStyles,
+                              borderColor: state.isFocused ? '#999' : '#999',
+                              height: '48px',
+                              color: 'black',
+                              boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
+                            }),
+                            option: (base, { isFocused, isSelected }) => ({
+                              ...base,
+                              backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
+                              color: isSelected ? 'white' : 'black',
+                              padding: '10px',
+                              cursor: 'pointer',
+                            }),
+                          }}
+                          placeholder="Chọn tỉnh / thành...."
+                          onChange={(selectedOption) => {
+                            field.onChange(selectedOption);
+                            handleProvinceChange(selectedOption);
+                          }}
+                          options={[{ value: '', label: 'Tỉnh / thành', isDisabled: true }, ...provinceOptions]}
                         />
                       )}
                     />
 
                     {errors.province && errors.province.type === 'required' ? (
                       <div>
-                        <span className="text-danger text-red-500 text-sm">{'Chọn tỉnh thành'}</span>
+                        <span className="text-danger text-red-500 text-sm">{'Chọn tỉnh / thành'}</span>
                       </div>
                     ) : null}
                   </div>
                 </div>
                 <div className="col-span-1">
                   <div className="flex">
-                    <h2 className="font-semibold text-black">Quận huyện</h2>
+                    <h2 className="font-semibold text-black">Quận / Huyện</h2>
                     <span className="text-rose-600 font-bold">*</span>
                   </div>
 
@@ -469,23 +544,11 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                       render={({ field }) => (
                         <Select
                           {...field}
-                          value={
-                            (districtOptions?.length > 0 &&
-                              districtOptions.find((option) => option.value === field.value)) ||
-                            (districtOptions?.length > 0 &&
-                              districtOptions.find((option) => option.value === editHospital?.address[0]?.districtId))
-                          }
-                          onChange={(selectedOption) => {
-                            field.onChange(selectedOption);
-                            handleDistrictChange(selectedOption);
-                          }}
                           styles={{
                             control: (baseStyles, state) => ({
                               ...baseStyles,
                               borderColor: state.isFocused ? '#999' : '#999',
                               height: '48px',
-                              color: 'red',
-
                               boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
                             }),
                             option: (base, { isFocused, isSelected }) => ({
@@ -496,20 +559,25 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                               cursor: 'pointer',
                             }),
                           }}
-                          options={[{ value: '', label: 'Quận huyện', isDisabled: true }, ...districtOptions]}
+                          onChange={(selectedOption) => {
+                            field.onChange(selectedOption);
+                            handleDistrictChange(selectedOption);
+                          }}
                           placeholder="Chọn quận / huyện ...."
+                          options={[{ value: '', label: 'Quận / huyện', isDisabled: true }, ...districtOptions]}
                         />
                       )}
                     />
 
                     {errors.district && errors.district.type === 'required' ? (
                       <div>
-                        <span className="text-danger text-red-500 text-sm">{'Chọn quận huyện'}</span>
+                        <span className="text-danger text-red-500 text-sm">{'Chọn quận / huyện'}</span>
                       </div>
                     ) : null}
                   </div>
                 </div>
               </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
                 <div className="col-span-1">
                   <div className="flex">
@@ -526,19 +594,11 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                       render={({ field }) => (
                         <Select
                           {...field}
-                          value={
-                            (wardOptions?.length > 0 && wardOptions.find((option) => option.value === field.value)) ||
-                            (wardOptions?.length > 0 &&
-                              wardOptions.find((option) => option.value === editHospital?.address[0]?.wardId))
-                          }
-                          onChange={(selectedOption) => field.onChange(selectedOption)}
                           styles={{
                             control: (baseStyles, state) => ({
                               ...baseStyles,
                               borderColor: state.isFocused ? '#999' : '#999',
                               height: '48px',
-                              color: 'red',
-
                               boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
                             }),
                             option: (base, { isFocused, isSelected }) => ({
@@ -549,15 +609,16 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                               cursor: 'pointer',
                             }),
                           }}
-                          options={[{ value: '', label: 'Phường xã', isDisabled: true }, ...wardOptions]}
-                          placeholder="Phường / xã ..."
+                          // onChange={handleDistrictChange}
+                          placeholder="Chọn phường / xã ...."
+                          options={[{ value: '', label: 'Phường / xã', isDisabled: true }, ...wardOptions]}
                         />
                       )}
                     />
 
                     {errors.ward && errors.ward.type === 'required' ? (
                       <div>
-                        <span className="text-danger text-red-500 text-sm">{'Chọn phường xã'}</span>
+                        <span className="text-danger text-red-500 text-sm">{'Chọn phường / xã'}</span>
                       </div>
                     ) : null}
                   </div>
@@ -572,40 +633,21 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                       type="text"
                       name="street"
                       id="street"
-                      defaultValue={editHospital?.address[0]?.street}
                       className={cx('customInput', 'text-black')}
                       placeholder="Địa chỉ ..."
-                      {...register('street', { required: 'Vui lòng nhập địa chỉ' })}
+                      {...register('street', { required: 'Vui lòng nhập địa chỉ!' })}
                     />
 
-                    {errors.street && (
+                    {errors.address && (
                       <div>
-                        <span className="text-danger text-red-500 text-sm">{errors.street.message}</span>
+                        <span className="text-danger text-red-500 text-sm">{errors.address.message}</span>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                <div className="col-span-2">
-                  <div className="flex">
-                    <h2 className="font-semibold text-black">Mô tả</h2>
-                    <span className="text-rose-600 font-bold">*</span>
-                  </div>
-                  <div className="mt-2">
-                    <input
-                      type="text"
-                      name="description"
-                      id="description"
-                      className={cx('customInput', 'text-black')}
-                      defaultValue={editHospital?.description}
-                      placeholder="mô tả ..."
-                      {...register('description')}
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
+
             <div className="mt-4 mb-10 px-8">
               <div>
                 <label className={cx('label-uploadImage')} htmlFor="upload-image">
@@ -620,7 +662,6 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                   name="image"
                   hidden
                 ></input>
-
                 {previewImageURL ? (
                   <div
                     className={cx('upload-image')}
@@ -638,15 +679,12 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
           </form>
         </div>
         <div className="flex justify-end border-t py-2 pr-6 gap-4 pt-2">
-          <Button className="text-[#2c3e50]" onClick={() => setShowModalEdit(false)}>
+          <Button className="text-[#2c3e50]" onClick={() => setShowModalCreate(false)}>
             Đóng
           </Button>
           <Button
             className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
-            onClick={() => {
-              console.log('Submit clicked!');
-              handleSubmit(handleEditHospital)();
-            }}
+            onClick={() => handleSubmit(submitForm)()}
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -655,7 +693,7 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
                 Đang xử lý...
               </div>
             ) : (
-              'Sửa hồ sơ'
+              'Thêm mới'
             )}
           </Button>
         </div>
@@ -664,4 +702,4 @@ function EditHospital({ editHospital, setShowModalEdit, fetchHospitalData }) {
   );
 }
 
-export default EditHospital;
+export default CreateDoctor;

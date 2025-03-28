@@ -3,10 +3,7 @@ import { tokens } from '../../theme';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import Header from '../../components/Header';
 import LineChart from '../../components/LineChart';
-import GeographyChart from '../../components/GeographyChart';
-import BarChart from '../../components/BarChart';
 import StatBox from '../../components/StatBox';
-import ProgressCircle from '../../components/ProgressCircle';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { unwrapResult } from '@reduxjs/toolkit';
@@ -32,8 +29,6 @@ const Dashboard = () => {
 
   const [statsData, setStatsData] = useState();
   const [revenueChartData, setRevenueChartData] = useState();
-  console.log('check revenueChartData', revenueChartData);
-  console.log('check statsData', statsData);
 
   useEffect(() => {
     let fetchStats = async () => {
@@ -139,7 +134,7 @@ const Dashboard = () => {
             justifyContent="center"
           >
             <StatBox
-              title={`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `}
+              title={`${statsData?.data?.amountTotal?.toLocaleString('vi-VN')} Vnđ `}
               subtitle="Doanh thu"
               progress="0.75"
               increase="+14%"
@@ -326,8 +321,8 @@ const Dashboard = () => {
                   Doanh thu, doanh số
                 </Typography>
                 <Typography variant="h3" fontWeight="bold" color={colors.greenAccent[500]}>
-                  {`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `},
-                  {`${statsData?.data?.appointmentCount?.toLocaleString('en-US')} Lượt`}
+                  {`${statsData?.data?.amountTotal?.toLocaleString('vi-VN')} Vnđ `},
+                  {`${statsData?.data?.appointmentCount?.toLocaleString('vi-VN')} Lượt`}
                 </Typography>
               </Box>
               <Box>
@@ -379,7 +374,7 @@ const Dashboard = () => {
                   <Typography color={colors.grey[100]}>{formatDate(item?.date)}</Typography>
                 </Box>
                 <Box backgroundColor={colors.greenAccent[500]} p="5px 10px" borderRadius="4px">
-                  {item?.price} vnđ
+                  {Number(item?.price).toLocaleString('vi-VN')} vnđ
                 </Box>
               </Box>
             ))}
@@ -394,7 +389,7 @@ const Dashboard = () => {
                   Doanh thu
                 </Typography>
                 <Typography variant="h3" fontWeight="bold" color={colors.greenAccent[500]}>
-                  {`${statsData?.data?.amountTotal?.toLocaleString('en-US')} Vnđ `}
+                  {`${statsData?.data?.amountTotal?.toLocaleString('vi-VN')} Vnđ `}
                 </Typography>
               </Box>
               <Box>

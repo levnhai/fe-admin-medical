@@ -13,7 +13,11 @@ import { AiOutlineDelete } from 'react-icons/ai';
 
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
-import { fetchAllAppointmentByhospital, fetchUpdateStatus, fetchDeleteAppointment } from '~/redux/appointment/appointmentSlice';
+import {
+  fetchAllAppointmentByhospital,
+  fetchUpdateStatus,
+  fetchDeleteAppointment,
+} from '~/redux/appointment/appointmentSlice';
 import { formatDate, extractTime } from '~/utils/time';
 import Modal from '~/components/Modal';
 import Button from '~/components/Button';
@@ -75,7 +79,9 @@ const Appointment = () => {
             const patientName = removeAccents(user?.record?.fullName?.toLowerCase() || '');
             const doctorName = removeAccents(user?.doctor?.fullName?.toLowerCase() || '');
             const phoneNumber = removeAccents(user?.record?.phoneNumber?.toLowerCase() || '');
-            return patientName.includes(searchValue) || phoneNumber.includes(searchValue) || doctorName.includes(searchValue);
+            return (
+              patientName.includes(searchValue) || phoneNumber.includes(searchValue) || doctorName.includes(searchValue)
+            );
           })();
 
       // Filter by status
@@ -93,8 +99,7 @@ const Appointment = () => {
       return searchMatch && statusMatch;
     }) || [];
 
-
- // Toggle the dropdown visibility
+  // Toggle the dropdown visibility
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
@@ -122,11 +127,11 @@ const Appointment = () => {
       const res = await dispatch(fetchDeleteAppointment(selectedAppointmentId));
       const result = unwrapResult(res);
       setShowModalDelete(false);
-      
+
       if (result?.status) {
         toast.success(result?.message || 'Xóa lịch khám thành công');
         setSelectedUsers((prev) => prev.filter((id) => id !== selectedAppointmentId));
-        
+
         // Cập nhật lại danh sách lịch hẹn
         try {
           const appointmentRes = await dispatch(fetchAllAppointmentByhospital());
@@ -239,7 +244,7 @@ const Appointment = () => {
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg mr-4">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
           <div>
-          <button
+            <button
               id="dropdownActionButton"
               data-dropdown-toggle="dropdownAction"
               className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
@@ -273,7 +278,7 @@ const Appointment = () => {
                 <ul className="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownActionButton">
                   <li>
                     <a
-                      href="#"
+                      href="/#"
                       className="block px-4 py-2 text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                       onClick={(e) => {
                         e.preventDefault();
@@ -285,7 +290,7 @@ const Appointment = () => {
                   </li>
                   <li>
                     <a
-                      href="#"
+                      href="/#"
                       className="block px-4 py-2 text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                       onClick={(e) => {
                         e.preventDefault();
@@ -297,7 +302,7 @@ const Appointment = () => {
                   </li>
                   <li>
                     <a
-                      href="#"
+                      href="/#"
                       className="block px-4 py-2 text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                       onClick={(e) => {
                         e.preventDefault();
@@ -309,7 +314,7 @@ const Appointment = () => {
                   </li>
                   <li>
                     <a
-                      href="#"
+                      href="/#"
                       className="block px-4 py-2 text-white hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                       onClick={(e) => {
                         e.preventDefault();
@@ -354,35 +359,18 @@ const Appointment = () => {
               </div>
             </div>
           </div>
-          
         </div>
         <div className="overflow-x-auto relative shadow-md">
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                {/* <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-6 py-3">
                   STT
-                </th> */}
-                <th scope="col" className="p-4">
-                  <div className="flex items-center">
-                    <input
-                      id="checkbox-all-search"
-                      type="checkbox"
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                      checked={isAllSelected}
-                      onChange={handleSelectAll}
-                    />
-                    <label htmlFor="checkbox-all-search" className="sr-only">
-                      checkbox
-                    </label>
-                  </div>
                 </th>
                 <th scope="col" className="px-6 py-3">
                   Tên bệnh nhân
                 </th>
-                <th scope="col" className="px-6 py-3">
-                  Số điện thoại
-                </th>
+
                 <th scope="col" className="px-6 py-3">
                   Giới tính
                 </th>
@@ -407,13 +395,13 @@ const Appointment = () => {
                 <th scope="col" className="px-6 py-3">
                   Ngày đặt
                 </th>
-                <th scope="col" className="px-6 py-3">
+                {/* <th scope="col" className="px-6 py-3">
                   Action
-                </th>
+                </th> */}
               </tr>
             </thead>
             {isLoading ? (
-              <LoadingSkeleton columns={11} />
+              <LoadingSkeleton columns={10} />
             ) : (
               <tbody>
                 {appointmentData.length === 0 ? (
@@ -434,31 +422,16 @@ const Appointment = () => {
                       key={index}
                       className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
-                      {/* <td className="px-6 py-4">{index + 1}</td> */}
-                      <td className="w-4 p-4">
-                          <div className="flex items-center">
-                            <input
-                              id="checkbox-table-search-1"
-                              type="checkbox"
-                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                              checked={selectedUsers.includes(item._id)}
-                              onChange={() => handleSelectUser(item._id)}
-                            />
-                            <label htmlFor="checkbox-table-search-1" className="sr-only">
-                              checkbox
-                            </label>
-                          </div>
-                        </td>
+                      <td className="px-6 py-4">{index + 1}</td>
                       <th
                         scope="row"
                         className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
                       >
                         <div className="ps-3">
                           <div className="text-base font-semibold mt-4">{item?.record?.fullName}</div>
-                          <div className="font-normal text-gray-500">{item?.email}</div>
+                          <div className="font-normal text-gray-500">{item?.record?.phoneNumber}</div>
                         </div>
                       </th>
-                      <td className="px-6 py-4">{item?.record?.phoneNumber}</td>
                       <td className="px-6 py-4">{item?.record?.gender === 'male' ? 'Nam' : 'Nữ'}</td>
                       <td className="px-6 py-4">{formatDate(item?.date)}</td>
                       <td className="px-6 py-4">
@@ -495,7 +468,7 @@ const Appointment = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center">{item.createdAt}</div>
                       </td>
-                      <td className="px-4 py-3">
+                      {/* <td className="px-4 py-3">
                         <div className="flex items-center space-x-3">
                           <button
                             className="text-blue-600 hover:text-blue-800"
@@ -516,7 +489,7 @@ const Appointment = () => {
                             <AiOutlineDelete size={20} />
                           </button>
                         </div>
-                      </td>
+                      </td> */}
                     </tr>
                   ))
                 )}
@@ -529,20 +502,18 @@ const Appointment = () => {
           <div>
             <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa lịch hẹn này không ?</p>
             <div className="flex justify-end border-t py-2 pr-6 gap-4">
-            <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment}
-                disabled={isSubmitting}
-              >
+              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment} disabled={isSubmitting}>
                 {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <BiLoaderAlt className="animate-spin mr-2" />
-                Đang xử lý...
-              </div>
-            ) : (
-                'Đồng ý'
-            )}
+                  <div className="flex items-center justify-center">
+                    <BiLoaderAlt className="animate-spin mr-2" />
+                    Đang xử lý...
+                  </div>
+                ) : (
+                  'Đồng ý'
+                )}
               </Button>
             </div>
           </div>
@@ -552,20 +523,18 @@ const Appointment = () => {
           <div>
             <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa lịch hẹn này không ?</p>
             <div className="flex justify-end border-t py-2 pr-6 gap-4">
-            <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment}
-                disabled={isSubmitting}
-              >
+              <Button className="bg-red-400 text-white" onClick={handleDeleteAppointment} disabled={isSubmitting}>
                 {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <BiLoaderAlt className="animate-spin mr-2" />
-                Đang xử lý...
-              </div>
-            ) : (
-                'Đồng ý'
-            )}
+                  <div className="flex items-center justify-center">
+                    <BiLoaderAlt className="animate-spin mr-2" />
+                    Đang xử lý...
+                  </div>
+                ) : (
+                  'Đồng ý'
+                )}
               </Button>
             </div>
           </div>

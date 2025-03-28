@@ -2,40 +2,29 @@ import { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
 import { useDispatch, useSelector } from 'react-redux';
 import { unwrapResult } from '@reduxjs/toolkit';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import classNames from 'classnames/bind';
-import Lightbox from 'react-image-lightbox';
-import Select from 'react-select';
 import { toast } from 'react-toastify';
 import { BiLoaderAlt } from 'react-icons/bi';
 
 import { CiEdit } from 'react-icons/ci';
-import { AiOutlineDelete, AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
+import { AiOutlineDelete } from 'react-icons/ai';
 
 import Header from '../../components/Header';
 import LoadingSkeleton from '../loading/loading_skeleton';
 import Modal from '~/components/Modal';
 import Button from '~/components/Button';
-import { ConvertBase64 } from '~/utils/common';
 import EditDoctor from './modal/editdoctor';
 import { removeAccents } from '~/utils/string';
+import CreateDoctor from './modal/createDoctor';
 
-import { fetchDoctorByHospital, fetchDeleteDoctor, fetchCreateDoctor } from '~/redux/doctor/doctorSlice';
+import { fetchDoctorByHospital, fetchDeleteDoctor } from '~/redux/doctor/doctorSlice';
 import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
 import { fetchAllSpecialty } from '~/redux/specialty/specialtySlice';
 
-import styles from './doctor.module.scss';
-const cx = classNames.bind(styles);
-
 const Doctor = () => {
   const dispatch = useDispatch();
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset,
-  } = useForm();
+  const { reset } = useForm();
 
   const [doctorData, setDoctorData] = useState(false);
   const [editDoctor, setEditDoctor] = useState(null);
@@ -43,54 +32,19 @@ const Doctor = () => {
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState([]);
 
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
-  const [previewImageURL, setpreViewImageURL] = useState();
-  const [isOpenImage, setIsOpenImage] = useState();
-  const [urlImage, setUrlImage] = useState();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [provinceOptions, setProvinceOptions] = useState([]);
-  const [districtOptions, setDistrictOptions] = useState([]);
-  const [wardOptions, setWardOptions] = useState([]);
-  const [selectedProvince, setSelectedProvince] = useState(null);
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [specialtyOptions, setSpecialtyOptions] = useState([]);
-  const [showHidePassword, setShowHidePassword] = useState(true);
-  const [confirmPassword, setConfirmPassword] = useState(true);
 
   const [localLoading, setLocalLoading] = useState(true);
-
-  console.log('check provinceOptions', provinceOptions);
 
   const reduxLoading = useSelector((state) => state.appointment.loading);
   const userLogin = useSelector((state) => state.auth.user?.payload);
   const userId = userLogin?.userData?._id;
   const isLoading = localLoading || reduxLoading;
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleOnChangeImage = async (e) => {
-    if (!e.target.files || e.target.files.length === 0) {
-      return;
-    }
-    let file = e.target.files[0];
-    console.log('check file ', file);
-    if (file) {
-      const objectURL = URL.createObjectURL(file);
-      console.log('check objectURL', objectURL);
-      setpreViewImageURL(objectURL);
-    }
-
-    const urlBase64 = await ConvertBase64(file);
-    console.log('check url base64', urlBase64);
-    setUrlImage(urlBase64);
-  };
-
-  const handleOpenImage = () => {
-    if (!previewImageURL) return;
-    setIsOpenImage(true);
-  };
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
@@ -108,32 +62,14 @@ const Doctor = () => {
       })) ||
     [];
   // Check if all filtered users are selected
-  const isAllSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUsers.includes(user._id));
 
   // Handle search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
-  // Handle individual checkbox
-  const handleSelectUser = (userId) => {
-    setSelectedUsers((prev) => {
-      if (prev.includes(userId)) {
-        return prev.filter((id) => id !== userId);
-      } else {
-        return [...prev, userId];
-      }
-    });
-  };
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      const allUserIds = filteredUsers.map((user) => user._id);
-      setSelectedUsers(allUserIds);
-    } else {
-      setSelectedUsers([]);
-    }
-  };
+
   const handleDeleteDoctor = async () => {
-    if (isSubmitting) return; 
+    if (isSubmitting) return;
     setIsSubmitting(true);
     const res = await dispatch(fetchDeleteDoctor(selectedDoctorId));
     const result = unwrapResult(res);
@@ -142,7 +78,6 @@ const Doctor = () => {
       toast.success(result.message);
       setDoctorData((prev) =>
         prev.filter((doctor) => {
-          console.log('hai lê', doctor);
           return doctor._id !== selectedDoctorId;
         }),
       );
@@ -151,18 +86,6 @@ const Doctor = () => {
       toast.warning(result.message);
     }
     setIsSubmitting(false);
-  };
-
-  // Khi chọn tỉnh/thành phố
-  const handleProvinceChange = (selectedOption) => {
-    console.log('check selectedOption', selectedOption);
-    setSelectedProvince(selectedOption);
-    setSelectedDistrict(null); // Reset quận/huyện khi đổi tỉnh
-  };
-
-  // Khi chọn quận/ huyện
-  const handleDistrictChange = (selectedOption) => {
-    setSelectedDistrict(selectedOption);
   };
 
   const fetchDoctorData = async () => {
@@ -180,69 +103,9 @@ const Doctor = () => {
     }
   };
 
-  const submitForm = async (data) => {
-    const {
-      email,
-      fullName,
-      district,
-      gender,
-      password,
-      phoneNumber,
-      positionId,
-      province,
-      reEnterPassword,
-      specialtyId,
-      street,
-      ward,
-    } = data;
-    const formData = {
-      email,
-      fullName,
-      gender: gender?.value,
-      password,
-      phoneNumber,
-      reEnterPassword,
-      street,
-      districtId: district?.value,
-      districtName: district?.label,
-      positionId: positionId?.value,
-      provinceId: province?.value,
-      provinceName: province?.label,
-      wardId: ward?.value,
-      wardName: ward?.label,
-      image: urlImage,
-      hospitalId: userId,
-      specialtyId: specialtyId?.value,
-    };
-    if (isSubmitting) return; 
-    try {
-      setIsSubmitting(true);
-      const response = await dispatch(fetchCreateDoctor(formData));
-      const result = await unwrapResult(response);
-      if (result?.status) {
-        toast.success(result?.message);
-        setShowModalCreate(false);
-        fetchDoctorData();
-      } else {
-        toast.warning(result?.message);
-        setShowModalCreate(true);
-      }
-    } catch (error) {
-      return error;
-    }finally {
-      setIsSubmitting(false);
-    }
-  };
-
   useEffect(() => {
     fetchDoctorData();
   }, []);
-
-  useEffect(() => {
-    if (editDoctor) {
-      setpreViewImageURL(editDoctor?.image);
-    }
-  }, [editDoctor]);
 
   useEffect(() => {
     if (showModalCreate || showModalEdit) {
@@ -263,52 +126,6 @@ const Doctor = () => {
     fetchDoctorData();
   }, []);
 
-  useEffect(() => {
-    if (showModalCreate) {
-      const fetchProvinces = async () => {
-        const res = await dispatch(fetchAllProvinces());
-        const result = unwrapResult(res);
-        const provincesData = result.data.map((provinces) => ({
-          value: provinces.id,
-          label: provinces.name,
-        }));
-        setProvinceOptions(provincesData);
-      };
-      fetchProvinces();
-    }
-  }, [showModalCreate]);
-
-  useEffect(() => {
-    if (selectedProvince) {
-      const fetchDistricts = async () => {
-        const res = await dispatch(fetchDistrictsByProvince(selectedProvince.value));
-        const result = unwrapResult(res);
-        const districtData = result.data.map((district) => ({
-          value: district.id,
-          label: district.name,
-        }));
-        setDistrictOptions(districtData);
-      };
-      fetchDistricts();
-    }
-  }, [selectedProvince, dispatch]);
-
-  useEffect(() => {
-    if (selectedDistrict) {
-      console.log('check quận huyện', selectedDistrict);
-      const fetchWards = async () => {
-        const res = await dispatch(fetchWardsByDistricts(selectedDistrict.value));
-        const result = unwrapResult(res);
-        const wardData = result.data.map((ward) => ({
-          value: ward.id,
-          label: ward.name,
-        }));
-        setWardOptions(wardData);
-      };
-      fetchWards();
-    }
-  }, [selectedDistrict, dispatch]);
-
   return (
     <div className="p-2 sm:p-4 md:p-6">
       <Header title="Quản lý bác sĩ" subtitle="Bác sĩ người tận tâm vì nghề nghiệp" />
@@ -319,7 +136,6 @@ const Doctor = () => {
           onClick={() => {
             reset();
             // setUrlImage();
-            setpreViewImageURL(null);
             setShowModalCreate(true);
           }}
         >
@@ -329,7 +145,7 @@ const Doctor = () => {
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
           <div>
-          <button
+            <button
               id="dropdownActionButton"
               data-dropdown-toggle="dropdownAction"
               className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
@@ -392,10 +208,10 @@ const Doctor = () => {
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                {/* <th scope="col" className="px-6 py-3">
+                <th scope="col" className="px-6 py-3">
                   STT
-                </th> */}
-                <th scope="col" className="p-4">
+                </th>
+                {/* <th scope="col" className="p-4">
                   <div className="flex items-center">
                     <input
                       id="checkbox-all-search"
@@ -408,7 +224,7 @@ const Doctor = () => {
                       checkbox
                     </label>
                   </div>
-                </th>
+                </th> */}
                 <th scope="col" className="px-6 py-3">
                   Họ và tên
                 </th>
@@ -465,8 +281,8 @@ const Doctor = () => {
                         key={index}
                         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                       >
-                        {/* <td className="px-6 py-4">{index + 1}</td> */}
-                        <td className="w-4 p-4">
+                        <td className="px-6 py-4">{index + 1}</td>
+                        {/* <td className="w-4 p-4">
                           <div className="flex items-center">
                             <input
                               id="checkbox-table-search-1"
@@ -479,7 +295,7 @@ const Doctor = () => {
                               checkbox
                             </label>
                           </div>
-                        </td>
+                        </td> */}
                         <th
                           scope="row"
                           className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
@@ -557,543 +373,34 @@ const Doctor = () => {
               <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
                 Đóng
               </Button>
-              <Button className="bg-red-400 text-white" onClick={handleDeleteDoctor}
-                disabled={isSubmitting}
-              >
+              <Button className="bg-red-400 text-white" onClick={handleDeleteDoctor} disabled={isSubmitting}>
                 {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <BiLoaderAlt className="animate-spin mr-2" />
-                Đang xử lý...
-              </div>
-            ) : (
-                'Đồng ý'
-            )}
+                  <div className="flex items-center justify-center">
+                    <BiLoaderAlt className="animate-spin mr-2" />
+                    Đang xử lý...
+                  </div>
+                ) : (
+                  'Đồng ý'
+                )}
               </Button>
             </div>
           </div>
         </Modal>
 
-        {/*  modal create */}
-        <Modal isOpen={showModalCreate} onClose={() => setShowModalCreate(false)} title="Thêm bác sĩ">
-          <div>
-            <div className="max-h-80 overflow-auto">
-              <form onSubmit={handleSubmit(submitForm)}>
-                <div className="my-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Họ và tên (Có dấu)</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <input
-                          type="text"
-                          name="fullName"
-                          id="fullName"
-                          className={cx('customInput', 'text-black')}
-                          placeholder="Họ và tên ..."
-                          {...register('fullName', { required: 'Vui lòng nhập họ và tên!' })}
-                        />
-
-                        {errors.fullName && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.fullName.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Địa chỉ email</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <input
-                          type="text"
-                          name="email"
-                          id="email"
-                          className={cx('customInput', 'text-black')}
-                          placeholder="Email ..."
-                          {...register('email', { required: 'Vui lòng nhập email' })}
-                        />
-
-                        {errors.email && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.email.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Số điện thoại</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <input
-                          type="text"
-                          name="phoneNumber"
-                          id="phoneNumber"
-                          className={cx('customInput', 'text-black')}
-                          placeholder="Số điện thoại ..."
-                          {...register('phoneNumber', { required: 'Vui lòng nhập số điện thoại' })}
-                        />
-
-                        {errors.phoneNumber && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.phoneNumber.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Giới tính</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <Controller
-                          name="gender"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  color: 'red',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              options={[
-                                { value: 'male', label: 'Nam' },
-                                { value: 'female', label: 'Nữ' },
-                                { value: 'other', label: 'Khác' },
-                              ]}
-                              placeholder="Giới tính ..."
-                            />
-                          )}
-                        />
-
-                        {errors.gender && errors.gender.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn giới tính'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 px-8 mt-4">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Mật khẩu</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="relative mt-2">
-                        <input
-                          type={showHidePassword ? 'password' : 'text'}
-                          name="password"
-                          id="password"
-                          className={cx('customInput', 'text-black')}
-                          placeholder="Nhập mật khẩu..."
-                          {...register('password', { required: 'Vui lòng nhập mật khẩu' })}
-                        />
-
-                        <span
-                          onMouseDown={() => setShowHidePassword(!showHidePassword)}
-                          onMouseUp={() => setShowHidePassword(true)}
-                          onMouseLeave={() => setShowHidePassword(true)}
-                          className="absolute cursor-pointer text-xl top-1/2 right-3 transform -translate-y-1/2 text-black"
-                        >
-                          {showHidePassword ? <AiFillEyeInvisible /> : <AiFillEye />}
-                        </span>
-
-                        {errors.password && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.password.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Nhập lại mật khẩu</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="relative mt-2">
-                        <input
-                          type={confirmPassword ? 'password' : 'text'}
-                          name="reEnterPassword"
-                          id="reEnterPassword"
-                          className={cx('customInput', 'text-black')}
-                          placeholder="xác thực mật khẩu ..."
-                          {...register('reEnterPassword', { required: 'Vui lòng nhập lại mật khẩu' })}
-                        />
-                        <span
-                          onMouseDown={() => setConfirmPassword(!confirmPassword)}
-                          onMouseUp={() => setConfirmPassword(true)}
-                          onMouseLeave={() => setConfirmPassword(true)}
-                          className="absolute cursor-pointer text-xl top-1/2 right-3 transform -translate-y-1/2 text-black"
-                        >
-                          {confirmPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
-                        </span>
-
-                        {errors.reEnterPassword && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.reEnterPassword.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Trình độ</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <Controller
-                          name="positionId"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  color: 'red',
-
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              options={[
-                                { value: 'doctor', label: 'Bác sĩ' },
-                                { value: 'mater', label: 'Thạc sĩ' },
-                                { value: 'associate professor', label: 'PHó giáo sư' },
-                                { value: 'professor', label: 'Giáo sư' },
-                              ]}
-                              placeholder="Trình độ ..."
-                            />
-                          )}
-                        />
-
-                        {errors.positionId && errors.positionId.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn trình độ'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Chuyên khoa</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <Controller
-                          name="specialtyId"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              options={[{ value: '', label: 'Chuyên khoa', isDisabled: true }, ...specialtyOptions]}
-                              placeholder="Chuyên khoa ..."
-                            />
-                          )}
-                        />
-
-                        {errors.specialtyId && errors.specialtyId.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn chuyên khoa'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Tỉnh / Thành</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <Controller
-                          name="province"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  color: 'black',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              placeholder="Chọn tỉnh / thành...."
-                              onChange={(selectedOption) => {
-                                field.onChange(selectedOption);
-                                handleProvinceChange(selectedOption);
-                              }}
-                              options={[{ value: '', label: 'Tỉnh / thành', isDisabled: true }, ...provinceOptions]}
-                            />
-                          )}
-                        />
-
-                        {errors.province && errors.province.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn tỉnh / thành'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Quận / Huyện</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <Controller
-                          name="district"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              onChange={(selectedOption) => {
-                                field.onChange(selectedOption);
-                                handleDistrictChange(selectedOption);
-                              }}
-                              placeholder="Chọn quận / huyện ...."
-                              options={[{ value: '', label: 'Quận / huyện', isDisabled: true }, ...districtOptions]}
-                            />
-                          )}
-                        />
-
-                        {errors.district && errors.district.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn quận / huyện'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mt-4 px-8">
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Phường/ Xã</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <Controller
-                          name="ward"
-                          as={Select}
-                          control={control}
-                          rules={{ required: 'required' }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              styles={{
-                                control: (baseStyles, state) => ({
-                                  ...baseStyles,
-                                  borderColor: state.isFocused ? '#999' : '#999',
-                                  height: '48px',
-                                  boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(0, 123, 255, 0.25)' : '',
-                                }),
-                                option: (base, { isFocused, isSelected }) => ({
-                                  ...base,
-                                  backgroundColor: isSelected ? '#007bff' : isFocused ? '#e6f7ff' : 'white',
-                                  color: isSelected ? 'white' : 'black',
-                                  padding: '10px',
-                                  cursor: 'pointer',
-                                }),
-                              }}
-                              // onChange={handleDistrictChange}
-                              placeholder="Chọn phường / xã ...."
-                              options={[{ value: '', label: 'Phường / xã', isDisabled: true }, ...wardOptions]}
-                            />
-                          )}
-                        />
-
-                        {errors.ward && errors.ward.type === 'required' ? (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{'Chọn phường / xã'}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="col-span-1">
-                      <div className="flex">
-                        <h2 className="font-semibold text-black">Địa chỉ (đường, số nhà)</h2>
-                        <span className="text-rose-600 font-bold">*</span>
-                      </div>
-                      <div className="mt-2">
-                        <input
-                          type="text"
-                          name="street"
-                          id="street"
-                          className={cx('customInput', 'text-black')}
-                          placeholder="Địa chỉ ..."
-                          {...register('street', { required: 'Vui lòng nhập địa chỉ!' })}
-                        />
-
-                        {errors.address && (
-                          <div>
-                            <span className="text-danger text-red-500 text-sm">{errors.address.message}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 mb-10 px-8">
-                  <div>
-                    <label className={cx('label-uploadImage')} htmlFor="upload-image">
-                      Upload image
-                    </label>
-                    <input
-                      className={cx('customInput', 'text-black')}
-                      id="upload-image"
-                      accept="image/*"
-                      onChange={handleOnChangeImage}
-                      type="file"
-                      name="image"
-                      hidden
-                    ></input>
-                    {previewImageURL ? (
-                      <div
-                        className={cx('upload-image')}
-                        onClick={handleOpenImage}
-                        style={{ backgroundImage: `url(${previewImageURL})` }}
-                      ></div>
-                    ) : (
-                      ''
-                    )}
-                    {isOpenImage && (
-                      <Lightbox
-                        className="mb-10"
-                        mainSrc={previewImageURL}
-                        onCloseRequest={() => setIsOpenImage(false)}
-                      />
-                    )}
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="flex justify-end border-t py-2 pr-6 gap-4 pt-2">
-              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
-                Đóng
-              </Button>
-              <Button
-                className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-7 py-2.5 text-center me-2 mb-2"
-                onClick={() => handleSubmit(submitForm)()}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <BiLoaderAlt className="animate-spin mr-2" />
-                Đang xử lý...
-              </div>
-            ) : (
-                'Thêm mới'
-            )}
-              </Button>
-            </div>
-          </div>
-        </Modal>
         <div>
-          {/* {showModalCreate && (
-            <CreateDocter
+          {showModalCreate && (
+            <CreateDoctor
               setShowModalCreate={setShowModalCreate}
-              handleGetAllDocter={() => dispatch(fetchDoctorByHospital(userId))}
+              fetchDoctorData={fetchDoctorData}
+              specialtyOptions={specialtyOptions}
             />
-          )} */}
+          )}
           {showModalEdit && (
             <EditDoctor
               setShowModalEdit={setShowModalEdit}
               editDoctor={editDoctor}
               specialtyOptions={specialtyOptions}
               fetchDoctorData={fetchDoctorData}
-              provincesData={provinceOptions}
             />
           )}
         </div>

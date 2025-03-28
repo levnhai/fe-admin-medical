@@ -170,26 +170,12 @@ const User = () => {
           </div>
         </div>
         <div
-          className="overflow-x-auto relative shadow-md"
-          style={{ borderTopLeftRadius: '0', borderTopRightRadius: '0' }}
+          className="overflow-x-auto relative shadow-md max-h-[400px]"
+          style={{ borderTopLeftRadius: '0', borderTopRightRadius: '0', scrollbarWidth: 'none' }}
         >
-          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+          <table className="w-full overflow-y-auto text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead className="text-xs sticky top-0 text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                {/* <th scope="col" className="p-4">
-                  <div className="flex items-center">
-                    <input
-                      id="checkbox-all-search"
-                      type="checkbox"
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                      checked={isAllSelected}
-                      onChange={handleSelectAll}
-                    />
-                    <label htmlFor="checkbox-all-search" className="sr-only">
-                      checkbox
-                    </label>
-                  </div>
-                </th> */}
                 <th scope="col" className="px-6 py-3">
                   STT
                 </th>
@@ -233,20 +219,6 @@ const User = () => {
                         key={item._id}
                         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                       >
-                        {/* <td className="w-4 p-4">
-                          <div className="flex items-center">
-                            <input
-                              id="checkbox-table-search-1"
-                              type="checkbox"
-                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                              checked={selectedUsers.includes(item._id)}
-                              onChange={() => handleSelectUser(item._id)}
-                            />
-                            <label htmlFor="checkbox-table-search-1" className="sr-only">
-                              checkbox
-                            </label>
-                          </div>
-                        </td> */}
                         <td className="px-6 py-4">{index + 1}</td>
                         <th
                           scope="row"
@@ -268,11 +240,7 @@ const User = () => {
                             <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <a href="/#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
-                            {item.createdAt}
-                          </a>
-                        </td>
+                        <td className="px-6 py-4">{item.createdAt}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-3">
                             <button
