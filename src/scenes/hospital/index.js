@@ -46,6 +46,10 @@ const Hospital = () => {
   const [previewImageURL, setpreViewImageURL] = useState();
   const [isOpenImage, setIsOpenImage] = useState();
   const [urlImage, setUrlImage] = useState(null);
+  const [selectedHospitalType, setSelectedHospitalType] = useState('all');
+  const [showHospitalTypeDropdown, setShowHospitalTypeDropdown] = useState(false);
+  const [selectedRenewalStatus, setSelectedRenewalStatus] = useState('all');
+  const [showRenewalStatusDropdown, setShowRenewalStatusDropdown] = useState(false);
 
   const hospitalData = useSelector((state) => state.hospital.hospitalData);
   const isLoading = useSelector((state) => state.hospital.loading);
@@ -94,16 +98,40 @@ const Hospital = () => {
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
     hospitalData?.data?.filter((user) => {
+      // Hospital type filter
+      if (selectedHospitalType !== 'all' && user.hospitalType !== selectedHospitalType) return false;
+      
+      // Renewal status filter
+      if (selectedRenewalStatus !== 'all') {
+        const renewalStatus = user.renewalStatus?.toString();
+        if (renewalStatus !== selectedRenewalStatus) return false;
+      }
+      
+      // Search term filter
       if (!searchTerm) return true;
 
       const searchValue = removeAccents(searchTerm.toLowerCase().trim());
-
-      // Xử lý trường hợp giá trị null/undefined
       const fullName = removeAccents(user.fullName?.toLowerCase() || '');
       const phoneNumber = removeAccents(user.phoneNumber?.toLowerCase() || '');
 
       return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
     }) || [];
+
+    // Hospital type options
+  const hospitalTypeOptions = [
+    { value: 'all', label: 'Tất cả loại bệnh viện' },
+    { value: 'benh-vien-cong', label: 'Bệnh viện công' },
+    { value: 'benh-vien-tu', label: 'Bệnh viện tư' },
+    { value: 'phong-kham', label: 'Phòng khám' },
+    { value: 'phong-mach', label: 'Phòng mạch' },
+    { value: 'xet-nghiem', label: 'Xét nghiệm' }
+  ];
+
+  const renewalStatusOptions = [
+    { value: 'all', label: 'Tất cả trạng thái gia hạn' },
+    { value: 'true', label: 'Đã gia hạn' },
+    { value: 'false', label: 'Chưa gia hạn' }
+  ];
 
   const confirmDeleteHospital = (hospitalId) => {
     setSelectedUserId(hospitalId);
@@ -286,36 +314,110 @@ const Hospital = () => {
       </div>
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
-          <div></div>
-          <label htmlFor="table-search" className="sr-only">
-            Search
-          </label>
-          <div className="relative">
-            <div className="w-full sm:w-auto relative">
-              <input
-                type="text"
-                className="w-full sm:w-80 p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                placeholder="Tìm kiếm bệnh viện..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <button 
+                onClick={() => setShowHospitalTypeDropdown(!showHospitalTypeDropdown)}
+                className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+              >
+                {hospitalTypeOptions.find(option => option.value === selectedHospitalType)?.label || 'Lọc theo loại bệnh viện'}
                 <svg
-                  className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                  className="w-2.5 h-2.5 ms-2.5"
                   aria-hidden="true"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
-                  viewBox="0 0 20 20"
+                  viewBox="0 0 10 6"
                 >
                   <path
                     stroke="currentColor"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                    d="m1 1 4 4 4-4"
                   />
                 </svg>
-              </div>
+              </button>
+
+              {showHospitalTypeDropdown && (
+                <div className="absolute z-10 mt-1 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                  <ul className="py-1 text-sm text-gray-700 dark:text-gray-200">
+                    {hospitalTypeOptions.map((option) => (
+                      <li key={option.value}>
+                        <button
+                          onClick={() => {
+                            setSelectedHospitalType(option.value);
+                            setShowHospitalTypeDropdown(false);
+                            setSelectedUsers([]);
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        >
+                          {option.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            
+            <div className="relative">
+              <button 
+                onClick={() => setShowRenewalStatusDropdown(!showRenewalStatusDropdown)}
+                className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+              >
+                {renewalStatusOptions.find(option => option.value === selectedRenewalStatus)?.label || 'Lọc theo trạng thái gia hạn'}
+                <svg className="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
+                </svg>
+              </button>
+
+              {showRenewalStatusDropdown && (
+                <div className="absolute z-10 mt-1 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                  <ul className="py-1 text-sm text-gray-700 dark:text-gray-200">
+                    {renewalStatusOptions.map((option) => (
+                      <li key={option.value}>
+                        <button
+                          onClick={() => {
+                            setSelectedRenewalStatus(option.value);
+                            setShowRenewalStatusDropdown(false);
+                            setSelectedUsers([]);
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        >
+                          {option.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="relative">
+            <input
+              type="text"
+              className="w-full sm:w-80 p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+              placeholder="Tìm kiếm bệnh viện..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg
+                className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                />
+              </svg>
             </div>
           </div>
         </div>
