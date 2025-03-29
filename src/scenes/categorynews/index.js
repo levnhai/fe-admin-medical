@@ -64,6 +64,7 @@ const CategoryNews = () => {
   const [selectedData, setSelectedData] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusError, setStatusError] = useState('');
 
   const token = Cookies.get('login');
   const decodedToken = token ? jwtDecode(token) : null;
@@ -161,8 +162,9 @@ const CategoryNews = () => {
     setSelectedData(null);
     setModalMode('create');
     setOpenModal(true);
+    setStatusError('');
     reset({
-      status: 1, // Default to public status
+      status: { value: 1, label: 'Công khai' },
     });
   };
 
@@ -178,14 +180,22 @@ const CategoryNews = () => {
     setSelectedData(editData);
     setModalMode('edit');
     setOpenModal(true);
+    setStatusError('');
     reset(editData);
   };
 
   const handleClose = () => {
     setOpenModal(false);
+    setStatusError('');
   };
 
   const submitForm = async (data) => {
+    // Check if status is selected
+    if (!data.status) {
+      setStatusError('Vui lòng chọn trạng thái');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       const formData = {
@@ -321,10 +331,10 @@ const CategoryNews = () => {
                       placeholder="Nhập tên thể loại..."
                       {...register('name', { required: 'Vui lòng nhập tên thể loại' })}
                     />
-                    {errors.name && (
+                  </div>
+                  {errors.name && (
                       <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
                     )}
-                  </div>
                 </div>
 
                 <div className="col-span-2">
@@ -336,17 +346,17 @@ const CategoryNews = () => {
                     <Controller
                       name="status"
                       control={control}
-                      rules={{ required: 'Vui lòng chọn trạng thái' }}
                       render={({ field }) => (
                         <Select
                           {...field}
                           options={statusOptions}
                           placeholder="Chọn trạng thái..."
+                          className={statusError ? "border border-red-500 rounded" : ""}
                           styles={{
                             control: (base) => ({
                               ...base,
                               minHeight: '42px',
-                              borderColor: errors.status ? '#f44336' : '#d1d5db',
+                              borderColor: statusError ? '#f44336' : '#d1d5db',
                               backgroundColor: 'white',
                               color: 'black',
                             }),
@@ -370,11 +380,15 @@ const CategoryNews = () => {
                               },
                             }),
                           }}
+                          onChange={(option) => {
+                            field.onChange(option);
+                            setStatusError('');
+                          }}
                         />
                       )}
                     />
-                    {errors.status && (
-                      <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
+                    {statusError && (
+                      <p className="text-red-500 text-sm mt-1">{statusError}</p>
                     )}
                   </div>
                 </div>
@@ -387,6 +401,7 @@ const CategoryNews = () => {
                     <Controller
                       name="description"
                       control={control}
+                      rules={{ required: 'Vui lòng nhập mô tả' }}
                       render={({ field }) => (
                         <div style={{color: 'black'}}>
                           <CKEditor
@@ -432,6 +447,9 @@ const CategoryNews = () => {
                       )}
                     />
                   </div>
+                  {errors.description && (
+                      <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>
+                    )}
                 </div>
               </div>
 

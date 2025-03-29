@@ -69,6 +69,7 @@ const News = () => {
   const { categories } = useSelector((state) => state.categoryNews);
   const { newsData, loading } = useSelector((state) => state.news);
   const isLoading = useSelector((state) => state.user.loading);
+  const [statusError, setStatusError] = useState('');
 
   let pageTitle = t('menu.news');
   let pageSubtitle = "Thông tin, tin tức mới nhất dành cho bạn";
@@ -219,8 +220,9 @@ const News = () => {
     setSelectedData(null);
     setModalMode('create');
     setOpenModal(true);
+    setStatusError('');
     reset({
-      status: isDoctor ? 2 : 1,
+      status: { value: 2, label: 'Nháp' },
     });
   };
 
@@ -230,8 +232,7 @@ const News = () => {
       category: {
         value: data.category?._id || data.category,
         label: data.category?.name || 
-               (categories?.find(cat => cat._id === data.category)?.name) || 
-               'Chưa xác định'
+               (categories?.find(cat => cat._id === data.category)?.name)
       },
       status: {
         value: data.status,
@@ -244,6 +245,7 @@ const News = () => {
     setSelectedData(editData);
     setModalMode('edit');
     setOpenModal(true);
+    setStatusError('');
     reset(editData);
     if (editData.imageUrl) {
       setPreviewImageURL(editData.imageUrl);
@@ -252,6 +254,7 @@ const News = () => {
 
   const handleClose = () => {
     setOpenModal(false);
+    setStatusError('');
     setPreviewImageURL(null);
   };
 
@@ -276,6 +279,10 @@ const News = () => {
   };
 
   const submitForm = async (data) => {
+    if (!data.status) {
+      setStatusError('Vui lòng chọn trạng thái');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const formData = {
@@ -419,10 +426,11 @@ const News = () => {
                     placeholder="Nhập tiêu đề..."
                     {...register('title', { required: 'Vui lòng nhập tiêu đề' })}
                   />
-                    {errors.title && (
+                    
+                  </div>
+                  {errors.title && (
                       <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
                     )}
-                  </div>
                 </div>
 
                 <div className="col-span-2">
@@ -435,9 +443,12 @@ const News = () => {
                       type="text"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black"
                       placeholder="Nhập tiêu đề phụ..."
-                      {...register('subtitle')}
+                      {...register('subtitle', { required: 'Vui lòng nhập tiêu đề phụ' })}
                     />
                   </div>
+                  {errors.subtitle && (
+                      <p className="text-red-500 text-sm mt-1">{errors.subtitle.message}</p>
+                    )}
                 </div>
 
                 <div className="col-span-1">
@@ -449,12 +460,12 @@ const News = () => {
                     <Controller
                       name="status"
                       control={control}
-                      rules={{ required: 'Vui lòng chọn trạng thái' }}
                       render={({ field }) => (
                         <Select
                           {...field}
                           options={getStatusOptions()}
                           placeholder="Chọn trạng thái..."
+                          className={statusError ? "border border-red-500 rounded" : ""}
                           styles={{
                             control: (base) => ({
                               ...base,
@@ -483,11 +494,15 @@ const News = () => {
                               },
                             }),
                           }}
+                          onChange={(option) => {
+                            field.onChange(option);
+                            setStatusError('');
+                          }}
                         />
                       )}
                     />
-                    {errors.status && (
-                      <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
+                    {statusError && (
+                      <p className="text-red-500 text-sm mt-1">{statusError}</p>
                     )}
                   </div>
                 </div>
@@ -554,9 +569,12 @@ const News = () => {
                       type="text"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black"
                       placeholder="Nhập tags (cách nhau bằng dấu phẩy)..."
-                      {...register('tags')}
+                      {...register('tags', { required: 'Vui lòng nhập tags' })}
                     />
                   </div>
+                  {errors.tags && (
+                      <p className="text-red-500 text-sm mt-1">{errors.tags.message}</p>
+                    )}
                 </div>
 
                 <div className="col-span-2">
@@ -661,10 +679,10 @@ const News = () => {
                         </div>
                       )}
                     />
-                    {errors.content && (
+                  </div>
+                  {errors.content && (
                       <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>
                     )}
-                  </div>
                 </div>
               </div>
 

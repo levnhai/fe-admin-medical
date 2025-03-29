@@ -18,11 +18,13 @@ import Login from '~/scenes/login';
 import Unauthorized from '~/scenes/unauthorized';
 import Calendar from '~/scenes/schedule/schedule';
 import Appointment from '~/scenes/appointment/appointment';
+import AdminProfile from '~/scenes/profile';
 import SystemAdmin from '~/scenes/admin';
 
 const routes = [
   { path: config.routers.contactCooperate, component: ContactCooperate, isPrivate: true },
   { path: config.routers.news, component: News, isPrivate: true },
+  { path: config.routers.AdminProfile, component: AdminProfile, isPrivate: true },
   { path: config.routers.bar, component: Bar, isPrivate: true },
   { path: config.routers.form, component: Form, isPrivate: true },
   { path: config.routers.line, component: Line, isPrivate: true },

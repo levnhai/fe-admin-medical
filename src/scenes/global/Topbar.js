@@ -132,7 +132,7 @@ const Topbar = () => {
               <li 
                 className="px-4 py-3 hover:bg-gray-700 cursor-pointer transition-colors"
                 onClick={() => {
-                  // navigate('/user?key=records');
+                   navigate('/profile');
                 }}
               >
                 <div className="flex items-center">
