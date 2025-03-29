@@ -1,22 +1,24 @@
-import { Box, ThemeProvider, createTheme } from '@mui/material';
-import { useTheme, Button, ButtonGroup} from '@mui/material';
-import { jwtDecode } from 'jwt-decode';
-import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { useTranslation } from 'react-i18next';
-import { useSelector, useDispatch } from 'react-redux';
+import { useForm, Controller } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
-import LoadingSkeleton from '~/scenes/loading/loading_skeleton2';
-import { BiLoaderAlt } from 'react-icons/bi';
-
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-
+import Select from 'react-select';
+import { Box, useTheme } from '@mui/material';
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { useTranslation } from 'react-i18next';
+import { jwtDecode } from 'jwt-decode';
+import Cookies from 'js-cookie';
+import { BiLoaderAlt } from 'react-icons/bi';
+import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+
+import Button from '~/components/Button';
+import Modal from '~/components/Modal';
+import { ConvertBase64 } from '~/utils/common';
 import { 
   fetchAllNews, 
   fetchCreateNews, 
@@ -26,30 +28,36 @@ import {
   fetchHospitalAndDoctorNews 
 } from '~/redux/news/newsSlice';
 import { fetchAllCategoryNews } from '~/redux/news/categorySlice';
-import Modal from '~/components/Modal';
-// import Button from '~/components/Button';
-import MyModal from '~/components/Modal/MyModal';
+import LoadingSkeleton from '~/scenes/loading/loading_skeleton2';
+
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
 const News = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const {
+    register,
+    control,
+    reset,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm();
 
-  const lightTheme = createTheme({
-    palette: {
-      mode: 'light',
-    },
-  });
- 
   const [openModal, setOpenModal] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
-  const [title, setTitle] = useState('');
   const [modalMode, setModalMode] = useState('create');
   const [selectedData, setSelectedData] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [previewImageURL, setPreviewImageURL] = useState();
+  const [urlImage, setUrlImage] = useState();
+  const [isOpenImage, setIsOpenImage] = useState();
 
   const token = Cookies.get('login');
   const decodedToken = token ? jwtDecode(token) : null;
@@ -73,7 +81,6 @@ const News = () => {
     pageSubtitle = "Quản lý tin tức của bệnh viện và các bác sĩ";
   }
 
-
   const getStatusOptions = () => {
     if (isDoctor) {
       return [
@@ -87,7 +94,6 @@ const News = () => {
         { value: 3, label: 'Xóa' },
       ];
     } else {
-      // Admin or other roles
       return [
         { value: 1, label: 'Công khai' },
         { value: 2, label: 'Nháp' },
@@ -95,36 +101,6 @@ const News = () => {
       ];
     }
   };
-
-  const newsFields = [
-    { name: 'title', label: 'Tiêu đề', type: 'text', grid: 6 },
-    { name: 'subtitle', label: 'Tiêu đề phụ', type: 'text', grid: 6 },
-    {
-      name: 'status',
-      label: 'Trạng thái',
-      type: 'option',
-      grid: 2,
-      options: getStatusOptions(),
-      required: true,
-    },
-    { name: 'tags', label: 'Tags', type: 'text', grid: 4 },
-    {
-      name: 'category',
-      label: 'Thể loại',
-      type: 'option',
-      options:
-      categories
-        ?.filter(category => category.status === 1)
-        .map((category) => ({
-          value: category._id,
-          label: category.name,
-        })) || [],
-    grid: 3,
-    },
-    { name: 'views', label: 'Lượt xem', type: 'number', grid: 3 },
-    { name: 'imageUrl', label: 'imageUrl', type: 'file', grid: 4 },
-    { name: 'content', label: 'content', type: 'textarea', grid: 12 },
-  ];
 
   const columns = [
     { field: 'id', headerName: 'ID', flex: 0.5 },
@@ -135,16 +111,15 @@ const News = () => {
       headerName: t('menu.author'),
       flex: 1,
       valueFormatter: (params) => {
-        // Check if author is an object with fullName property
         if (params.value && params.value.fullName) {
           return params.value.fullName;
         }
-        return 'Unknown'; // Fallback if no name is found
+        return 'Unknown';
       },
     },
     {
       field: 'authorModel',
-      headerName: 'Author Type',
+      headerName: 'Loại tác giả',
       flex: 0.5,
       valueFormatter: (params) => {
         const modelMap = {
@@ -160,9 +135,7 @@ const News = () => {
       headerName: t('menu.category'),
       flex: 1,
       valueFormatter: (params) => {
-        // Check if params.value contains _id
         if (params.value && params.value._id) {
-          // Find category in categories
           const category = categories?.find((cat) => cat._id === params.value._id);
           if (category) {
             return category.name;
@@ -198,32 +171,25 @@ const News = () => {
       headerName: t('menu.action'),
       width: 150,
       renderCell: (params) => {
-        // Check edit permissions
-        let canEdit = true;
-        let canDelete = true;
-        
         return (
-          <ButtonGroup variant="contained" aria-label="Basic button group">
-            <Button 
-              variant="contained" 
-              color="primary" 
+          <div className="flex gap-2">
+            <button 
+              className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               onClick={() => handleOpenEdit(params.row)}
-              disabled={!canEdit}
             >
               <EditIcon />
-            </Button>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={() => 
-               { setShowModalDelete(true)
-                setSelectedUserId(params.row.id)}
-              }
+            </button>
+            <button 
+              className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
+              onClick={() => {
+                setShowModalDelete(true);
+                setSelectedUserId(params.row.id);
+              }}
               disabled={isSubmitting}
             >
               <DeleteIcon />
-            </Button>
-          </ButtonGroup>
+            </button>
+          </div>
         );
       },
     },
@@ -237,7 +203,7 @@ const News = () => {
       const result = unwrapResult(res);
       if (result?.status) {
         toast.success(result?.message);
-        fetchNewsData();
+        loadNewsData();
       } else {
         toast.warning(result?.message);
       }
@@ -253,132 +219,110 @@ const News = () => {
     setSelectedData(null);
     setModalMode('create');
     setOpenModal(true);
-    setTitle('Thêm tin tức');
+    reset({
+      status: isDoctor ? 2 : 1,
+    });
   };
 
   const handleOpenEdit = (data) => {
     const editData = {
       ...data,
-      category: data.category?._id || data.category,
+      category: {
+        value: data.category?._id || data.category,
+        label: data.category?.name || 
+               (categories?.find(cat => cat._id === data.category)?.name) || 
+               'Chưa xác định'
+      },
+      status: {
+        value: data.status,
+        label: data.status === 1 ? 'Công khai' :
+               data.status === 2 ? 'Nháp' :
+               data.status === 3 ? 'Xóa' : 'Chưa xác định'
+      }
     };
-
+  
     setSelectedData(editData);
     setModalMode('edit');
     setOpenModal(true);
-    setTitle('Sửa tin tức');
-  };
-
-  const handleClose = () => setOpenModal(false);
-
-  const validateStatusChange = (status, currentStatus) => {
-    if (isDoctor) {
-      return status === 2 || status === 3 ? status : 2;
-    } else if (isHospitalAdmin) {
-      return status;
-    } else {
-      return status;
+    reset(editData);
+    if (editData.imageUrl) {
+      setPreviewImageURL(editData.imageUrl);
     }
   };
 
-  const handleSubmit = (formData) => {
-    let finalFormData = { ...formData };
-    
-    if (modalMode === 'create') {
-      finalFormData.status = isDoctor ? 2 : formData.status;
-    } else if (modalMode === 'edit') {
-      finalFormData.status = validateStatusChange(formData.status, selectedData.status);
+  const handleClose = () => {
+    setOpenModal(false);
+    setPreviewImageURL(null);
+  };
+
+  const handleOnChangeImage = async (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      return;
+    }
+    const file = e.target.files[0];
+    if (file) {
+      const objectURL = URL.createObjectURL(file);
+      setPreviewImageURL(objectURL);
     }
 
-    if (finalFormData.imageUrl instanceof File) {
-      const reader = new FileReader();
-      reader.readAsDataURL(finalFormData.imageUrl);
-      reader.onloadend = () => {
-        const processedFormData = {
-          ...finalFormData,
-          imageUrl: reader.result,
-        };
+    const urlBase64 = await ConvertBase64(file);
+    setUrlImage(urlBase64);
+    setValue('imageUrl', file);
+  };
 
-        if (modalMode === 'create') {
-          dispatch(fetchCreateNews({ formData: processedFormData }))
-            .then((response) => {
-              if (response.payload) {
-                toast.success('Thêm tin tức thành công');
-                handleClose();
-                loadNewsData();
-              } else {
-                toast.warning('Thêm tin tức thất bại', 'error');
-              }
-            })
-            .catch(() => {
-              toast.error('Đã có lỗi xảy ra', 'error');
-            });
-        } else {
-          dispatch(
-            fetchUpdateNews({
-              id: selectedData.id,
-              formData: processedFormData,
-            }),
-          )
-            .then((response) => {
-              if (response.payload) {
-                toast.success('Cập nhật tin tức thành công');
-                handleClose();
-                loadNewsData();
-              } else {
-                toast.warning('Cập nhật tin tức thất bại', 'error');
-              }
-            })
-            .catch(() => {
-              toast.error('Đã có lỗi xảy ra', 'error');
-            });
-        }
+  const handleOpenImage = () => {
+    if (!previewImageURL) return;
+    setIsOpenImage(true);
+  };
+
+  const submitForm = async (data) => {
+    setIsSubmitting(true);
+    try {
+      const formData = {
+        ...data,
+        status: data.status?.value || data.status,
+        category: data.category?.value || data.category,
+        imageUrl: urlImage || data.imageUrl,
       };
-    } else {
+  
       if (modalMode === 'create') {
-        dispatch(fetchCreateNews({ formData: finalFormData }))
-          .then((response) => {
-            if (response.payload) {
-              toast.success('Thêm tin tức thành công');
-              handleClose();
-              loadNewsData();
-            } else {
-              toast.warning('Thêm tin tức thất bại', 'error');
-            }
-          })
-          .catch(() => {
-            toast.error('Đã có lỗi xảy ra', 'error');
-          });
+        const res = await dispatch(fetchCreateNews({ formData }));
+        const result = unwrapResult(res);
+        if (result?.status) {
+          toast.success('Thêm tin tức thành công');
+          handleClose();
+          loadNewsData();
+        } else {
+          toast.warning(result?.message);
+        }
       } else {
-        dispatch(
+        const res = await dispatch(
           fetchUpdateNews({
             id: selectedData.id,
-            formData: finalFormData,
-          }),
-        )
-          .then((response) => {
-            if (response.payload) {
-              toast.success('Cập nhật tin tức thành công');
-              handleClose();
-              loadNewsData();
-            } else {
-              toast.warning('Cập nhật tin tức thất bại', 'error');
-            }
+            formData,
           })
-          .catch(() => {
-            toast.error('Đã có lỗi xảy ra', 'error');
-          });
+        );
+        const result = unwrapResult(res);
+        if (result?.status) {
+          toast.success('Cập nhật tin tức thành công');
+          handleClose();
+          loadNewsData();
+        } else {
+          toast.warning(result?.message);
+        }
       }
+    } catch (error) {
+      toast.error('Đã có lỗi xảy ra');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const processedNewsData = newsData?.map((item) => ({
+    ...item,
+    id: item._id || item.newsPost?._id || item.news?._id || item.id || item.message,
+  }));
 
-  const processedNewsData = newsData
-    ?.map((item) => ({
-      ...item,
-      id: item._id || item.newsPost?._id || item.news?._id || item.id || item.message,
-    }));
-
-  // Function to load appropriate news data based on user role
   const loadNewsData = () => {
     if (isDoctor) {
       dispatch(fetchMyNews());
@@ -389,18 +333,18 @@ const News = () => {
     }
   };
 
-  const fetchNewsData = async () => {
-    const res = await dispatch(fetchAllNews());
-    const result = unwrapResult(res);
-    // setUserData(result?.user);
-  };
-
   useEffect(() => {
     dispatch(fetchAllCategoryNews());
     loadNewsData();
   }, [dispatch, isDoctor, isHospitalAdmin]);
 
-  
+  const categoryOptions = categories
+    ?.filter(category => category.status === 1)
+    .map((category) => ({
+      value: category._id,
+      label: category.name,
+    })) || [];
+
   return (
     <Box m="20px">
       <Header 
@@ -445,39 +389,324 @@ const News = () => {
           </Button>
         </div>
         {loading || !processedNewsData ? (
-            <LoadingSkeleton columns={5} />
-          ) : (
-            <DataGrid 
-              rows={processedNewsData} 
-              columns={columns} 
-              components={{ Toolbar: GridToolbar }}
-            />
-          )}
-
-        {isLoading ? (
           <LoadingSkeleton columns={5} />
         ) : (
-          <ThemeProvider theme={lightTheme}>
-            <MyModal
-              open={openModal}
-              handleClose={handleClose}
-              mode={modalMode}
-              onSubmit={handleSubmit}
-              data={selectedData}
-              title={title}
-              fields={newsFields}
-            />
-          </ThemeProvider>
+          <DataGrid 
+            rows={processedNewsData} 
+            columns={columns} 
+            components={{ Toolbar: GridToolbar }}
+          />
         )}
+
+        {/* Modal for Create/Edit News */}
+        <Modal 
+          isOpen={openModal} 
+          onClose={handleClose} 
+          title={modalMode === 'create' ? 'Thêm tin tức' : 'Sửa tin tức'}
+        >
+          <div className="max-h-[80vh] overflow-auto">
+            <form onSubmit={handleSubmit(submitForm)}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-6 py-4">
+                <div className="col-span-2">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Tiêu đề</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="mt-2 border border-gray-300">
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black"
+                    placeholder="Nhập tiêu đề..."
+                    {...register('title', { required: 'Vui lòng nhập tiêu đề' })}
+                  />
+                    {errors.title && (
+                      <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Tiêu đề phụ</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="mt-2 border border-gray-300">
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black"
+                      placeholder="Nhập tiêu đề phụ..."
+                      {...register('subtitle')}
+                    />
+                  </div>
+                </div>
+
+                <div className="col-span-1">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Trạng thái</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="mt-2">
+                    <Controller
+                      name="status"
+                      control={control}
+                      rules={{ required: 'Vui lòng chọn trạng thái' }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          options={getStatusOptions()}
+                          placeholder="Chọn trạng thái..."
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: '42px',
+                              borderColor: errors.status ? '#f44336' : '#d1d5db',
+                              backgroundColor: 'white',
+                              color: 'black',
+                            }),
+                            singleValue: (base) => ({
+                              ...base,
+                              color: 'black',
+                            }),
+                            input: (base) => ({
+                              ...base,
+                              color: 'black',
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              backgroundColor: 'white',
+                            }),
+                            option: (base) => ({
+                              ...base,
+                              color: 'black',
+                              '&:hover': {
+                                backgroundColor: '#f0f0f0',
+                              },
+                            }),
+                          }}
+                        />
+                      )}
+                    />
+                    {errors.status && (
+                      <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-span-1">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Thể loại</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="mt-2">
+                    <Controller
+                      name="category"
+                      control={control}
+                      rules={{ required: 'Vui lòng chọn thể loại' }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          options={categoryOptions}
+                          placeholder="Chọn thể loại..."
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: '42px',
+                              borderColor: errors.status ? '#f44336' : '#d1d5db',
+                              backgroundColor: 'white',
+                              color: 'black',
+                            }),
+                            singleValue: (base) => ({
+                              ...base,
+                              color: 'black',
+                            }),
+                            input: (base) => ({
+                              ...base,
+                              color: 'black',
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              backgroundColor: 'white',
+                            }),
+                            option: (base) => ({
+                              ...base,
+                              color: 'black',
+                              '&:hover': {
+                                backgroundColor: '#f0f0f0',
+                              },
+                            }),
+                          }}
+                        />
+                      )}
+                    />
+                    {errors.category && (
+                      <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Tags</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="mt-2 border border-gray-300">
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black"
+                      placeholder="Nhập tags (cách nhau bằng dấu phẩy)..."
+                      {...register('tags')}
+                    />
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Hình ảnh</h2>
+                  </div>
+                  <div className="mt-2">
+                    <label className="block">
+                      <span className="sr-only">Chọn hình ảnh</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleOnChangeImage}
+                        className="block w-full text-sm text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-md file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          hover:file:bg-blue-100"
+                      />
+                    </label>
+                    {previewImageURL && (
+                      <div className="mt-4">
+                        <div
+                          className="w-32 h-32 bg-cover bg-center cursor-pointer"
+                          style={{ backgroundImage: `url(${previewImageURL})` }}
+                          onClick={handleOpenImage}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Nội dung</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="mt-2 border border-gray-300">
+                    <Controller
+                      name="content"
+                      control={control}
+                      rules={{ required: 'Vui lòng nhập nội dung' }}
+                      render={({ field }) => (
+                        <div style={{color: 'black'}}>
+                          <CKEditor
+                            editor={ClassicEditor}
+                            data={field.value || ''}
+                            onChange={(event, editor) => {
+                              const data = editor.getData();
+                              field.onChange(data);
+                            }}
+                            config={{
+                              placeholder: 'Nhập nội dung tin tức...',
+                              toolbar: {
+                                items: [
+                                  'heading',
+                                  '|',
+                                  'bold',
+                                  'italic',
+                                  'underline',
+                                  'strikethrough',
+                                  '|',
+                                  'fontSize',
+                                  'fontFamily',
+                                  'fontColor',
+                                  'fontBackgroundColor',
+                                  '|',
+                                  'alignment',
+                                  '|',
+                                  'bulletedList',
+                                  'numberedList',
+                                  'todoList',
+                                  '|',
+                                  'indent',
+                                  'outdent',
+                                  '|',
+                                  'link',
+                                  'blockQuote',
+                                  'insertTable',
+                                  '|',
+                                  'undo',
+                                  'redo'
+                                ],
+                                shouldNotGroupWhenFull: true
+                              },
+                              table: {
+                                contentToolbar: [
+                                  'tableColumn',
+                                  'tableRow',
+                                  'mergeTableCells',
+                                  'tableCellProperties',
+                                  'tableProperties'
+                                ]
+                              },
+                              removePlugins: ['Title'],
+                              stylesSet: [
+                                { name: 'Default Text', element: 'p', attributes: { style: 'color: yellow !important;' } }
+                              ]
+                            }}
+                          />
+                        </div>
+                      )}
+                    />
+                    {errors.content && (
+                      <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end border-t py-4 px-6 gap-4">
+                <Button 
+                  className="text-[#2c3e50] border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50"
+                  onClick={handleClose}
+                >
+                  Đóng
+                </Button>
+                <Button
+                  className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  type="submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <BiLoaderAlt className="animate-spin mr-2" />
+                      Đang xử lý...
+                    </div>
+                  ) : (
+                    modalMode === 'create' ? 'Thêm mới' : 'Cập nhật'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+
+        {/* Modal for Delete Confirmation */}
         <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa tin tức">
           <div>
             <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa tin này không ?</p>
             <div className="flex justify-end border-t py-2 pr-6 gap-4">
-              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+              <Button 
+                className="text-[#2c3e50] border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50"
+                onClick={() => setShowModalDelete(false)}
+              >
                 Đóng
               </Button>
               <Button 
-                className="bg-red-400 px-6 py-2 text-white" 
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
                 onClick={handleDeleteNews}
                 disabled={isSubmitting}
               >

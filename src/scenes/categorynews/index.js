@@ -18,13 +18,16 @@ import AddIcon from '@mui/icons-material/Add';
 import { tokens } from '../../theme';
 import Header from '../../components/Header';
 import Modal from '~/components/Modal';
-import MyModal from '~/components/Modal/MyModal';
-import {
-  fetchAllCategoryNews,
-  fetchCreateCategoryNews,
-  fetchUpdateCategoryNews,
-  fetchDeleteCategoryNews,
+import { 
+  fetchAllCategoryNews, 
+  fetchCreateCategoryNews, 
+  fetchUpdateCategoryNews, 
+  fetchDeleteCategoryNews 
 } from '~/redux/news/categorySlice';
+import Select from 'react-select';
+import { useForm, Controller } from 'react-hook-form';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
 
 // Helper function to remove <p> tags from text
 const removePTags = (text) => {
@@ -41,6 +44,14 @@ const CategoryNews = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
+  const {
+    register,
+    control,
+    reset,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
   const lightTheme = createTheme({
     palette: {
       mode: 'light',
@@ -49,7 +60,6 @@ const CategoryNews = () => {
 
   const [openModal, setOpenModal] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
-  const [title, setTitle] = useState('');
   const [modalMode, setModalMode] = useState('create');
   const [selectedData, setSelectedData] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -67,45 +77,17 @@ const CategoryNews = () => {
   const pageTitle = "Thể loại tin tức";
   const pageSubtitle = "Quản lý thể loại tin tức cho hệ thống";
 
-  // Define fields for the category news modal
-  const categoryNewsFields = [
-    {
-      name: 'name',
-      label: 'Tên thể loại',
-      type: 'text',
-      grid: 6,
-      required: true,
-    },
-    {
-      name: 'description',
-      label: 'Mô tả',
-      type: 'textarea',
-      grid: 12,
-    },
-    {
-      name: 'status',
-      label: 'Trạng thái',
-      type: 'option',
-      options: [
-        { value: 1, label: 'Công khai' },
-        { value: 2, label: 'Ẩn' },
-      ],
-      grid: 6,
-      required: true,
-    },
-  ];
-
   // Define columns for the data grid
   const columns = [
     { field: 'id', headerName: 'ID', flex: 0.5 },
     {
       field: 'name',
-      headerName: t('menu.name'),
+      headerName: t('Tên thể loại'),
       flex: 1,
     },
     {
       field: 'description',
-      headerName: t('menu.description'),
+      headerName: t('Mô tả'),
       flex: 2,
       valueFormatter: (params) => {
         // Remove p tags when displaying in the grid
@@ -133,25 +115,23 @@ const CategoryNews = () => {
       width: 150,
       renderCell: (params) => {
         return (
-          <ButtonGroup variant="contained" aria-label="Basic button group">
-            <Button 
-              variant="contained" 
-              color="primary" 
+          <div className="flex gap-2">
+            <button 
+              className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               onClick={() => handleOpenEdit(params.row)}
             >
               <EditIcon />
-            </Button>
-            <Button 
-              variant="contained" 
-              color="primary" 
+            </button>
+            <button 
+              className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
               onClick={() => {
                 setShowModalDelete(true);
                 setSelectedCategoryId(params.row.id);
               }}
             >
               <DeleteIcon />
-            </Button>
-          </ButtonGroup>
+            </button>
+          </div>
         );
       },
     },
@@ -160,99 +140,112 @@ const CategoryNews = () => {
   const handleDeleteCategory = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
-    const res = await dispatch(fetchDeleteCategoryNews(selectedCategoryId));
-    const result = unwrapResult(res);
-    setShowModalDelete(false);
-    if (result?.status) {
-      toast.success(result?.message || "Xóa thể loại thành công");
-      fetchCategoryData();
-    } else {
-      toast.warning(result?.message || "Xóa thể loại thất bại");
-    }
+    try {
+      const res = await dispatch(fetchDeleteCategoryNews(selectedCategoryId));
+      const result = unwrapResult(res);
+      if (result?.status) {
+        toast.success(result?.message || "Xóa thể loại thành công");
+        fetchCategoryData();
+      } else {
+        toast.success(result?.message || "Xóa thể loại thành công");
+      }
+    } catch (error) {
+      toast.error("Đã có lỗi xảy ra");
+    } finally {
       setIsSubmitting(false);
+      setShowModalDelete(false);
+    }
   };
 
   const handleOpenCreate = () => {
     setSelectedData(null);
     setModalMode('create');
     setOpenModal(true);
-    setTitle('Thêm thể loại');
+    reset({
+      status: 1, // Default to public status
+    });
   };
 
   const handleOpenEdit = (data) => {
-    // Clean up the description before setting it for editing
-    const cleanedData = {
+    const editData = {
       ...data,
-      description: removePTags(data.description)
+      status: {
+        value: data.status,
+        label: data.status === 1 ? 'Công khai' : 'Ẩn'
+      }
     };
-    setSelectedData(cleanedData);
+  
+    setSelectedData(editData);
     setModalMode('edit');
     setOpenModal(true);
-    setTitle('Sửa thể loại');
+    reset(editData);
   };
 
-  const handleClose = () => setOpenModal(false);
+  const handleClose = () => {
+    setOpenModal(false);
+  };
 
-  const handleSubmit = (formData) => {
-    // Clean up the description before submitting
-    const cleanedFormData = {
-      ...formData,
-      description: removePTags(formData.description)
-    };
-
-    if (modalMode === 'create') {
-      dispatch(fetchCreateCategoryNews({ formData: cleanedFormData }))
-        .then((response) => {
-          if (response.payload) {
-            toast.success('Thêm thể loại thành công');
-            handleClose();
-            fetchCategoryData();
-          } else {
-            toast.warning('Thêm thể loại thất bại', 'error');
-          }
-        })
-        .catch(() => {
-          toast.error('Đã có lỗi xảy ra', 'error');
-        });
-    } else {
-      dispatch(
-        fetchUpdateCategoryNews({
-          id: selectedData.id,
-          formData: cleanedFormData,
-        }),
-      )
-        .then((response) => {
-          if (response.payload) {
-            toast.success('Cập nhật thể loại thành công');
-            handleClose();
-            fetchCategoryData();
-          } else {
-            toast.warning('Cập nhật thể loại thất bại', 'error');
-          }
-        })
-        .catch(() => {
-          toast.error('Đã có lỗi xảy ra', 'error');
-        });
+  const submitForm = async (data) => {
+    setIsSubmitting(true);
+    try {
+      const formData = {
+        ...data,
+        status: data.status?.value || data.status,
+      };
+  
+      if (modalMode === 'create') {
+        const res = await dispatch(fetchCreateCategoryNews({ formData }));
+        const result = unwrapResult(res);
+        if (result?.status) {
+          toast.success('Thêm thể loại thành công');
+          handleClose();
+          fetchCategoryData();
+        } else {
+          toast.warning(result?.message);
+        }
+      } else {
+        const res = await dispatch(
+          fetchUpdateCategoryNews({
+            id: selectedData.id,
+            formData,
+          })
+        );
+        const result = unwrapResult(res);
+        if (result?.status) {
+          toast.success('Cập nhật thể loại thành công');
+          handleClose();
+          fetchCategoryData();
+        } else {
+          toast.warning(result?.message);
+        }
+      }
+    } catch (error) {
+      toast.error('Đã có lỗi xảy ra');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Process data for DataGrid
   const processedCategoryData = categories?.map((item) => ({
     ...item,
     id: item._id || item.id,
-    // Clean description here too for redundancy/safety
     description: item.description
   }));
 
   const fetchCategoryData = async () => {
     const res = await dispatch(fetchAllCategoryNews());
-    const result = unwrapResult(res);
+    unwrapResult(res);
   };
 
   // Fetch categories on component mount
   useEffect(() => {
     dispatch(fetchAllCategoryNews());
   }, [dispatch]);
+
+  const statusOptions = [
+    { value: 1, label: 'Công khai' },
+    { value: 2, label: 'Ẩn' },
+  ];
 
   return (
     <Box m="20px">
@@ -299,46 +292,199 @@ const CategoryNews = () => {
         </div>
         {loading || !processedCategoryData ? (
           <LoadingSkeleton columns={5} />
-            ) : (
-              <DataGrid 
-                rows={processedCategoryData} 
-                columns={columns} 
-                components={{ Toolbar: GridToolbar }}
-              />
-            )}
-          {isLoading ? (
-              <LoadingSkeleton columns={5} />
-            ) : (
-              <ThemeProvider theme={lightTheme}>
-                <MyModal
-                  open={openModal}
-                  handleClose={handleClose}
-                  mode={modalMode}
-                  onSubmit={handleSubmit}
-                  data={selectedData}
-                  title={title}
-                  fields={categoryNewsFields}
-                />
-              </ThemeProvider>
-            )}
+        ) : (
+          <DataGrid 
+            rows={processedCategoryData} 
+            columns={columns} 
+            components={{ Toolbar: GridToolbar }}
+          />
+        )}
+
+        {/* Modal for Create/Edit Category */}
+        <Modal 
+          isOpen={openModal} 
+          onClose={handleClose} 
+          title={modalMode === 'create' ? 'Thêm thể loại' : 'Sửa thể loại'}
+        >
+          <div className="max-h-[80vh] overflow-auto">
+            <form onSubmit={handleSubmit(submitForm)}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-6 py-4">
+                <div className="col-span-2">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Tên thể loại</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="mt-2 border border-gray-300">
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black"
+                      placeholder="Nhập tên thể loại..."
+                      {...register('name', { required: 'Vui lòng nhập tên thể loại' })}
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Trạng thái</h2>
+                    <span className="text-rose-600 font-bold">*</span>
+                  </div>
+                  <div className="mt-2">
+                    <Controller
+                      name="status"
+                      control={control}
+                      rules={{ required: 'Vui lòng chọn trạng thái' }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          options={statusOptions}
+                          placeholder="Chọn trạng thái..."
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              minHeight: '42px',
+                              borderColor: errors.status ? '#f44336' : '#d1d5db',
+                              backgroundColor: 'white',
+                              color: 'black',
+                            }),
+                            singleValue: (base) => ({
+                              ...base,
+                              color: 'black',
+                            }),
+                            input: (base) => ({
+                              ...base,
+                              color: 'black',
+                            }),
+                            menu: (base) => ({
+                              ...base,
+                              backgroundColor: 'white',
+                            }),
+                            option: (base) => ({
+                              ...base,
+                              color: 'black',
+                              '&:hover': {
+                                backgroundColor: '#f0f0f0',
+                              },
+                            }),
+                          }}
+                        />
+                      )}
+                    />
+                    {errors.status && (
+                      <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <div className="flex">
+                    <h2 className="font-semibold text-black">Mô tả</h2>
+                  </div>
+                  <div className="mt-2 border border-gray-300">
+                    <Controller
+                      name="description"
+                      control={control}
+                      render={({ field }) => (
+                        <div style={{color: 'black'}}>
+                          <CKEditor
+                            editor={ClassicEditor}
+                            data={field.value || ''}
+                            onChange={(event, editor) => {
+                              const data = editor.getData();
+                              field.onChange(data);
+                            }}
+                            config={{
+                              placeholder: 'Nhập mô tả thể loại...',
+                              toolbar: {
+                                items: [
+                                  'heading',
+                                  '|',
+                                  'bold',
+                                  'italic',
+                                  'underline',
+                                  'strikethrough',
+                                  '|',
+                                  'fontSize',
+                                  'fontFamily',
+                                  'fontColor',
+                                  'fontBackgroundColor',
+                                  '|',
+                                  'alignment',
+                                  '|',
+                                  'bulletedList',
+                                  'numberedList',
+                                  '|',
+                                  'indent',
+                                  'outdent',
+                                  '|',
+                                  'undo',
+                                  'redo'
+                                ],
+                                shouldNotGroupWhenFull: true
+                              },
+                              removePlugins: ['Title'],
+                            }}
+                          />
+                        </div>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end border-t py-4 px-6 gap-4">
+                <Button 
+                  className="text-[#2c3e50] border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50"
+                  onClick={handleClose}
+                >
+                  Đóng
+                </Button>
+                <Button
+                  className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  type="submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <BiLoaderAlt className="animate-spin mr-2" />
+                      Đang xử lý...
+                    </div>
+                  ) : (
+                    modalMode === 'create' ? 'Thêm mới' : 'Cập nhật'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+
+        {/* Modal for Delete Confirmation */}
         <Modal isOpen={showModalDelete} onClose={() => setShowModalDelete(false)} title="Xóa thể loại">
           <div>
             <p className="text-[#2c3e50] p-5 text-lg">Bạn thực sự muốn xóa thể loại này không ?</p>
             <div className="flex justify-end border-t py-2 pr-6 gap-4">
-              <Button className="text-[#2c3e50]" onClick={() => setShowModalDelete(false)}>
+              <Button 
+                className="text-[#2c3e50] border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50"
+                onClick={() => setShowModalDelete(false)}
+              >
                 Đóng
               </Button>
-              <Button className="bg-red-400 px-6 py-2 text-white" onClick={handleDeleteCategory}
+              <Button 
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                onClick={handleDeleteCategory}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <BiLoaderAlt className="animate-spin mr-2" />
-                Đang xử lý...
-              </div>
-            ) : (
-                'Đồng ý'
-            )}
+                  <div className="flex items-center justify-center">
+                    <BiLoaderAlt className="animate-spin mr-2" />
+                    Đang xử lý...
+                  </div>
+                ) : (
+                  "Đồng ý"
+                )}
               </Button>
             </div>
           </div>
