@@ -18,5 +18,6 @@ const routes = {
   unauthorized: '/unauthorized',
   schedulerDoctor: '/scheduler-doctor',
   schedulerAppointment: '/scheduler-appointment',
+  AdminProfile: '/profile',
 };
 export default routes;
