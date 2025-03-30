@@ -3,9 +3,9 @@ import { Buffer } from 'buffer';
 import { useDispatch, useSelector } from 'react-redux';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { useForm } from 'react-hook-form';
-import classNames from 'classnames/bind';
 import { toast } from 'react-toastify';
 import { BiLoaderAlt } from 'react-icons/bi';
+import { io } from 'socket.io-client';
 
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
@@ -19,8 +19,8 @@ import { removeAccents } from '~/utils/string';
 import CreateDoctor from './modal/createDoctor';
 
 import { fetchDoctorByHospital, fetchDeleteDoctor } from '~/redux/doctor/doctorSlice';
-import { fetchAllProvinces, fetchDistrictsByProvince, fetchWardsByDistricts } from '~/redux/location/locationSlice';
 import { fetchAllSpecialty } from '~/redux/specialty/specialtySlice';
+const socket = io(process.env.REACT_APP_BACKEND_URL);
 
 const Doctor = () => {
   const dispatch = useDispatch();
@@ -28,15 +28,20 @@ const Doctor = () => {
 
   const [doctorData, setDoctorData] = useState(false);
   const [editDoctor, setEditDoctor] = useState(null);
+  const [activeUsers, setActiveUsers] = useState([]);
 
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
+  const [showSpecialtyDropdown, setShowSpecialtyDropdown] = useState(false);
+  const [selectedSpecialty, setSelectedSpecialty] = useState('all');
 
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [specialtyOptions, setSpecialtyOptions] = useState([]);
+
+  console.log('check specialtyOptions', specialtyOptions);
 
   const [localLoading, setLocalLoading] = useState(true);
 
@@ -50,6 +55,9 @@ const Doctor = () => {
   const filteredUsers =
     (doctorData?.length > 0 &&
       doctorData?.filter((user) => {
+        console.log('check user', user);
+        if (selectedSpecialty !== 'all' && user?.specialty?._id !== selectedSpecialty) return false;
+
         if (!searchTerm) return true;
 
         const searchValue = removeAccents(searchTerm.toLowerCase().trim());
@@ -61,7 +69,6 @@ const Doctor = () => {
         return fullName.includes(searchValue) || phoneNumber.includes(searchValue);
       })) ||
     [];
-  // Check if all filtered users are selected
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -108,22 +115,26 @@ const Doctor = () => {
   }, []);
 
   useEffect(() => {
-    if (showModalCreate || showModalEdit) {
-      const fetchSpecialty = async () => {
-        const res = await dispatch(fetchAllSpecialty());
-        const result = unwrapResult(res);
-        const specialtyData = result.data.map((specialty) => ({
-          value: specialty._id,
-          label: specialty.fullName,
-        }));
-        setSpecialtyOptions(specialtyData);
-      };
-      fetchSpecialty();
-    }
-  }, [showModalCreate, showModalEdit]);
+    const fetchSpecialty = async () => {
+      const res = await dispatch(fetchAllSpecialty());
+      const result = unwrapResult(res);
+      const specialtyData = result.data.map((specialty) => ({
+        value: specialty._id,
+        label: specialty.fullName,
+      }));
+      setSpecialtyOptions(specialtyData);
+    };
+    fetchSpecialty();
+  }, []);
 
   useEffect(() => {
     fetchDoctorData();
+  }, []);
+
+  useEffect(() => {
+    socket.on('update_active_users', (users) => {
+      setActiveUsers(users);
+    });
   }, []);
 
   return (
@@ -144,32 +155,54 @@ const Doctor = () => {
       </div>
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div className="flex items-center justify-between flex-column flex-wrap md:flex-row space-y-4 md:space-y-0 p-4 bg-white dark:bg-gray-900">
-          <div>
-            <button
-              id="dropdownActionButton"
-              data-dropdown-toggle="dropdownAction"
-              className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-              type="button"
-            >
-              <span className="sr-only">Action button</span>
-              Action
-              <svg
-                className="w-2.5 h-2.5 ms-2.5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 10 6"
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <button
+                onClick={() => setShowSpecialtyDropdown(!showSpecialtyDropdown)}
+                className="inline-flex items-center text-gray-500 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
               >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m1 1 4 4 4-4"
-                />
-              </svg>
-            </button>
+                {[{ value: 'all', label: 'Tất cả' }, ...specialtyOptions].find(
+                  (option) => option.value === selectedSpecialty,
+                )?.label || 'Lọc theo Khoa'}
+                <svg
+                  className="w-2.5 h-2.5 ms-2.5"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 10 6"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="m1 1 4 4 4-4"
+                  />
+                </svg>
+              </button>
+
+              {showSpecialtyDropdown && (
+                <div className="absolute z-10 mt-1 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                  <ul className="py-1 text-sm text-gray-700 dark:text-gray-200">
+                    {[{ value: 'all', label: 'Tất cả' }, ...specialtyOptions].map((option) => (
+                      <li key={option.value}>
+                        <button
+                          onClick={() => {
+                            setSelectedSpecialty(option.value);
+                            setShowSpecialtyDropdown(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                        >
+                          {option.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
+
           <div>
             <label htmlFor="table-search" className="sr-only">
               Search
@@ -211,20 +244,6 @@ const Doctor = () => {
                 <th scope="col" className="px-6 py-3">
                   STT
                 </th>
-                {/* <th scope="col" className="p-4">
-                  <div className="flex items-center">
-                    <input
-                      id="checkbox-all-search"
-                      type="checkbox"
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                      checked={isAllSelected}
-                      onChange={handleSelectAll}
-                    />
-                    <label htmlFor="checkbox-all-search" className="sr-only">
-                      checkbox
-                    </label>
-                  </div>
-                </th> */}
                 <th scope="col" className="px-6 py-3">
                   Họ và tên
                 </th>
@@ -241,9 +260,6 @@ const Doctor = () => {
                   Chuyên khoa
                 </th>
                 <th scope="col" className="px-6 py-3">
-                  Đánh giá
-                </th>
-                <th scope="col" className="px-6 py-3">
                   Trạng thái
                 </th>
                 <th scope="col" className="px-6 py-3">
@@ -255,7 +271,7 @@ const Doctor = () => {
               </tr>
             </thead>
             {isLoading ? (
-              <LoadingSkeleton columns={9} />
+              <LoadingSkeleton columns={8} />
             ) : (
               <tbody>
                 {doctorData?.length === 0 ? (
@@ -282,20 +298,6 @@ const Doctor = () => {
                         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                       >
                         <td className="px-6 py-4">{index + 1}</td>
-                        {/* <td className="w-4 p-4">
-                          <div className="flex items-center">
-                            <input
-                              id="checkbox-table-search-1"
-                              type="checkbox"
-                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                              checked={selectedUsers.includes(item._id)}
-                              onChange={() => handleSelectUser(item._id)}
-                            />
-                            <label htmlFor="checkbox-table-search-1" className="sr-only">
-                              checkbox
-                            </label>
-                          </div>
-                        </td> */}
                         <th
                           scope="row"
                           className="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white"
@@ -325,10 +327,9 @@ const Doctor = () => {
                             : 'Giáo sư'}
                         </td>
                         <td className="px-6 py-4">{item?.specialty?.fullName}</td>
-                        <td className="px-6 py-4">{item?.rating}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">
-                            <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
+                            {activeUsers.includes(item?._id) ? '🟢 Online' : '🔴 Offline'}
                           </div>
                         </td>
                         <td className="px-6 py-4">

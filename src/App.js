@@ -11,7 +11,7 @@ import { io } from 'socket.io-client';
 import { formatDate } from './utils/time';
 import 'react-toastify/dist/ReactToastify.css';
 
-const socket = io('http://localhost:8080', { transports: ['websocket'] });
+const socket = io(process.env.REACT_APP_BACKEND_URL, { transports: ['websocket'] });
 socket.on('connect', () => console.log(' Kết nối thành công với Server'));
 
 function App() {
@@ -20,6 +20,12 @@ function App() {
   useEffect(() => {
     if (userLogin) {
       socket.emit('join-doctor-room', userLogin);
+
+      socket.emit('user_online', userLogin);
+
+      window.addEventListener('beforeunload', () => {
+        socket.emit('user_offline', userLogin);
+      });
     }
 
     socket.on('new-appointment', (newAppointment) => {
@@ -30,6 +36,7 @@ function App() {
 
     return () => {
       socket.off('new-appointment');
+      socket.emit('user_offline', userLogin);
     };
   }, [userLogin]);
   return (

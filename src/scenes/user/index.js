@@ -4,10 +4,11 @@ import { toast } from 'react-toastify';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { useForm } from 'react-hook-form';
 import classNames from 'classnames/bind';
-import { BiLoaderAlt } from 'react-icons/bi';
+import { io } from 'socket.io-client';
 
 //icon
 import { CiEdit } from 'react-icons/ci';
+import { BiLoaderAlt } from 'react-icons/bi';
 import { AiOutlineDelete, AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 import Header from '../../components/Header';
@@ -21,6 +22,7 @@ import { removeAccents } from '~/utils/string';
 
 import styles from './user.module.scss';
 const cx = classNames.bind(styles);
+const socket = io(process.env.REACT_APP_BACKEND_URL);
 
 const User = () => {
   const dispatch = useDispatch();
@@ -35,10 +37,9 @@ const User = () => {
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
   const [editUser, setEditUser] = useState(null);
-
+  const [activeUsers, setActiveUsers] = useState([]);
   const [showHidePassword, setShowHidePassword] = useState(true);
   const [confirmPassword, setConfirmPassword] = useState(true);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [userData, setUserData] = useState([]);
@@ -48,6 +49,8 @@ const User = () => {
 
   const isLoading = localLoading || reduxLoading;
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  console.log('userData', userData);
 
   // Lọc danh sách người dùng dựa trên từ khóa tìm kiếm
   const filteredUsers =
@@ -120,6 +123,12 @@ const User = () => {
   useEffect(() => {
     setLocalLoading(true);
     fetchPatientData();
+  }, []);
+
+  useEffect(() => {
+    socket.on('update_active_users', (users) => {
+      setActiveUsers(users);
+    });
   }, []);
 
   return (
@@ -237,7 +246,7 @@ const User = () => {
                         <td className="px-6 py-4">{item?.accountId?.phoneNumber}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center">
-                            <div className="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Online
+                            {activeUsers.includes(item?._id) ? '🟢 Online' : '🔴 Offline'}
                           </div>
                         </td>
                         <td className="px-6 py-4">{item.createdAt}</td>

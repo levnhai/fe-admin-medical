@@ -3,13 +3,8 @@ import { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { jwtDecode } from 'jwt-decode';
-import Cookies from 'js-cookie';
 import { unwrapResult } from '@reduxjs/toolkit';
-import { useForm, Controller } from 'react-hook-form';
-import classNames from 'classnames/bind';
-import styles from './admin.module.scss';
-import Select from 'react-select';
+import { useForm } from 'react-hook-form';
 import { CiEdit } from 'react-icons/ci';
 import { AiOutlineDelete } from 'react-icons/ai';
 
@@ -23,21 +18,8 @@ import Modal from '~/components/Modal';
 import Button from '~/components/Button';
 import { toast } from 'react-toastify';
 
-const cx = classNames.bind(styles);
-
 const SystemAdmin = () => {
-  const theme = useTheme();
   const dispatch = useDispatch();
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset,
-  } = useForm();
-  const { t } = useTranslation();
-  const colors = tokens(theme.palette.mode);
-
   const [doctorData, setDoctorData] = useState(false);
   const [showModalCreate, setShowModalCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
